@@ -31,7 +31,7 @@ export const Hand = ({
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-2 md:gap-4 transition-all duration-300 w-full",
+        "flex flex-col items-center gap-1 md:gap-4 transition-all duration-300 w-full",
         isHidden && "opacity-80"
       )}
     >
@@ -61,7 +61,8 @@ export const Hand = ({
           isMyTurn && !isHidden
             ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)]"
             : "bg-black/40 border border-white/5 shadow-inner",
-          !isMyTurn && "scale-75 md:scale-100 origin-center" // Shrink on mobile if not my turn
+          !isMyTurn && "scale-[0.6] md:scale-100 origin-center", // Shrink on mobile if not my turn
+          isMyTurn && "scale-[0.8] md:scale-100 origin-center" // Slightly shrink active hand on mobile
         )}
       >
         <div

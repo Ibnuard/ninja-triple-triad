@@ -121,7 +121,7 @@ export default function GamePage() {
       {/* UPDATE: Use minmax for columns to prevent overlap on small desktops. Reduced min size to 200px. */}
       <div className="relative z-10 w-full h-full p-2 md:p-8 grid grid-rows-[auto_1fr_auto] md:grid-rows-1 md:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-2 md:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
         {/* LEFT / BOTTOM (Player) */}
-        <div className="order-3 md:order-1 w-full h-full flex flex-col items-center justify-center md:justify-center relative p-2">
+        <div className="order-3 md:order-1 w-full h-full flex flex-col items-center justify-end md:justify-center relative p-2">
           {/* Mobile View (Horizontal) */}
           <div className="md:hidden w-full flex justify-center">
             <Hand
@@ -150,7 +150,7 @@ export default function GamePage() {
         {/* CENTER (Board) */}
         <div className="order-2 w-full h-full flex items-center justify-center relative min-h-0 min-w-0">
           <div className="relative w-full h-full max-h-[50vh] sm:max-h-[60vh] md:max-h-[80vh] aspect-square flex items-center justify-center">
-            <div className="scale-[0.6] sm:scale-75 md:scale-95 lg:scale-100 transition-transform duration-500">
+            <div className="scale-[0.85] sm:scale-75 md:scale-95 lg:scale-100 transition-transform duration-500">
               <Board />
             </div>
           </div>
@@ -176,7 +176,7 @@ export default function GamePage() {
         </div>
 
         {/* RIGHT / TOP (Opponent) */}
-        <div className="order-1 md:order-3 w-full h-full flex flex-col items-center justify-center md:justify-center relative pt-12 md:pt-0 p-2">
+        <div className="order-1 md:order-3 w-full h-full flex flex-col items-center justify-start md:justify-center relative pt-12 md:pt-0 p-2">
           {/* Mobile View (Horizontal Compact) */}
           <div className={cn("md:hidden w-full flex justify-center")}>
             <Hand
