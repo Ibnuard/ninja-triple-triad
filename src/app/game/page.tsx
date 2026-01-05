@@ -103,14 +103,14 @@ export default function GamePage() {
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none" />
 
       {/* Header / Status Bar */}
-      <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-2 md:p-4 pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-2 xl:p-4 pointer-events-none">
         {/* Empty space for balance on desktop */}
-        <div className="w-10 md:hidden" /> 
+        <div className="w-10 xl:hidden" /> 
 
         {/* Turn Status Overlay (Central) */}
         <div
           className={cn(
-            "px-3 py-1 md:px-4 md:py-2 rounded-full border backdrop-blur-md font-bold text-[10px] md:text-xl uppercase tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
+            "px-3 py-1 xl:px-4 xl:py-2 rounded-full border backdrop-blur-md font-bold text-[10px] xl:text-xl uppercase tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
             isMyTurn
               ? "bg-blue-500/10 border-blue-500 text-blue-400 animate-pulse ring-blue-500"
               : "bg-red-500/10 border-red-500 text-red-500"
@@ -122,22 +122,22 @@ export default function GamePage() {
         {/* Exit Button */}
         <button
           onClick={() => router.push("/")}
-          className="p-2 md:px-3 md:py-1 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"
+          className="p-2 xl:px-3 xl:py-1 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"
           title={t.exit}
         >
-          <span className="hidden md:inline text-xs font-bold uppercase tracking-wider">{t.exit}</span>
-          <LogOut className="w-4 h-4 md:hidden" />
+          <span className="hidden xl:inline text-xs font-bold uppercase tracking-wider">{t.exit}</span>
+          <LogOut className="w-4 h-4 xl:hidden" />
         </button>
       </div>
 
       {/* Main Layout Container */}
       {/* Mobile: Col. Order: Opponent(1), Board(2), Player(3) */}
       {/* Desktop: 3-Col Grid. */}
-      <div className="relative z-10 w-full h-full p-1 md:p-8 grid grid-rows-[1fr_2fr_1fr] md:grid-rows-1 md:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-1 md:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
+      <div className="relative z-10 w-full h-full p-1 xl:p-8 grid grid-rows-[1fr_2fr_1fr] xl:grid-rows-1 xl:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-1 xl:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
         {/* LEFT / BOTTOM (Player) */}
-        <div className="order-3 md:order-1 w-full h-full flex flex-col items-center justify-center relative p-1 md:p-2">
+        <div className="order-3 xl:order-1 w-full h-full flex flex-col items-center justify-center relative p-1 xl:p-2">
           {/* Mobile View (Horizontal) */}
-          <div className="md:hidden w-full flex justify-center">
+          <div className="xl:hidden w-full flex justify-center items-center">
             <Hand
               cards={player1.hand}
               ownerId="player1"
@@ -146,7 +146,7 @@ export default function GamePage() {
             />
           </div>
           {/* Desktop View (Vertical) */}
-          <div className="hidden md:flex w-full h-full items-center justify-center">
+          <div className="hidden xl:flex w-full h-full items-center justify-center">
             <Hand
               cards={player1.hand}
               ownerId="player1"
@@ -163,8 +163,8 @@ export default function GamePage() {
 
         {/* CENTER (Board) */}
         <div className="order-2 w-full h-full flex items-center justify-center relative min-h-0 min-w-0">
-          <div className="relative w-full h-full max-h-[65vh] sm:max-h-[60vh] md:max-h-[80vh] aspect-square flex items-center justify-center">
-            <div className="scale-100 sm:scale-75 md:scale-95 lg:scale-100 transition-transform duration-500">
+          <div className="relative w-full h-full max-h-[65vh] sm:max-h-[60vh] xl:max-h-[80vh] aspect-square flex items-center justify-center">
+            <div className="scale-100 sm:scale-75 xl:scale-95 lg:scale-100 transition-transform duration-500">
               <Board />
             </div>
           </div>
@@ -190,9 +190,9 @@ export default function GamePage() {
         </div>
 
         {/* RIGHT / TOP (Opponent) */}
-        <div className="order-1 md:order-3 w-full h-full flex flex-col items-center justify-center relative p-1 md:p-2">
+        <div className="order-1 xl:order-3 w-full h-full flex flex-col items-center justify-center relative p-1 xl:p-2">
           {/* Mobile View (Horizontal Compact) */}
-          <div className={cn("md:hidden w-full flex justify-center")}>
+          <div className={cn("xl:hidden w-full flex justify-center")}>
             <Hand
               cards={player2.hand}
               ownerId="player2"
@@ -204,7 +204,7 @@ export default function GamePage() {
           </div>
           {/* Desktop View (Vertical Compact) */}
           {/* Made full width/height to center nicely */}
-          <div className="hidden md:flex w-full h-full items-center justify-center">
+          <div className="hidden xl:flex w-full h-full items-center justify-center">
             <Hand
               cards={player2.hand}
               ownerId="player2"
