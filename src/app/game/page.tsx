@@ -103,10 +103,7 @@ export default function GamePage() {
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none" />
 
       {/* Header / Status Bar */}
-      <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-2 lg:p-4 pointer-events-none">
-        {/* Empty space for balance on desktop */}
-        <div className="w-10 lg:hidden" /> 
-
+      <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-center p-2 lg:p-4 pointer-events-none">
         {/* Turn Status Overlay (Central) */}
         <div
           className={cn(
@@ -118,8 +115,10 @@ export default function GamePage() {
         >
           {isMyTurn ? t.yourTurn : t.opponentTurn}
         </div>
+      </div>
 
-        {/* Exit Button */}
+      {/* Exit Button (Absolute Positioned) */}
+      <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none">
         <button
           onClick={() => router.push("/")}
           className="p-2 lg:px-3 lg:py-1 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"

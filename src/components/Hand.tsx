@@ -77,16 +77,17 @@ export const Hand = ({
               <motion.div
                 key={card.id}
                 className={cn(
-                  "relative transition-all duration-300",
+                  "relative", // Removed transition-all duration-300 to avoid conflict
                   compact && "scale-90 origin-center",
-                  // Stagger animations or hover lifts handled by Card component
-                  orientation === "vertical" &&
-                    "hover:z-10 hover:scale-105 cursor-pointer", // Less scale for grid
-                  orientation === "horizontal" &&
-                    "hover:z-10 hover:scale-110 hover:!mx-2 cursor-pointer",
-                  // Expansion for selected card in horizontal (mobile)
-                  orientation === "horizontal" && isSelected && "scale-110 z-20 mx-2"
+                  orientation === "horizontal" && isSelected && "scale-110 z-20 mx-2",
+                  "cursor-pointer"
                 )}
+                whileHover={
+                  orientation === "horizontal"
+                    ? { scale: 1.2, zIndex: 50, margin: "0 1.5rem" }
+                    : { scale: 1.1, zIndex: 50 }
+                }
+                transition={{ type: "spring", stiffness: 500, damping: 30, mass: 0.8 }}
                 style={{ zIndex: isSelected ? 50 : index }}
               >
                 {isHidden ? (
