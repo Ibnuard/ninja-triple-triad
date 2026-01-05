@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import React from "react";
 import { Card as CardType } from "../types/game";
 import { Card } from "./Card";
 import { useGameStore } from "../store/useGameStore";
@@ -24,17 +25,42 @@ export const Hand = ({
   isHidden = false,
 }: HandProps) => {
   const { selectCard, selectedCardId, currentPlayerId } = useGameStore();
+  const [hoveredCard, setHoveredCard] = React.useState<CardType | null>(null);
 
   const isMyTurn = currentPlayerId === ownerId;
 
   return (
     <div
       className={cn(
-        "flex items-center justify-center p-2 rounded-xl transition-colors duration-300",
+        "flex items-center justify-center p-2 rounded-xl transition-colors duration-300 relative", // Added relative for tooltip positioning
         orientation === "vertical" ? "flex-col gap-2" : "flex-row gap-2",
         isMyTurn && !isHidden && "bg-white/5 border border-white/10" // Only highlight normal hand
       )}
     >
+      {/* Tooltip for Vertical Orientation (Desktop) */}
+      {hoveredCard && orientation === "vertical" && !isHidden && (
+        <motion.div
+          initial={{ opacity: 0, x: -20, scale: 0.9 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          className="absolute left-full ml-4 z-50 pointer-events-none"
+        >
+          <div className="bg-black/90 border border-white/20 p-2 rounded-xl shadow-2xl relative">
+            {/* Arrow */}
+            <div className="absolute top-1/2 -left-2 w-4 h-4 bg-black/90 border-l border-b border-white/20 transform rotate-45 -translate-y-1/2" />
+
+            <div className="flex flex-col items-center">
+              <div className="text-xs text-blue-400 font-bold mb-1 uppercase tracking-wider">
+                Preview
+              </div>
+              <Card
+                card={hoveredCard}
+                owner={ownerId} // Preview with owner color
+              />
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Hide label if hidden/compact mode? Or keep it small? */}
       {!isHidden && (
         <h3
@@ -69,6 +95,8 @@ export const Hand = ({
                 // No z-index logic needed if not overlapping
               }
             }
+            onMouseEnter={() => setHoveredCard(card)}
+            onMouseLeave={() => setHoveredCard(null)}
           >
             {isHidden ? (
               // Card Back
