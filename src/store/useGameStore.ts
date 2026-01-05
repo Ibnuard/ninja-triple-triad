@@ -6,6 +6,7 @@ import {
   determineWinner,
   isBoardFull,
 } from "../lib/game-logic";
+import { playSound, SOUNDS } from "../lib/sounds";
 
 interface GameStore extends GameState {
   // Actions
@@ -83,6 +84,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const card = player.hand.find((c) => c.id === cardId);
 
     if (card) {
+      playSound(SOUNDS.CLICK);
       set({ selectedCardId: cardId });
     }
   },
@@ -123,6 +125,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       newBoard[flip.row][flip.col].owner = flip.newOwner;
     });
 
+    playSound(SOUNDS.PLACE);
+    if (flips.length > 0) {
+      // Small delay for flip sound to feel more natural
+      setTimeout(() => playSound(SOUNDS.FLIP), 200);
+    }
+
     // Remove card from hand
     const newHand = [...currentPlayer.hand];
     newHand.splice(cardIndex, 1);
@@ -144,6 +152,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (isBoardFull(newBoard)) {
       nextPhase = "game_over";
       nextWinner = determineWinner(newBoard, newPlayer1, newPlayer2);
+    }
+
+    if (nextPhase === "game_over" && nextWinner) {
+      if (nextWinner === "draw") {
+        playSound(SOUNDS.DRAW);
+      } else if (nextWinner === "player1") {
+        playSound(SOUNDS.WIN);
+      } else {
+        playSound(SOUNDS.LOSE);
+      }
     }
 
     set({

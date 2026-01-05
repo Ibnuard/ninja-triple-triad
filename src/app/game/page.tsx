@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { LogOut } from "lucide-react";
+import { motion } from "framer-motion";
 import { Board } from "../../components/Board";
 import { Hand } from "../../components/Hand";
 import { useComputerAI } from "../../lib/useComputerAI";
@@ -98,23 +99,23 @@ export default function GamePage() {
 
   return (
     <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
-      {/* Background */}
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542256843-e38029d5d851?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none" />
 
       {/* Header / Status Bar */}
       <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-center p-2 lg:p-4 pointer-events-none">
         {/* Turn Status Overlay (Central) */}
-        <div
-          className={cn(
-            "px-3 py-1 lg:px-4 lg:py-2 rounded-full border backdrop-blur-md font-bold text-[10px] lg:text-xl uppercase tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
-            isMyTurn
-              ? "bg-blue-500/10 border-blue-500 text-blue-400 animate-pulse ring-blue-500"
-              : "bg-red-500/10 border-red-500 text-red-500"
-          )}
-        >
-          {isMyTurn ? t.yourTurn : t.opponentTurn}
-        </div>
+        {phase !== "game_over" && (
+          <div
+            className={cn(
+              "px-3 py-1 lg:px-4 lg:py-2 rounded-full border backdrop-blur-md font-bold text-[10px] lg:text-xl uppercase tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
+              isMyTurn
+                ? "bg-blue-500/10 border-blue-500 text-blue-400 animate-pulse ring-blue-500"
+                : "bg-red-500/10 border-red-500 text-red-500"
+            )}
+          >
+            {isMyTurn ? t.yourTurn : t.opponentTurn}
+          </div>
+        )}
       </div>
 
       {/* Exit Button (Absolute Positioned) */}
@@ -169,22 +170,50 @@ export default function GamePage() {
           </div>
 
           {phase === "game_over" && (
-            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md rounded-xl">
-              <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 to-red-600 mb-4 drop-shadow-2xl">
-                {winner === "draw"
-                  ? t.draw
-                  : `${winner === "player1" ? t.victory : t.defeat}`}
-              </h1>
-              <button
-                onClick={() => {
-                  resetGame();
-                  router.push("/");
-                }}
-                className="px-8 py-3 bg-white text-black font-bold text-lg uppercase tracking-widest hover:scale-105 transition-transform rounded-full shadow-xl"
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, backdropFilter: "blur(0px)" }}
+              animate={{ opacity: 1, scale: 1, backdropFilter: "blur(12px)" }}
+              className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60"
+            >
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gray-900/80 border border-white/10 p-8 lg:p-12 rounded-[2rem] shadow-2xl flex flex-col items-center max-w-[90vw] w-[400px] text-center"
               >
-                {t.playAgain}
-              </button>
-            </div>
+                <div className="mb-6">
+                  <h2 className="text-gray-400 text-sm font-bold uppercase tracking-[0.3em] mb-2">
+                    Game Result
+                  </h2>
+                  <h1 className={cn(
+                    "text-5xl lg:text-7xl font-black uppercase tracking-tighter drop-shadow-2xl",
+                    winner === "player1" ? "text-blue-400" : winner === "player2" ? "text-red-500" : "text-yellow-500"
+                  )}>
+                    {winner === "draw"
+                      ? t.draw
+                      : `${winner === "player1" ? t.victory : t.defeat}`}
+                  </h1>
+                </div>
+
+                <div className="flex flex-col gap-3 w-full">
+                  <button
+                    onClick={() => {
+                      resetGame();
+                      router.push("/");
+                    }}
+                    className="w-full py-4 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl"
+                  >
+                    {t.playAgain}
+                  </button>
+                  <button
+                    onClick={() => router.push("/")}
+                    className="w-full py-4 bg-white/5 text-white/50 font-bold text-sm uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all rounded-2xl"
+                  >
+                    {t.exit}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
           )}
         </div>
 
