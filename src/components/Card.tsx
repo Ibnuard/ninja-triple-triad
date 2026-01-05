@@ -23,7 +23,10 @@ export const Card = ({
     <motion.div
       // layoutId removed to prevent flash/disappear issues during debugging
       className={cn(
-        "relative w-[18vw] h-[25vw] max-w-[100px] max-h-[140px] md:w-24 md:h-32 rounded-lg shadow-lg cursor-pointer transform transition-all duration-200 border-2 select-none overflow-hidden bg-gray-800",
+        "relative rounded-lg shadow-lg cursor-pointer transform transition-all duration-200 border-2 select-none overflow-hidden bg-gray-800",
+        isPlaced 
+          ? "w-full h-full" 
+          : "w-[18vw] h-[25vw] max-w-[100px] max-h-[140px] md:w-24 md:h-32",
         isSelected
           ? "ring-4 ring-yellow-400 -translate-y-4 z-10"
           : "hover:-translate-y-1",
@@ -57,13 +60,22 @@ export const Card = ({
       )}
 
       {/* Stats */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center font-mono text-white text-[10px] sm:text-xs md:text-base font-bold pointer-events-none drop-shadow-md">
-        <div className="absolute top-1 md:top-2">{card.stats.top}</div>
-        <div className="flex w-full justify-between px-1 md:px-4">
+      <div
+        className={cn(
+          "absolute inset-0 flex flex-col items-center justify-center font-mono text-white font-bold pointer-events-none drop-shadow-md",
+          isPlaced ? "text-xs md:text-xl" : "text-[10px] sm:text-xs md:text-base"
+        )}
+      >
+        <div className={cn("absolute", isPlaced ? "top-1 md:top-2" : "top-1 md:top-2")}>
+          {card.stats.top}
+        </div>
+        <div className={cn("flex w-full justify-between", isPlaced ? "px-2 md:px-6" : "px-1 md:px-4")}>
           <span>{card.stats.left}</span>
           <span>{card.stats.right}</span>
         </div>
-        <div className="absolute bottom-1 md:bottom-2">{card.stats.bottom}</div>
+        <div className={cn("absolute", isPlaced ? "bottom-1 md:bottom-2" : "bottom-1 md:bottom-2")}>
+          {card.stats.bottom}
+        </div>
       </div>
 
       {/* Image / Name */}

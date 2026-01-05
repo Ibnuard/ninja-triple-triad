@@ -163,8 +163,8 @@ export default function GamePage() {
 
         {/* CENTER (Board) */}
         <div className="order-2 w-full h-full flex items-center justify-center relative min-h-0 min-w-0">
-          <div className="relative w-full h-full max-h-[50vh] sm:max-h-[60vh] md:max-h-[80vh] aspect-square flex items-center justify-center">
-            <div className="scale-[0.85] sm:scale-75 md:scale-95 lg:scale-100 transition-transform duration-500">
+          <div className="relative w-full h-full max-h-[65vh] sm:max-h-[60vh] md:max-h-[80vh] aspect-square flex items-center justify-center">
+            <div className="scale-100 sm:scale-75 md:scale-95 lg:scale-100 transition-transform duration-500">
               <Board />
             </div>
           </div>
