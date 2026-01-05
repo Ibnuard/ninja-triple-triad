@@ -8,6 +8,8 @@ import { Card } from "../../types/game";
 import { useRouter } from "next/navigation";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
+import { motion } from "framer-motion";
+import { useSettingsStore } from "../../store/useSettingsStore";
 
 // Mock Cards (Same as before)
 const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => ({
@@ -40,6 +42,29 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => ({
   },
 }));
 
+const GAME_TRANSLATIONS = {
+  en: {
+    yourTurn: "YOUR TURN",
+    opponentTurn: "OPPONENT TURN",
+    waiting: "WAITING...",
+    victory: "VICTORY",
+    defeat: "DEFEAT",
+    draw: "DRAW",
+    playAgain: "PLAY AGAIN",
+    exit: "EXIT",
+  },
+  id: {
+    yourTurn: "GILIRANMU",
+    opponentTurn: "GILIRAN LAWAN",
+    waiting: "MENUNGGU...",
+    victory: "MENANG",
+    defeat: "KALAH",
+    draw: "SERI",
+    playAgain: "MAIN LAGI",
+    exit: "KELUAR",
+  },
+};
+
 export default function GamePage() {
   const {
     initGame,
@@ -50,6 +75,9 @@ export default function GamePage() {
     winner,
     resetGame,
   } = useGameStore();
+
+  const { language } = useSettingsStore();
+  const t = GAME_TRANSLATIONS[language];
 
   const router = useRouter();
 
@@ -84,7 +112,7 @@ export default function GamePage() {
               : "bg-red-500/10 border-red-500 text-red-500"
           )}
         >
-          {isMyTurn ? "YOUR TURN" : "OPPONENT TURN"}
+          {isMyTurn ? t.yourTurn : t.opponentTurn}
         </div>
       </div>
 
@@ -164,7 +192,7 @@ export default function GamePage() {
 
           {/* Turn label for player (Mobile) */}
           <div className="md:hidden absolute bottom-full mb-2 text-xs font-bold text-blue-500 animate-pulse">
-            {isMyTurn && "YOUR TURN"}
+            {isMyTurn && t.yourTurn}
           </div>
         </div>
 
@@ -180,8 +208,8 @@ export default function GamePage() {
             <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md rounded-xl">
               <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-400 to-red-600 mb-4 drop-shadow-2xl">
                 {winner === "draw"
-                  ? "DRAW"
-                  : `${winner === "player1" ? "VICTORY" : "DEFEAT"}`}
+                  ? t.draw
+                  : `${winner === "player1" ? t.victory : t.defeat}`}
               </h1>
               <button
                 onClick={() => {
@@ -190,7 +218,7 @@ export default function GamePage() {
                 }}
                 className="px-8 py-3 bg-white text-black font-bold text-lg uppercase tracking-widest hover:scale-105 transition-transform rounded-full shadow-xl"
               >
-                Play Again
+                {t.playAgain}
               </button>
             </div>
           )}
@@ -198,6 +226,11 @@ export default function GamePage() {
 
         {/* RIGHT / TOP (Opponent) */}
         <div className="order-1 md:order-3 w-full h-full flex flex-col items-center justify-center md:justify-center relative">
+          {/* Add Identity Header for Desktop */}
+          <div className="hidden md:flex flex-col items-center mb-4">
+            {/* Avatar or Icon could go here */}
+          </div>
+
           {/* Mobile View (Horizontal Compact) */}
           <div className="md:hidden w-full flex justify-center">
             <Hand
@@ -228,7 +261,7 @@ export default function GamePage() {
         onClick={() => router.push("/")}
         className="absolute top-4 left-4 z-50 text-xs text-white/30 border border-white/10 px-2 py-1 rounded hover:text-white"
       >
-        Exit
+        {t.exit}
       </button>
     </div>
   );

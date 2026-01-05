@@ -61,19 +61,17 @@ export const Hand = ({
         </motion.div>
       )}
 
-      {/* Hide label if hidden/compact mode? Or keep it small? */}
-      {!isHidden && (
-        <h3
-          className={cn(
-            "font-bold uppercase tracking-widest text-shadow",
-            compact ? "text-xs" : "text-sm md:text-lg",
-            orientation === "horizontal" && "md:writing-mode-horizontal",
-            ownerId === "player1" ? "text-blue-400" : "text-red-400"
-          )}
-        >
-          {ownerId === "player1" ? "YOU" : "COM"}
-        </h3>
-      )}
+      {/* Label: Always show owner ID styled nicely */}
+      <div
+        className={cn(
+          "font-bold uppercase tracking-widest text-shadow mb-2",
+          compact ? "text-xs" : "text-sm md:text-lg",
+          orientation === "horizontal" && "md:writing-mode-horizontal",
+          ownerId === "player1" ? "text-blue-400" : "text-red-400"
+        )}
+      >
+        {ownerId === "player1" ? "YOU" : "COMPUTER"}
+      </div>
 
       <div
         className={cn(
