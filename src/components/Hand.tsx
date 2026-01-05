@@ -70,7 +70,7 @@ export const Hand = ({
             "flex relative justify-center items-center transition-all duration-500",
             orientation === "vertical"
               ? "flex-col -space-y-12 md:-space-y-16 hover:-space-y-8 md:hover:-space-y-12 py-4" // Adjusted stacking
-              : "flex-row -space-x-4 md:space-x-4 lg:space-x-6" // Stack horizontally on mobile
+              : "flex-row -space-x-2 md:space-x-4 lg:space-x-6" // Stack horizontally on mobile
           )}
         >
           {cards.map((card, index) => {
@@ -87,7 +87,7 @@ export const Hand = ({
                   orientation === "horizontal" &&
                     "hover:z-10 hover:scale-110 hover:!mx-2 cursor-pointer",
                   // Expansion for selected card in horizontal (mobile)
-                  orientation === "horizontal" && isSelected && "scale-125 z-20 mx-4"
+                  orientation === "horizontal" && isSelected && "scale-110 z-20 mx-2"
                 )}
                 style={{ zIndex: isSelected ? 50 : index }}
               >
