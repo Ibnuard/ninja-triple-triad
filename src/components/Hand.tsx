@@ -31,7 +31,7 @@ export const Hand = ({
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-1 lg:gap-4 transition-all duration-300 w-full",
+        "flex flex-col items-center gap-1 lg:gap-4 transition-all duration-300 w-full scale-90 sm:scale-100 origin-center",
         isHidden && "opacity-80"
       )}
     >
