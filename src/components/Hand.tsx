@@ -43,7 +43,8 @@ export const Hand = ({
           ownerId === "player1"
             ? "text-blue-400 border-blue-500/30 shadow-blue-900/20"
             : "text-red-400 border-red-500/30 shadow-red-900/20",
-          isMyTurn && "scale-105 border-opacity-80 animate-pulse"
+          isMyTurn && "scale-105 border-opacity-80 animate-pulse",
+          !isMyTurn && "hidden md:block" // Hide on mobile if not my turn
         )}
       >
         {ownerId === "player1" ? "YOU" : "COMPUTER"}
@@ -59,7 +60,8 @@ export const Hand = ({
           // Modern Glassmorphism Styling
           isMyTurn && !isHidden
             ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)]"
-            : "bg-black/40 border border-white/5 shadow-inner"
+            : "bg-black/40 border border-white/5 shadow-inner",
+          !isMyTurn && "scale-75 md:scale-100 origin-center" // Shrink on mobile if not my turn
         )}
       >
         <div

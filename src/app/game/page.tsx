@@ -1,15 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Board } from "../../components/Board";
 import { Hand } from "../../components/Hand";
-import { useGameStore } from "../../store/useGameStore";
-import { Card } from "../../types/game";
-import { useRouter } from "next/navigation";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
-import { motion } from "framer-motion";
+import { useGameStore } from "../../store/useGameStore";
 import { useSettingsStore } from "../../store/useSettingsStore";
+import { Card } from "../../types/game";
 
 // Mock Cards (Same as before)
 const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => ({
@@ -103,12 +102,12 @@ export default function GamePage() {
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none" />
 
       {/* Turn Status Overlay (Central) */}
-      <div className="absolute top-2 left-0 right-0 z-30 flex justify-center pointer-events-none">
+      <div className="absolute top-4 left-0 right-0 z-30 flex justify-center pointer-events-none">
         <div
           className={cn(
             "px-4 py-1 md:py-2 rounded-full border backdrop-blur-md font-bold text-xs md:text-xl uppercase tracking-[0.2em] shadow-lg transition-all duration-500",
             isMyTurn
-              ? "bg-blue-500/10 border-blue-500 text-blue-400"
+              ? "bg-blue-500/10 border-blue-500 text-blue-400 animate-pulse ring-blue-500"
               : "bg-red-500/10 border-red-500 text-red-500"
           )}
         >
@@ -179,7 +178,7 @@ export default function GamePage() {
         {/* RIGHT / TOP (Opponent) */}
         <div className="order-1 md:order-3 w-full h-full flex flex-col items-center justify-center md:justify-center relative pt-12 md:pt-0 p-2">
           {/* Mobile View (Horizontal Compact) */}
-          <div className="md:hidden w-full flex justify-center">
+          <div className={cn("md:hidden w-full flex justify-center")}>
             <Hand
               cards={player2.hand}
               ownerId="player2"
@@ -207,7 +206,7 @@ export default function GamePage() {
       {/* Exit Button */}
       <button
         onClick={() => router.push("/")}
-        className="absolute top-4 right-4 z-50 text-xs text-red-500/30 border border-red-500/30 px-2 py-1 rounded hover:text-red-400 hover:border-red-400"
+        className="absolute top-4 right-4 z-50 text-xs text-red-500/50 border border-red-500/50 px-2 py-1 rounded hover:text-red-400 hover:border-red-400"
       >
         {t.exit}
       </button>
