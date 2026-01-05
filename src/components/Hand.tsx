@@ -25,95 +25,93 @@ export const Hand = ({
   isHidden = false,
 }: HandProps) => {
   const { selectCard, selectedCardId, currentPlayerId } = useGameStore();
-  const [hoveredCard, setHoveredCard] = React.useState<CardType | null>(null);
 
   const isMyTurn = currentPlayerId === ownerId;
 
   return (
     <div
       className={cn(
-        "flex items-center justify-center p-2 rounded-xl transition-colors duration-300 relative w-full", // Added w-full
-        orientation === "vertical" ? "flex-col gap-2 h-full" : "flex-row gap-2", // Added h-full for vertical to be safe
-        isMyTurn && !isHidden && "bg-white/5 border border-white/10" // Only highlight normal hand
+        "flex flex-col items-center gap-2 md:gap-4 transition-all duration-300 w-full",
+        isHidden && "opacity-80"
       )}
     >
-      {/* Tooltip for Vertical Orientation (Desktop) */}
-      {hoveredCard && orientation === "vertical" && !isHidden && (
-        <motion.div
-          initial={{ opacity: 0, x: -20, scale: 0.9 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          className="absolute left-full ml-4 z-50 pointer-events-none"
-        >
-          <div className="bg-black/90 border border-white/20 p-2 rounded-xl shadow-2xl relative">
-            {/* Arrow */}
-            <div className="absolute top-1/2 -left-2 w-4 h-4 bg-black/90 border-l border-b border-white/20 transform rotate-45 -translate-y-1/2" />
-
-            <div className="flex flex-col items-center">
-              <div className="text-xs text-blue-400 font-bold mb-1 uppercase tracking-wider">
-                Preview
-              </div>
-              <Card
-                card={hoveredCard}
-                owner={ownerId} // Preview with owner color
-              />
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Label: Always show owner ID styled nicely */}
+      {/* Label: Outside the card container now */}
       <div
         className={cn(
-          "font-bold uppercase tracking-widest text-shadow mb-2",
-          compact ? "text-xs" : "text-sm md:text-lg",
-          orientation === "horizontal" && "md:writing-mode-horizontal",
-          ownerId === "player1" ? "text-blue-400" : "text-red-400"
+          "font-black uppercase tracking-[0.2em] text-shadow-sm px-4 py-1 rounded-full border bg-black/40 backdrop-blur-sm shadow-xl transition-all",
+          compact ? "text-[10px]" : "text-xs md:text-sm",
+          ownerId === "player1"
+            ? "text-blue-400 border-blue-500/30 shadow-blue-900/20"
+            : "text-red-400 border-red-500/30 shadow-red-900/20",
+          isMyTurn && "scale-105 border-opacity-80 animate-pulse"
         )}
       >
         {ownerId === "player1" ? "YOU" : "COMPUTER"}
       </div>
 
+      {/* Card Container */}
       <div
         className={cn(
-          "flex relative justify-center",
-          orientation === "vertical" ? "flex-col -space-y-12" : "flex-row gap-1" // Use Gap for top row instead of overlap? User sketch shows gaps.
+          "flex items-center justify-center p-3 md:p-6 rounded-2xl transition-all duration-500 relative w-full",
+          orientation === "vertical"
+            ? "flex-col gap-3 h-full"
+            : "flex-row gap-3 md:gap-6",
+          // Modern Glassmorphism Styling
+          isMyTurn && !isHidden
+            ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)]"
+            : "bg-black/40 border border-white/5 shadow-inner"
         )}
       >
-        {cards.map((card, index) => (
-          <motion.div
-            key={card.id}
-            className={cn(
-              "relative transition-all",
-              compact && "scale-75 origin-center",
-              isHidden &&
-                "w-10 h-14 md:w-16 md:h-24 bg-gray-800 rounded border border-white/20" // Placeholder for back
-            )}
-            style={
-              {
-                // No z-index logic needed if not overlapping
-              }
-            }
-            onMouseEnter={() => setHoveredCard(card)}
-            onMouseLeave={() => setHoveredCard(null)}
-          >
-            {isHidden ? (
-              // Card Back
-              <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                <div className="w-1/2 h-1/2 border border-white/10 rounded-sm" />
-              </div>
-            ) : (
-              <Card
-                card={card}
-                owner={ownerId === "player1" ? "player1" : "player2"}
-                onClick={() => isCurrentPlayer && selectCard(card.id)}
-                isSelected={selectedCardId === card.id}
-              />
-            )}
-          </motion.div>
-        ))}
-        {cards.length === 0 && (
-          <div className="text-white/30 italic text-xs">Empty</div>
-        )}
+        <div
+          className={cn(
+            "flex relative justify-center items-center transition-all duration-500",
+            orientation === "vertical"
+              ? "flex-col -space-y-16 hover:-space-y-12 py-4" // Hover effect to expand stack!
+              : "flex-row gap-2 md:gap-4 lg:gap-6"
+          )}
+        >
+          {cards.map((card, index) => (
+            <motion.div
+              key={card.id}
+              className={cn(
+                "relative transition-all duration-300",
+                compact && "scale-90 origin-center",
+                // Stagger animations or hover lifts handled by Card component
+                orientation === "vertical" &&
+                  "hover:z-10 hover:scale-110 hover:!my-4 cursor-pointer" // Vertical stack interaction
+              )}
+              style={{ zIndex: index }}
+            >
+              {isHidden ? (
+                // Card Back (Modernized)
+                <div className="w-16 h-20 md:w-20 md:h-28 rounded-lg border border-white/10 shadow-lg relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-linear-to-br from-gray-800 to-gray-950" />
+                  <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center">
+                      <span className="text-white/20 text-xs">?</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Card
+                  card={card}
+                  owner={ownerId}
+                  onClick={() => isMyTurn && selectCard(card.id)}
+                  isSelected={selectedCardId === card.id}
+                  isPlaced={false}
+                />
+              )}
+            </motion.div>
+          ))}
+
+          {/* Empty Placeholder slots to maintain height/width? */}
+          {cards.length === 0 && (
+            <div className="text-white/20 text-xs uppercase tracking-widest py-8">
+              Empty Hand
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
