@@ -53,12 +53,12 @@ export const Hand = ({
       {/* Card Container */}
       <div
         className={cn(
-          "flex items-center justify-center p-2 lg:p-4 rounded-2xl transition-all duration-500 relative w-full",
+          "flex items-center justify-center p-2 lg:p-4 rounded-2xl transition-all duration-500 relative",
           orientation === "vertical"
-            ? "bg-black/20 border border-white/5 shadow-inner" // Simpler background for grid
+            ? "bg-black/20 border border-white/5 shadow-inner min-h-[320px] lg:min-h-[460px] w-full" 
             : isMyTurn && !isHidden
-            ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)]"
-            : "bg-black/40 border border-white/5 shadow-inner",
+            ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)] min-h-[100px] lg:min-h-[150px] w-fit min-w-[280px] lg:min-w-[400px]"
+            : "bg-black/40 border border-white/5 shadow-inner min-h-[100px] lg:min-h-[150px] w-fit min-w-[280px] lg:min-w-[400px]",
           !isMyTurn && "scale-90 lg:scale-100 origin-center",
           isMyTurn && "scale-100 origin-center"
         )}
