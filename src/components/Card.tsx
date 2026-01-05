@@ -23,7 +23,7 @@ export const Card = ({
     <motion.div
       // layoutId removed to prevent flash/disappear issues during debugging
       className={cn(
-        "relative w-20 h-28 md:w-24 md:h-32 rounded-lg shadow-lg cursor-pointer transform transition-all duration-200 border-2 select-none overflow-hidden bg-gray-800", // Reduced size slightly
+        "relative w-[18vw] h-[25vw] max-w-[100px] max-h-[140px] md:w-24 md:h-32 rounded-lg shadow-lg cursor-pointer transform transition-all duration-200 border-2 select-none overflow-hidden bg-gray-800",
         isSelected
           ? "ring-4 ring-yellow-400 -translate-y-4 z-10"
           : "hover:-translate-y-1",
@@ -51,28 +51,28 @@ export const Card = ({
 
       {/* Element Icon */}
       {card.element !== "none" && (
-        <div className="absolute top-1 right-1 text-xs font-bold uppercase text-white/50 bg-black/30 px-1 rounded">
+        <div className="absolute top-1 right-1 text-[8px] md:text-xs font-bold uppercase text-white/50 bg-black/30 px-1 rounded">
           {card.element}
         </div>
       )}
 
       {/* Stats */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center font-mono text-white text-sm md:text-base font-bold pointer-events-none drop-shadow-md">
-        <div className="absolute top-2">{card.stats.top}</div>
-        <div className="flex w-full justify-between px-2 md:px-4">
+      <div className="absolute inset-0 flex flex-col items-center justify-center font-mono text-white text-[10px] sm:text-xs md:text-base font-bold pointer-events-none drop-shadow-md">
+        <div className="absolute top-1 md:top-2">{card.stats.top}</div>
+        <div className="flex w-full justify-between px-1 md:px-4">
           <span>{card.stats.left}</span>
           <span>{card.stats.right}</span>
         </div>
-        <div className="absolute bottom-2">{card.stats.bottom}</div>
+        <div className="absolute bottom-1 md:bottom-2">{card.stats.bottom}</div>
       </div>
 
       {/* Image / Name */}
       <div className="absolute inset-0 flex items-center justify-center opacity-10">
         {/* Placeholder for card art */}
-        <span className="text-4xl">🥷</span>
+        <span className="text-2xl md:text-4xl">🥷</span>
       </div>
 
-      <div className="absolute bottom-6 w-full text-center text-xs text-white/70 font-semibold truncate px-1">
+      <div className="absolute bottom-4 md:bottom-6 w-full text-center text-[8px] md:text-xs text-white/70 font-semibold truncate px-1">
         {card.name}
       </div>
 

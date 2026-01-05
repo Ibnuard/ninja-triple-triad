@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { LogOut } from "lucide-react";
 import { Board } from "../../components/Board";
 import { Hand } from "../../components/Hand";
 import { useComputerAI } from "../../lib/useComputerAI";
@@ -96,16 +97,20 @@ export default function GamePage() {
   const isMyTurn = currentPlayerId === "player1";
 
   return (
-    <div className="h-screen w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
+    <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
       {/* Background */}
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542256843-e38029d5d851?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none" />
 
-      {/* Turn Status Overlay (Central) */}
-      <div className="absolute top-4 left-0 right-0 z-30 flex justify-center pointer-events-none">
+      {/* Header / Status Bar */}
+      <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-2 md:p-4 pointer-events-none">
+        {/* Empty space for balance on desktop */}
+        <div className="w-10 md:hidden" /> 
+
+        {/* Turn Status Overlay (Central) */}
         <div
           className={cn(
-            "px-4 py-1 md:py-2 rounded-full border backdrop-blur-md font-bold text-xs md:text-xl uppercase tracking-[0.2em] shadow-lg transition-all duration-500",
+            "px-3 py-1 md:px-4 md:py-2 rounded-full border backdrop-blur-md font-bold text-[10px] md:text-xl uppercase tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
             isMyTurn
               ? "bg-blue-500/10 border-blue-500 text-blue-400 animate-pulse ring-blue-500"
               : "bg-red-500/10 border-red-500 text-red-500"
@@ -113,15 +118,24 @@ export default function GamePage() {
         >
           {isMyTurn ? t.yourTurn : t.opponentTurn}
         </div>
+
+        {/* Exit Button */}
+        <button
+          onClick={() => router.push("/")}
+          className="p-2 md:px-3 md:py-1 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"
+          title={t.exit}
+        >
+          <span className="hidden md:inline text-xs font-bold uppercase tracking-wider">{t.exit}</span>
+          <LogOut className="w-4 h-4 md:hidden" />
+        </button>
       </div>
 
       {/* Main Layout Container */}
       {/* Mobile: Col. Order: Opponent(1), Board(2), Player(3) */}
       {/* Desktop: 3-Col Grid. */}
-      {/* UPDATE: Use minmax for columns to prevent overlap on small desktops. Reduced min size to 200px. */}
-      <div className="relative z-10 w-full h-full p-2 md:p-8 grid grid-rows-[auto_1fr_auto] md:grid-rows-1 md:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-2 md:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
+      <div className="relative z-10 w-full h-full p-1 md:p-8 grid grid-rows-[1fr_2fr_1fr] md:grid-rows-1 md:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-1 md:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
         {/* LEFT / BOTTOM (Player) */}
-        <div className="order-3 md:order-1 w-full h-full flex flex-col items-center justify-end md:justify-center relative p-2">
+        <div className="order-3 md:order-1 w-full h-full flex flex-col items-center justify-center relative p-1 md:p-2">
           {/* Mobile View (Horizontal) */}
           <div className="md:hidden w-full flex justify-center">
             <Hand
@@ -176,7 +190,7 @@ export default function GamePage() {
         </div>
 
         {/* RIGHT / TOP (Opponent) */}
-        <div className="order-1 md:order-3 w-full h-full flex flex-col items-center justify-start md:justify-center relative pt-12 md:pt-0 p-2">
+        <div className="order-1 md:order-3 w-full h-full flex flex-col items-center justify-center relative p-1 md:p-2">
           {/* Mobile View (Horizontal Compact) */}
           <div className={cn("md:hidden w-full flex justify-center")}>
             <Hand
@@ -203,13 +217,6 @@ export default function GamePage() {
         </div>
       </div>
 
-      {/* Exit Button */}
-      <button
-        onClick={() => router.push("/")}
-        className="absolute top-4 right-4 z-50 text-xs text-red-500/50 border border-red-500/50 px-2 py-1 rounded hover:text-red-400 hover:border-red-400"
-      >
-        {t.exit}
-      </button>
     </div>
   );
 }
