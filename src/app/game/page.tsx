@@ -225,12 +225,13 @@ export default function GamePage() {
         </div>
 
         {/* RIGHT / TOP (Opponent) */}
-        <div className="order-1 md:order-3 w-full h-full flex flex-col items-center justify-center md:justify-center relative">
+        <div className="order-1 md:order-3 w-full h-full flex flex-col items-center justify-center md:justify-center relative pt-12 md:pt-0">
+          {" "}
+          {/* Added pt-12 for mobile overlap fix */}
           {/* Add Identity Header for Desktop */}
           <div className="hidden md:flex flex-col items-center mb-4">
             {/* Avatar or Icon could go here */}
           </div>
-
           {/* Mobile View (Horizontal Compact) */}
           <div className="md:hidden w-full flex justify-center">
             <Hand

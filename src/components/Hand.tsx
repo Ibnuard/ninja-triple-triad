@@ -32,8 +32,8 @@ export const Hand = ({
   return (
     <div
       className={cn(
-        "flex items-center justify-center p-2 rounded-xl transition-colors duration-300 relative", // Added relative for tooltip positioning
-        orientation === "vertical" ? "flex-col gap-2" : "flex-row gap-2",
+        "flex items-center justify-center p-2 rounded-xl transition-colors duration-300 relative w-full", // Added w-full
+        orientation === "vertical" ? "flex-col gap-2 h-full" : "flex-row gap-2", // Added h-full for vertical to be safe
         isMyTurn && !isHidden && "bg-white/5 border border-white/10" // Only highlight normal hand
       )}
     >
