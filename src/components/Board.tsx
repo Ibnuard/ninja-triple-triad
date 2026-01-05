@@ -9,7 +9,7 @@ export const Board = () => {
   const { board, placeCard, lastMove } = useGameStore();
 
   return (
-    <div className="grid grid-cols-3 gap-1 xl:gap-4 p-1 xl:p-4 bg-gray-900/50 rounded-xl backdrop-blur-sm border border-white/10 shadow-2xl">
+    <div className="grid grid-cols-3 gap-1 lg:gap-4 p-1 lg:p-4 bg-gray-900/50 rounded-xl backdrop-blur-sm border border-white/10 shadow-2xl">
       {board.map((row, rIndex) =>
         row.map((cell, cIndex) => {
           const isLastMove =
@@ -19,7 +19,7 @@ export const Board = () => {
             <motion.div
               key={`${rIndex}-${cIndex}`}
               className={cn(
-                "relative w-[28vw] h-[38vw] max-w-[120px] max-h-[160px] xl:w-32 xl:h-40 bg-black/40 rounded-lg flex items-center justify-center border border-white/5 transition-all",
+                "relative w-[28vw] h-[38vw] max-w-[120px] max-h-[160px] lg:w-32 lg:h-40 bg-black/40 rounded-lg flex items-center justify-center border border-white/5 transition-all",
                 !cell.card && "hover:bg-white/5 cursor-pointer",
                 isLastMove && "ring-2 ring-yellow-400/50"
               )}

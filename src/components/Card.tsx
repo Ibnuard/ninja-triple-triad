@@ -26,7 +26,7 @@ export const Card = ({
         "relative rounded-lg shadow-lg cursor-pointer transform transition-all duration-200 border-2 select-none overflow-hidden bg-gray-800",
         isPlaced 
           ? "w-full h-full" 
-          : "w-[18vw] h-[25vw] max-w-[100px] max-h-[140px] xl:w-24 xl:h-32",
+          : "w-[18vw] h-[25vw] max-w-[100px] max-h-[140px] lg:w-24 lg:h-32",
         isSelected
           ? "ring-4 ring-yellow-400 -translate-y-4 z-10"
           : "hover:-translate-y-1",
@@ -54,7 +54,7 @@ export const Card = ({
 
       {/* Element Icon */}
       {card.element !== "none" && (
-        <div className="absolute top-1 right-1 text-[8px] xl:text-xs font-bold uppercase text-white/50 bg-black/30 px-1 rounded">
+        <div className="absolute top-1 right-1 text-[8px] lg:text-xs font-bold uppercase text-white/50 bg-black/30 px-1 rounded">
           {card.element}
         </div>
       )}
@@ -63,17 +63,17 @@ export const Card = ({
       <div
         className={cn(
           "absolute inset-0 flex flex-col items-center justify-center font-mono text-white font-bold pointer-events-none drop-shadow-md",
-          isPlaced ? "text-xs xl:text-xl" : "text-[10px] sm:text-xs xl:text-base"
+          isPlaced ? "text-xs lg:text-xl" : "text-[10px] sm:text-xs lg:text-base"
         )}
       >
-        <div className={cn("absolute", isPlaced ? "top-1 xl:top-2" : "top-1 xl:top-2")}>
+        <div className={cn("absolute", isPlaced ? "top-1 lg:top-2" : "top-1 lg:top-2")}>
           {card.stats.top}
         </div>
-        <div className={cn("flex w-full justify-between", isPlaced ? "px-2 xl:px-6" : "px-1 xl:px-4")}>
+        <div className={cn("flex w-full justify-between", isPlaced ? "px-2 lg:px-6" : "px-1 lg:px-4")}>
           <span>{card.stats.left}</span>
           <span>{card.stats.right}</span>
         </div>
-        <div className={cn("absolute", isPlaced ? "bottom-1 xl:bottom-2" : "bottom-1 xl:bottom-2")}>
+        <div className={cn("absolute", isPlaced ? "bottom-1 lg:bottom-2" : "bottom-1 lg:bottom-2")}>
           {card.stats.bottom}
         </div>
       </div>
@@ -81,10 +81,10 @@ export const Card = ({
       {/* Image / Name */}
       <div className="absolute inset-0 flex items-center justify-center opacity-10">
         {/* Placeholder for card art */}
-        <span className="text-2xl xl:text-4xl">🥷</span>
+        <span className="text-2xl lg:text-4xl">🥷</span>
       </div>
 
-      <div className="absolute bottom-4 xl:bottom-6 w-full text-center text-[8px] xl:text-xs text-white/70 font-semibold truncate px-1">
+      <div className="absolute bottom-4 lg:bottom-6 w-full text-center text-[8px] lg:text-xs text-white/70 font-semibold truncate px-1">
         {card.name}
       </div>
 
