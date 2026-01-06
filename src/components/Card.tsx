@@ -10,6 +10,7 @@ interface CardProps {
   onClick?: () => void;
   isSelected?: boolean;
   isPlaced?: boolean;
+  isColorful?: boolean;
 }
 
 const elementColors: Record<string, string> = {
@@ -27,6 +28,7 @@ export const Card = ({
   onClick,
   isSelected,
   isPlaced,
+  isColorful,
 }: CardProps) => {
   return (
     <motion.div
@@ -72,7 +74,8 @@ export const Card = ({
               "col-start-2 row-start-1 flex items-center",
               card.stats.top > card.baseStats.top
                 ? "text-green-400"
-                : "text-gray-200"
+                : "text-gray-200",
+              isColorful ? "text-blue-500" : ""
             )}
           >
             {card.stats.top}
@@ -87,7 +90,8 @@ export const Card = ({
               "col-start-1 row-start-2 flex items-center",
               card.stats.left > card.baseStats.left
                 ? "text-green-400"
-                : "text-gray-200"
+                : "text-gray-200",
+              isColorful ? "text-yellow-500" : ""
             )}
           >
             {card.stats.left}
@@ -102,7 +106,8 @@ export const Card = ({
               "col-start-3 row-start-2 flex items-center",
               card.stats.right > card.baseStats.right
                 ? "text-green-400"
-                : "text-gray-200"
+                : "text-gray-200",
+              isColorful ? "text-red-500" : ""
             )}
           >
             {card.stats.right}
@@ -117,7 +122,8 @@ export const Card = ({
               "col-start-2 row-start-3 flex items-center",
               card.stats.bottom > card.baseStats.bottom
                 ? "text-green-400"
-                : "text-gray-200"
+                : "text-gray-200",
+              isColorful ? "text-green-500" : ""
             )}
           >
             {card.stats.bottom}

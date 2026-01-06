@@ -27,6 +27,11 @@ const Particle = ({ delay }: { delay: number }) => (
 export default function Home() {
   const { language, setLanguage } = useSettingsStore();
   const t = useTranslation().home;
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const menuItems = [
     {
@@ -52,6 +57,8 @@ export default function Home() {
     },
   ];
 
+  if (!isMounted) return null;
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center relative overflow-hidden font-sans">
       {/* Dynamic Background Layers */}
@@ -59,10 +66,11 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/20 via-black to-black" />
         <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
 
-        {/* Animated Particles */}
-        {Array.from({ length: 20 }).map((_, i) => (
-          <Particle key={i} delay={i * 0.8} />
-        ))}
+        {/* Animated Particles - Only render on client to avoid hydration mismatch due to Math.random() */}
+        {isMounted &&
+          Array.from({ length: 20 }).map((_, i) => (
+            <Particle key={i} delay={i * 0.8} />
+          ))}
       </div>
 
       {/* Title Decoration */}
@@ -99,8 +107,33 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="text-center mb-16 relative"
+          className="text-center mb-16 relative group"
         >
+          {/* Shuriken Decoration */}
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-12 -left-12 w-24 h-24 opacity-40 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none hidden md:block"
+          >
+            <img
+              src="/images/shuriken.webp"
+              alt="Shuriken"
+              className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]"
+            />
+          </motion.div>
+
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+            className="absolute -bottom-8 -right-16 w-20 h-20 opacity-30 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none hidden md:block"
+          >
+            <img
+              src="/images/shuriken.webp"
+              alt="Shuriken"
+              className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]"
+            />
+          </motion.div>
+
           {/* Subtle Glow Behind Title */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 bg-red-600/20 blur-[60px] rounded-full pointer-events-none" />
 

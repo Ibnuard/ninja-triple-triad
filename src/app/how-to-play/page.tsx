@@ -219,6 +219,7 @@ export default function HowToPlayPage() {
                           <Card
                             card={mockTutorialCard as any}
                             owner="player1"
+                            isColorful
                           />
                           {/* Callouts */}
                           {/* CHAKRA - TOP */}
@@ -443,44 +444,81 @@ export default function HowToPlayPage() {
 
                 {/* ELEMENTS SECTION */}
                 {activeSection === "elements" && (
-                  <div className="space-y-8">
-                    <div className="space-y-4">
-                      <h2 className="text-3xl lg:text-4xl font-black italic tracking-tight">
-                        {language === "id"
-                          ? "Masteri Elemen"
-                          : "Elemental Mastery"}
-                      </h2>
-                      <p className="text-base lg:text-lg text-gray-400 leading-relaxed">
-                        {language === "id"
-                          ? "Setiap elemen memiliki pasif unik yang dipicu berdasarkan posisi kartu di papan permainan."
-                          : "Each element has a unique passive ability triggered based on the card's position on the game board."}
-                      </p>
+                  <div className="space-y-10">
+                    <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
+                      <div className="space-y-4 max-w-2xl">
+                        <h2 className="text-3xl lg:text-4xl font-black italic tracking-tight">
+                          {language === "id"
+                            ? "Masteri Elemen"
+                            : "Elemental Mastery"}
+                        </h2>
+                        <p className="text-base lg:text-lg text-gray-400 leading-relaxed">
+                          {language === "id"
+                            ? "Setiap elemen memiliki pasif unik yang dipicu berdasarkan posisi kartu di papan permainan."
+                            : "Each element has a unique passive ability triggered based on the card's position on the game board."}
+                        </p>
+                      </div>
+
+                      {/* Compact Visual Legend */}
+                      <div className="bg-green-500/5 border border-green-500/20 p-4 rounded-2xl flex items-center gap-4 shrink-0">
+                        <div className="relative scale-75 lg:scale-90 origin-center">
+                          <div className="absolute inset-0 bg-green-500/20 blur-[20px] rounded-full animate-pulse" />
+                          <Card
+                            card={{
+                              ...mockTutorialCard,
+                              element: "fire",
+                              stats: { top: 9, right: 8, bottom: 6, left: 7 },
+                              baseStats: {
+                                top: 7,
+                                right: 8,
+                                bottom: 4,
+                                left: 7,
+                              },
+                            }}
+                            owner="player1"
+                            isPlaced
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-[10px] font-black text-green-500 uppercase tracking-widest flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            {language === "id"
+                              ? "Indikator Bonus"
+                              : "Bonus Indicator"}
+                          </div>
+                          <p className="text-[10px] text-gray-400 max-w-[140px] leading-tight">
+                            {language === "id"
+                              ? "Angka HIJAU melambangkan status yang sedang diperkuat."
+                              : "GREEN numbers represent currently buffed stats."}
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                       {elementalDetails.map((el) => (
                         <motion.div
                           key={el.element}
-                          whileHover={{ scale: 1.02 }}
-                          className="p-3 lg:p-4 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl flex items-center gap-3 lg:gap-4 group"
+                          whileHover={{ y: -5 }}
+                          className="p-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col items-center text-center gap-4 group transition-all hover:bg-white/[0.07] hover:border-white/20"
                         >
-                          <div className="w-10 h-10 lg:w-12 lg:h-12 bg-black/40 rounded-full flex items-center justify-center shrink-0 border border-white/10 group-hover:border-white/30 transition-colors">
+                          <div className="w-16 h-16 bg-black/40 rounded-2xl flex items-center justify-center shrink-0 border border-white/10 group-hover:border-white/30 transition-colors shadow-inner">
                             <img
                               src={el.icon}
                               alt={el.name}
-                              className="w-6 h-6 lg:w-8 lg:h-8 object-contain"
+                              className="w-10 h-10 object-contain"
                             />
                           </div>
                           <div>
                             <h3
                               className={cn(
-                                "font-black uppercase tracking-widest text-[10px] lg:text-sm mb-0.5 lg:mb-1",
+                                "font-black uppercase tracking-[0.2em] text-sm lg:text-base mb-2",
                                 el.color
                               )}
                             >
                               {el.name}
                             </h3>
-                            <p className="text-[10px] lg:text-xs text-gray-400 leading-tight">
+                            <p className="text-xs lg:text-sm text-gray-400 leading-relaxed">
                               {el.desc}
                             </p>
                           </div>
@@ -488,15 +526,15 @@ export default function HowToPlayPage() {
                       ))}
                     </div>
 
-                    <div className="bg-blue-500/5 border border-blue-500/20 p-4 lg:p-6 rounded-2xl lg:rounded-3xl">
-                      <div className="flex gap-3 lg:gap-4 items-start">
-                        <Info className="w-5 h-5 lg:w-6 lg:h-6 text-blue-400 shrink-0 mt-0.5" />
-                        <p className="text-xs lg:text-sm text-blue-300 italic leading-relaxed">
-                          {language === "id"
-                            ? "Tips: Bonus dari elemen sangat krusial! Perhatikan posisi kartu sebelum meletakkannya untuk memaksimalkan atributmu."
-                            : "Pro Tip: Elemental bonuses are game-changers! Always check the board position before placing your card to maximize your attributes."}
-                        </p>
+                    <div className="bg-blue-500/10 border border-blue-500/20 p-6 lg:p-8 rounded-3xl flex flex-col md:flex-row items-center gap-6">
+                      <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center shrink-0">
+                        <Info className="w-6 h-6 text-blue-400" />
                       </div>
+                      <p className="text-sm lg:text-base text-blue-200 italic leading-relaxed text-center md:text-left">
+                        {language === "id"
+                          ? "Penting: Bonus elemen hanya aktif jika kartu diletakkan di posisi yang tepat sesuai deskripsi di atas. Strategi penempatan adalah kunci utama!"
+                          : "Important: Elemental bonuses are only active if the card is placed in the correct position as described above. Strategy is everything!"}
+                      </p>
                     </div>
                   </div>
                 )}
