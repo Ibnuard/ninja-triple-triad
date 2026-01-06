@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { TRANSLATIONS } from "../lib/translations";
 
 export type Language = "en" | "id";
 
@@ -11,11 +12,17 @@ interface SettingsStore {
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
-      language: "en", // Default to English
+      language: "en",
       setLanguage: (lang) => set({ language: lang }),
     }),
     {
-      name: "triple-triad-settings", // Persist to localStorage
+      name: "triple-triad-settings",
     }
   )
 );
+
+// Helper hook for translations
+export const useTranslation = () => {
+  const language = useSettingsStore((state) => state.language);
+  return TRANSLATIONS[language];
+};

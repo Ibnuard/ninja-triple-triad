@@ -67,8 +67,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         isComputer: vsComputer,
         hand: [],
       },
-      currentPlayerId: "player1", // Force Player 1 start for debugging
-      phase: "playing", // Skip deck selection for MVP
+      currentPlayerId:
+        Math.floor(Math.random() * 10) < 5 ? "player1" : "player2",
+      phase: "playing",
       winner: null,
       lastMove: null,
       selectedCardId: null,
@@ -181,6 +182,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       phase: "lobby",
       winner: null,
       board: createEmptyBoard(),
+      player1: { ...get().player1, hand: [] },
+      player2: { ...get().player2, hand: [] },
+      selectedCardId: null,
+      lastMove: null,
     });
   },
 

@@ -7,6 +7,8 @@ import { Card } from "./Card";
 import { useGameStore } from "../store/useGameStore";
 import { cn } from "../lib/utils";
 
+import { useTranslation } from "../store/useSettingsStore";
+
 interface HandProps {
   cards: CardType[];
   ownerId: "player1" | "player2";
@@ -25,6 +27,7 @@ export const Hand = ({
   isHidden = false,
 }: HandProps) => {
   const { selectCard, selectedCardId, currentPlayerId } = useGameStore();
+  const t = useTranslation().game;
 
   const isMyTurn = currentPlayerId === ownerId;
 
@@ -38,7 +41,7 @@ export const Hand = ({
       {/* Label: Outside the card container now */}
       <div
         className={cn(
-          "font-black uppercase tracking-[0.2em] text-shadow-sm px-4 py-1 rounded-full border bg-black/40 backdrop-blur-sm shadow-xl transition-all",
+          "font-black tracking-[0.2em] text-shadow-sm px-4 py-1 rounded-full border bg-black/40 backdrop-blur-sm shadow-xl transition-all",
           "hidden lg:block", // Hide on mobile for both players
           compact ? "text-[10px]" : "text-xs lg:text-sm",
           ownerId === "player1"
@@ -47,7 +50,7 @@ export const Hand = ({
           isMyTurn && "scale-105 border-opacity-80 animate-pulse"
         )}
       >
-        {ownerId === "player1" ? "YOU" : "COMPUTER"}
+        {ownerId === "player1" ? t.player : t.opponent}
       </div>
 
       {/* Card Container */}
@@ -55,7 +58,7 @@ export const Hand = ({
         className={cn(
           "flex items-center justify-center p-2 lg:p-4 rounded-2xl transition-all duration-500 relative",
           orientation === "vertical"
-            ? "bg-black/20 border border-white/5 shadow-inner min-h-[320px] lg:min-h-[460px] w-full"
+            ? "bg-gray-900/80 border border-white/5 shadow-inner min-h-[320px] lg:min-h-[460px] w-full"
             : isMyTurn && !isHidden
             ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)] min-h-[100px] lg:min-h-[150px] w-fit min-w-[280px] lg:min-w-[400px]"
             : "bg-black/40 border border-white/5 shadow-inner min-h-[100px] lg:min-h-[150px] w-fit min-w-[280px] lg:min-w-[400px]",
@@ -125,8 +128,8 @@ export const Hand = ({
 
           {/* Empty Placeholder slots to maintain height/width? */}
           {cards.length === 0 && (
-            <div className="text-white/20 text-xs uppercase tracking-widest py-8">
-              Empty Hand
+            <div className="text-white/20 text-xs tracking-widest py-8">
+              {t.emptyHand}
             </div>
           )}
         </div>

@@ -2,30 +2,11 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useSettingsStore, Language } from "../store/useSettingsStore";
-
-const TRANSLATIONS = {
-  en: {
-    title: "TRIPLE\nTRIAD",
-    subtitle: "Ninja Edition",
-    singlePlayer: "Single Player",
-    multiplayer: "Multiplayer",
-    konami: "KONAMI CODE NOT ENABLED",
-    start: "PRESS START",
-  },
-  id: {
-    title: "TRIPLE\nTRIAD",
-    subtitle: "Edisi Ninja",
-    singlePlayer: "Main Sendiri",
-    multiplayer: "Main Bareng",
-    konami: "KODE KONAMI TIDAK AKTIF",
-    start: "TEKAN MULAI",
-  },
-};
+import { useSettingsStore, useTranslation } from "../store/useSettingsStore";
 
 export default function Home() {
   const { language, setLanguage } = useSettingsStore();
-  const t = TRANSLATIONS[language];
+  const t = useTranslation().home;
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center relative overflow-hidden">
@@ -67,7 +48,7 @@ export default function Home() {
           <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 drop-shadow-sm whitespace-pre-line">
             {t.title}
           </h1>
-          <p className="text-xl md:text-2xl font-light tracking-[0.5em] text-red-500 mt-2 uppercase">
+          <p className="text-xl md:text-2xl font-light tracking-[0.5em] text-red-500 mt-2">
             {t.subtitle}
           </p>
         </motion.div>
@@ -79,14 +60,14 @@ export default function Home() {
           transition={{ delay: 0.5, duration: 0.8 }}
         >
           <Link href="/game">
-            <button className="w-full py-4 bg-white/5 border border-white/10 hover:bg-red-600 hover:border-red-500 hover:text-black transition-all duration-300 rounded-lg font-bold tracking-widest uppercase backdrop-blur-sm group">
+            <button className="w-full py-4 bg-white/5 border border-white/10 hover:bg-red-600 hover:border-red-500 hover:text-black transition-all duration-300 rounded-lg font-bold tracking-widest backdrop-blur-sm group">
               <span className="group-hover:mr-2 transition-all">
                 {t.singlePlayer}
               </span>
             </button>
           </Link>
           <Link href="/lobby">
-            <button className="w-full py-4 bg-white/5 border border-white/10 hover:bg-blue-600 hover:border-blue-500 hover:text-black transition-all duration-300 rounded-lg font-bold tracking-widest uppercase backdrop-blur-sm group">
+            <button className="w-full py-4 bg-white/5 border border-white/10 hover:bg-blue-600 hover:border-blue-500 hover:text-black transition-all duration-300 rounded-lg font-bold tracking-widest backdrop-blur-sm group">
               <span className="group-hover:mr-2 transition-all">
                 {t.multiplayer}
               </span>

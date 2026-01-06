@@ -9,7 +9,7 @@ import { Hand } from "../../components/Hand";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
-import { useSettingsStore } from "../../store/useSettingsStore";
+import { useTranslation, useSettingsStore } from "../../store/useSettingsStore";
 import { Card } from "../../types/game";
 
 // Mock Cards (Same as before)
@@ -43,29 +43,6 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => ({
   },
 }));
 
-const GAME_TRANSLATIONS = {
-  en: {
-    yourTurn: "YOUR TURN",
-    opponentTurn: "OPPONENT TURN",
-    waiting: "WAITING...",
-    victory: "VICTORY",
-    defeat: "DEFEAT",
-    draw: "DRAW",
-    playAgain: "PLAY AGAIN",
-    exit: "EXIT",
-  },
-  id: {
-    yourTurn: "GILIRANMU",
-    opponentTurn: "GILIRAN LAWAN",
-    waiting: "MENUNGGU...",
-    victory: "MENANG",
-    defeat: "KALAH",
-    draw: "SERI",
-    playAgain: "MAIN LAGI",
-    exit: "KELUAR",
-  },
-};
-
 export default function GamePage() {
   const {
     initGame,
@@ -77,21 +54,31 @@ export default function GamePage() {
     resetGame,
   } = useGameStore();
 
+  const t = useTranslation().game;
   const { language } = useSettingsStore();
-  const t = GAME_TRANSLATIONS[language];
 
   const router = useRouter();
 
   // Use AI Hook
   useComputerAI();
 
+  const startGame = () => {
+    initGame("test-room", true);
+    useGameStore.setState((state) => ({
+      player1: {
+        ...state.player1,
+        hand: [...MOCK_CARDS].sort(() => Math.random() - 0.5),
+      },
+      player2: {
+        ...state.player2,
+        hand: [...OPPONENT_CARDS].sort(() => Math.random() - 0.5),
+      },
+    }));
+  };
+
   useEffect(() => {
     if (player1.hand.length === 0) {
-      initGame("test-room", true);
-      useGameStore.setState((state) => ({
-        player1: { ...state.player1, hand: MOCK_CARDS },
-        player2: { ...state.player2, hand: OPPONENT_CARDS },
-      }));
+      startGame();
     }
   }, []);
 
@@ -107,7 +94,7 @@ export default function GamePage() {
         {phase !== "game_over" && (
           <div
             className={cn(
-              "px-3 py-1 lg:px-4 lg:py-2 rounded-full border backdrop-blur-md font-bold text-[10px] lg:text-xl uppercase tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
+              "px-3 py-1 lg:px-4 lg:py-2 rounded-full border backdrop-blur-md font-bold text-[10px] lg:text-xl tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
               isMyTurn
                 ? "bg-blue-500/10 border-blue-500 text-blue-400 animate-pulse ring-blue-500"
                 : "bg-red-500/10 border-red-500 text-red-500"
@@ -119,16 +106,23 @@ export default function GamePage() {
       </div>
 
       {/* Exit Button (Absolute Positioned) */}
-      <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none">
-        <button
-          onClick={() => router.push("/")}
-          className="p-2 lg:px-3 lg:py-1 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"
-          title={t.exit}
-        >
-          <span className="hidden lg:inline text-xs font-bold uppercase tracking-wider">{t.exit}</span>
-          <LogOut className="w-4 h-4 lg:hidden" />
-        </button>
-      </div>
+      {phase !== "game_over" && (
+        <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none">
+          <button
+            onClick={() => {
+              resetGame();
+              router.push("/");
+            }}
+            className="p-2 lg:px-3 lg:py-1 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"
+            title={t.exit}
+          >
+            <span className="hidden lg:inline text-xs font-bold tracking-wider">
+              {t.exit}
+            </span>
+            <LogOut className="w-4 h-4 lg:hidden" />
+          </button>
+        </div>
+      )}
 
       {/* Main Layout Container */}
       {/* Mobile: Col. Order: Opponent(1), Board(2), Player(3) */}
@@ -182,13 +176,19 @@ export default function GamePage() {
                 className="bg-gray-900/80 border border-white/10 p-8 lg:p-12 rounded-[2rem] shadow-2xl flex flex-col items-center max-w-[90vw] w-[400px] text-center"
               >
                 <div className="mb-6">
-                  <h2 className="text-gray-400 text-sm font-bold uppercase tracking-[0.3em] mb-2">
+                  <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2">
                     Game Result
                   </h2>
-                  <h1 className={cn(
-                    "text-5xl lg:text-7xl font-black uppercase tracking-tighter drop-shadow-2xl",
-                    winner === "player1" ? "text-blue-400" : winner === "player2" ? "text-red-500" : "text-yellow-500"
-                  )}>
+                  <h1
+                    className={cn(
+                      "text-5xl lg:text-7xl font-black tracking-tighter drop-shadow-2xl",
+                      winner === "player1"
+                        ? "text-blue-400"
+                        : winner === "player2"
+                        ? "text-red-500"
+                        : "text-yellow-500"
+                    )}
+                  >
                     {winner === "draw"
                       ? t.draw
                       : `${winner === "player1" ? t.victory : t.defeat}`}
@@ -198,16 +198,18 @@ export default function GamePage() {
                 <div className="flex flex-col gap-3 w-full">
                   <button
                     onClick={() => {
-                      resetGame();
-                      router.push("/");
+                      startGame();
                     }}
-                    className="w-full py-4 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl"
+                    className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl"
                   >
                     {t.playAgain}
                   </button>
                   <button
-                    onClick={() => router.push("/")}
-                    className="w-full py-4 bg-white/5 text-white/50 font-bold text-sm uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all rounded-2xl"
+                    onClick={() => {
+                      resetGame();
+                      router.push("/");
+                    }}
+                    className="w-full py-4 bg-white/5 text-white/50 font-bold text-sm tracking-widest hover:bg-white/10 hover:text-white transition-all rounded-2xl"
                   >
                     {t.exit}
                   </button>
@@ -244,7 +246,6 @@ export default function GamePage() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }

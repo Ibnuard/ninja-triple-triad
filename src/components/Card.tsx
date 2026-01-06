@@ -24,8 +24,8 @@ export const Card = ({
       // layoutId removed to prevent flash/disappear issues during debugging
       className={cn(
         "relative rounded-lg shadow-lg cursor-pointer transform transition-all duration-200 border-2 select-none overflow-hidden bg-gray-800",
-        isPlaced 
-          ? "w-full h-full" 
+        isPlaced
+          ? "w-full h-full"
           : "w-[18vw] h-[25vw] max-w-[100px] max-h-[140px] lg:w-24 lg:h-32",
         isSelected
           ? "ring-4 ring-yellow-400 -translate-y-4 z-10"
@@ -54,7 +54,7 @@ export const Card = ({
 
       {/* Element Icon */}
       {card.element !== "none" && (
-        <div className="absolute top-1 right-1 text-[8px] lg:text-xs font-bold uppercase text-white/50 bg-black/30 px-1 rounded">
+        <div className="absolute top-1 right-1 text-[8px] lg:text-xs font-bold text-white/50 bg-black/30 px-1 rounded">
           {card.element}
         </div>
       )}
@@ -63,17 +63,34 @@ export const Card = ({
       <div
         className={cn(
           "absolute inset-0 flex flex-col items-center justify-center font-mono text-white font-bold pointer-events-none drop-shadow-md",
-          isPlaced ? "text-xs lg:text-xl" : "text-[10px] sm:text-xs lg:text-base"
+          isPlaced
+            ? "text-xs lg:text-xl"
+            : "text-[10px] sm:text-xs lg:text-base"
         )}
       >
-        <div className={cn("absolute", isPlaced ? "top-1 lg:top-2" : "top-1 lg:top-2")}>
+        <div
+          className={cn(
+            "absolute",
+            isPlaced ? "top-1 lg:top-2" : "top-1 lg:top-2"
+          )}
+        >
           {card.stats.top}
         </div>
-        <div className={cn("flex w-full justify-between", isPlaced ? "px-2 lg:px-6" : "px-1 lg:px-4")}>
+        <div
+          className={cn(
+            "flex w-full justify-between",
+            isPlaced ? "px-2 lg:px-6" : "px-1 lg:px-4"
+          )}
+        >
           <span>{card.stats.left}</span>
           <span>{card.stats.right}</span>
         </div>
-        <div className={cn("absolute", isPlaced ? "bottom-1 lg:bottom-2" : "bottom-1 lg:bottom-2")}>
+        <div
+          className={cn(
+            "absolute",
+            isPlaced ? "bottom-1 lg:bottom-2" : "bottom-1 lg:bottom-2"
+          )}
+        >
           {card.stats.bottom}
         </div>
       </div>
