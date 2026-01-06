@@ -16,6 +16,7 @@ interface HandProps {
   orientation?: "horizontal" | "vertical"; // New prop
   compact?: boolean; // New prop for visual scaling
   isHidden?: boolean; // New prop
+  isCustom?: boolean;
 }
 
 export const Hand = ({
@@ -25,6 +26,7 @@ export const Hand = ({
   orientation = "vertical",
   compact = false,
   isHidden = false,
+  isCustom = false,
 }: HandProps) => {
   const { selectCard, selectedCardId, currentPlayerId } = useGameStore();
   const t = useTranslation().game;
@@ -50,7 +52,7 @@ export const Hand = ({
           isMyTurn && "scale-105 border-opacity-80 animate-pulse"
         )}
       >
-        {ownerId === "player1" ? t.player : t.opponent}
+        {ownerId === "player1" ? t.player : isCustom ? "Player 2" : t.opponent}
       </div>
 
       {/* Card Container */}

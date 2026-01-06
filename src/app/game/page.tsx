@@ -13,35 +13,43 @@ import { useTranslation, useSettingsStore } from "../../store/useSettingsStore";
 import { Card } from "../../types/game";
 
 // Mock Cards (Same as before)
-const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => ({
-  id: `card-${i}-${Math.random()}`,
-  name: `Ninja ${i + 1}`,
-  element: ["fire", "water", "earth", "wind", "lightning", "none"][
-    Math.floor(Math.random() * 6)
-  ] as any,
-  image: "",
-  stats: {
+const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
+  const stats = {
     top: Math.floor(Math.random() * 9) + 1,
     bottom: Math.floor(Math.random() * 9) + 1,
     left: Math.floor(Math.random() * 9) + 1,
     right: Math.floor(Math.random() * 9) + 1,
-  },
-}));
+  };
+  return {
+    id: `card-${i}-${Math.random()}`,
+    name: `Ninja ${i + 1}`,
+    element: ["fire", "water", "earth", "wind", "lightning", "none"][
+      Math.floor(Math.random() * 6)
+    ] as any,
+    image: "",
+    stats: { ...stats },
+    baseStats: { ...stats },
+  };
+});
 
-const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => ({
-  id: `opp-card-${i}-${Math.random()}`,
-  name: `Ronin ${i + 1}`,
-  element: ["fire", "water", "earth", "wind", "lightning", "none"][
-    Math.floor(Math.random() * 6)
-  ] as any,
-  image: "",
-  stats: {
+const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
+  const stats = {
     top: Math.floor(Math.random() * 9) + 1,
     bottom: Math.floor(Math.random() * 9) + 1,
     left: Math.floor(Math.random() * 9) + 1,
     right: Math.floor(Math.random() * 9) + 1,
-  },
-}));
+  };
+  return {
+    id: `opp-card-${i}-${Math.random()}`,
+    name: `Ronin ${i + 1}`,
+    element: ["fire", "water", "earth", "wind", "lightning", "none"][
+      Math.floor(Math.random() * 6)
+    ] as any,
+    image: "",
+    stats: { ...stats },
+    baseStats: { ...stats },
+  };
+});
 
 export default function GamePage() {
   const {
@@ -62,16 +70,45 @@ export default function GamePage() {
   // Use AI Hook
   useComputerAI();
 
+  const generateDiverseHand = (prefix: string): Card[] => {
+    const elements: any[] = ["fire", "water", "earth", "wind", "lightning"];
+    return elements.map((el, i) => {
+      const stats = {
+        top: Math.floor(Math.random() * 5) + 3,
+        bottom: Math.floor(Math.random() * 5) + 3,
+        left: Math.floor(Math.random() * 5) + 3,
+        right: Math.floor(Math.random() * 5) + 3,
+      };
+      return {
+        id: `${prefix}-${el}-${i}`,
+        name: `${el.charAt(0).toUpperCase() + el.slice(1)} Ninja`,
+        element: el,
+        image: "",
+        stats: { ...stats },
+        baseStats: { ...stats },
+      } as Card;
+    });
+  };
+
   const startGame = () => {
-    initGame("test-room", true);
+    const isCustom =
+      typeof window !== "undefined" &&
+      window.location.search.includes("mode=custom");
+    initGame("test-room", !isCustom); // vsComputer true unless mode is custom
+
     useGameStore.setState((state) => ({
       player1: {
         ...state.player1,
-        hand: [...MOCK_CARDS].sort(() => Math.random() - 0.5),
+        hand: isCustom
+          ? generateDiverseHand("p1")
+          : [...MOCK_CARDS].sort(() => Math.random() - 0.5),
       },
       player2: {
         ...state.player2,
-        hand: [...OPPONENT_CARDS].sort(() => Math.random() - 0.5),
+        hand: isCustom
+          ? generateDiverseHand("p2")
+          : [...OPPONENT_CARDS].sort(() => Math.random() - 0.5),
+        name: isCustom ? "Player 2" : "Computer",
       },
     }));
   };
@@ -83,6 +120,9 @@ export default function GamePage() {
   }, []);
 
   const isMyTurn = currentPlayerId === "player1";
+  const isCustomMode =
+    typeof window !== "undefined" &&
+    window.location.search.includes("mode=custom");
 
   return (
     <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
@@ -100,7 +140,11 @@ export default function GamePage() {
                 : "bg-red-500/10 border-red-500 text-red-500"
             )}
           >
-            {isMyTurn ? t.yourTurn : t.opponentTurn}
+            {isMyTurn
+              ? t.yourTurn
+              : isCustomMode
+              ? "Player 2 Turn"
+              : t.opponentTurn}
           </div>
         )}
       </div>
@@ -128,7 +172,7 @@ export default function GamePage() {
       {/* Mobile: Col. Order: Opponent(1), Board(2), Player(3) */}
       {/* Desktop: 3-Col Grid. */}
       <div className="relative z-10 w-full h-full p-1 lg:p-8 grid grid-rows-[1fr_2fr_1fr] lg:grid-rows-1 lg:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-1 lg:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
-        {/* LEFT / BOTTOM (Player) */}
+        {/* PLAYER 1 HAND */}
         <div className="order-3 lg:order-1 w-full h-full flex flex-col items-center justify-center relative p-1 lg:p-2">
           {/* Mobile View (Horizontal) */}
           <div className="lg:hidden w-full flex justify-center items-center">
@@ -137,6 +181,7 @@ export default function GamePage() {
               ownerId="player1"
               isCurrentPlayer={isMyTurn}
               orientation="horizontal"
+              isCustom={isCustomMode}
             />
           </div>
           {/* Desktop View (Vertical) */}
@@ -146,6 +191,7 @@ export default function GamePage() {
               ownerId="player1"
               isCurrentPlayer={isMyTurn}
               orientation="vertical"
+              isCustom={isCustomMode}
             />
           </div>
 
@@ -219,17 +265,18 @@ export default function GamePage() {
           )}
         </div>
 
-        {/* RIGHT / TOP (Opponent) */}
+        {/* PLAYER 2 / OPPONENT HAND */}
         <div className="order-1 lg:order-3 w-full h-full flex flex-col items-center justify-center relative p-1 lg:p-2">
           {/* Mobile View (Horizontal Compact) */}
           <div className={cn("lg:hidden w-full flex justify-center")}>
             <Hand
               cards={player2.hand}
               ownerId="player2"
-              isCurrentPlayer={false}
+              isCurrentPlayer={currentPlayerId === "player2"}
               orientation="horizontal"
               compact
-              isHidden
+              isHidden={isCustomMode ? false : true}
+              isCustom={isCustomMode}
             />
           </div>
           {/* Desktop View (Vertical Compact) */}
@@ -238,10 +285,11 @@ export default function GamePage() {
             <Hand
               cards={player2.hand}
               ownerId="player2"
-              isCurrentPlayer={false}
+              isCurrentPlayer={currentPlayerId === "player2"}
               orientation="vertical"
               compact
-              isHidden
+              isHidden={isCustomMode ? false : true}
+              isCustom={isCustomMode}
             />
           </div>
         </div>

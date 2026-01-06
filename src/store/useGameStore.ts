@@ -5,6 +5,8 @@ import {
   createEmptyBoard,
   determineWinner,
   isBoardFull,
+  applyElementalPassives,
+  handleFireRevenge,
 } from "../lib/game-logic";
 import { playSound, SOUNDS } from "../lib/sounds";
 
@@ -107,28 +109,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const card = currentPlayer.hand[cardIndex];
 
     // Create new board state
-    const newBoard = [...board.map((row) => [...row])];
+    let newBoard = [...board.map((row) => [...row])];
     newBoard[row][col] = {
       ...newBoard[row][col],
-      card,
+      card: { ...card }, // Deep copy for mutation
       owner: currentPlayerId as "player1" | "player2",
     };
 
-    // Calculate flips
+    // 1. Initial Passive Application (Get buffs for the placed card)
+    newBoard = applyElementalPassives(newBoard);
+    const placedCardUpdated = newBoard[row][col].card!;
+
+    // 2. Calculate flips (Lightning protection is inside)
     const flips = calculateFlips(
       newBoard,
       row,
       col,
-      card,
+      placedCardUpdated,
       currentPlayerId as "player1" | "player2"
     );
+
+    // 3. Apply flips and Fire revenge
     flips.forEach((flip) => {
+      const originalOwner = newBoard[flip.row][flip.col].owner!;
       newBoard[flip.row][flip.col].owner = flip.newOwner;
+
+      // Fire Revenge if the flipped card is Fire
+      newBoard = handleFireRevenge(newBoard, flip.row, flip.col, originalOwner);
     });
+
+    // 4. Final Passive Application (Update all cards after ownership changes)
+    newBoard = applyElementalPassives(newBoard);
 
     playSound(SOUNDS.PLACE);
     if (flips.length > 0) {
-      // Small delay for flip sound to feel more natural
       setTimeout(() => playSound(SOUNDS.FLIP), 200);
     }
 
@@ -139,7 +153,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newPlayer1 =
       currentPlayerId === "player1"
         ? { ...player1, hand: newHand }
-        : { ...player1 }; // No change
+        : { ...player1 };
 
     const newPlayer2 =
       currentPlayerId === "player2"

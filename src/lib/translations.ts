@@ -57,6 +57,11 @@ export const TRANSLATIONS = {
           description:
             "Battle the AI with a deck selected directly before the match begins.",
         },
+        custom: {
+          title: "Custom Mode",
+          description:
+            "Testing and debugging mode. Control both players locally to test cards and passives.",
+        },
       },
     },
   },
@@ -117,6 +122,11 @@ export const TRANSLATIONS = {
           title: "Mode Draft",
           description:
             "Di mode ini kamu akan melawan AI dengan deck yang dipilih secara langsung sebelum pertandingan dimulai",
+        },
+        custom: {
+          title: "Mode Kustom",
+          description:
+            "Mode debugging. Kamu bisa menjalankan dua sisi sekaligus untuk mencoba kartu dan pasif.",
         },
       },
     },

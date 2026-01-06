@@ -47,11 +47,25 @@ export default function SinglePlayerModes() {
       glowColor: "group-hover:bg-emerald-500/10",
       accent: "bg-emerald-500",
     },
+    {
+      id: "custom",
+      title: t.modes.custom.title,
+      description: t.modes.custom.description,
+      icon: Zap,
+      color: "from-purple-600 to-pink-800",
+      borderColor: "border-purple-500/30",
+      shadowColor: "shadow-purple-900/40",
+      glowColor: "group-hover:bg-purple-500/10",
+      accent: "bg-purple-500",
+    },
   ];
 
   const handleModeClick = (modeId: string) => {
     if (modeId === "training") {
       setSelectedMode("training");
+    } else if (modeId === "custom") {
+      // Logic for building local 2-player game
+      router.push("/game?mode=custom");
     } else {
       router.push("/game");
     }
@@ -97,7 +111,7 @@ export default function SinglePlayerModes() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
             >
               {modes.map((mode, index) => (
                 <motion.button

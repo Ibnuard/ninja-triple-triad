@@ -7,20 +7,23 @@ export type ElementType =
   | "none";
 
 export interface CardStats {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
+  top: number; // Chakra
+  right: number; // ATK
+  bottom: number; // DEF
+  left: number; // Jutsu
 }
 
 export interface Card {
   id: string;
   name: string;
   stats: CardStats;
+  baseStats: CardStats; // Original stats to prevent stacking
   element: ElementType;
   image: string; // URL or local path
   description?: string;
   rarity?: number;
+  activePassives?: string[]; // IDs or names of active passives
+  isBuffed?: boolean;
 }
 
 export interface Cell {
