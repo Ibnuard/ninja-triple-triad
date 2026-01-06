@@ -137,7 +137,7 @@ export const Card = ({
                   scale: [1, 1.25, 1],
                   filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"],
                 }
-              : { scale: 1, filter: "brightness(1.1)" }
+              : { scale: 1 }
           }
           transition={{ repeat: Infinity, duration: 1.5 }}
           className={cn(

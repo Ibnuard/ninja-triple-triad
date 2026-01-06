@@ -66,15 +66,15 @@ export const TRANSLATIONS = {
       },
     },
     passives: {
-      title: "ELEMENTAL FATE",
+      title: "Elemental Passive",
       footer: "Ninja Arts: Elemental Mastery",
-      fire: "If placed in a corner -> +1 to all attributes.",
+      fire: "If placed in a corner anywhere given +1 to all attributes.",
       water:
-        "Center (1,1): +1 all stats. Center-Left: +1 ATK. Center-Right: +1 Jutsu.",
-      earth: "If placed in the bottom row (row 2) -> +1 Chakra.",
-      wind: "If placed in the top row (row 0) -> +1 DEF.",
+        "If placed in the center given +1 to all attributes. If placed in the center-left given +1 ATK. If placed in the center-right given +1 Jutsu.",
+      earth: "If placed in the bottom row given +1 Chakra.",
+      wind: "If placed in the top row given +1 DEF.",
       lightning:
-        "Top: +0-2 DEF. Mid: +0-1 ATK/JT. Bottom: +0-2 Chakra. (Stable random per card).",
+        "If placed in the top given +0-2 DEF randomly. If placed in the middle given +0-1 ATK or Jutsu randomly. If placed in the bottom given +0-2 Chakra randomly.",
     },
   },
   id: {
@@ -144,15 +144,15 @@ export const TRANSLATIONS = {
       },
     },
     passives: {
-      title: "NASIB ELEMEN",
+      title: "Passive Element",
       footer: "Ninja Arts: Elemental Mastery",
-      fire: "Jika ditaruh di pojok (corner) -> +1 semua atribut.",
+      fire: "Jika ditaruh di pojok (corner) manapun maka +1 semua atribut.",
       water:
-        "Tengah (1,1): +1 semua atribut. Tengah Kiri: +1 ATK. Tengah Kanan: +1 Jutsu.",
-      earth: "Jika ditaruh di baris paling bawah (row 2) -> +1 Chakra.",
-      wind: "Jika ditaruh di baris paling atas (row 0) -> +1 DEF.",
+        "Jika ditaruh di tepat tengah maka +1 semua atribut. Jika ditaruh di tengah kiri maka +1 ATK. Jika ditaruh di tengah kanan maka +1 Jutsu.",
+      earth: "Jika ditaruh di baris paling bawah maka +1 Chakra.",
+      wind: "Jika ditaruh di baris paling atas maka +1 DEF.",
       lightning:
-        "Atas: +0-2 DEF. Tengah: +0-1 ATK/JT. Bawah: +0-2 Chakra. (Acak per kartu).",
+        "Jika ditaruh di bagian atas maka +0-2 DEF secara acak. Jika ditaruh di bagian tengah maka +0-1 ATK atau Jutsu secara acak. Jika ditaruh di bagian bawah maka +0-2 Chakra secara acak.",
     },
   },
 } as const;
