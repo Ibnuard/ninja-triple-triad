@@ -14,6 +14,20 @@ export default function HowToPlayPage() {
   const passiveT = useTranslation().passives;
   const { language } = useSettingsStore();
   const [activeSection, setActiveSection] = useState("basics");
+  const [captureStep, setCaptureStep] = useState(0);
+
+  React.useEffect(() => {
+    if (activeSection !== "capturing") {
+      setCaptureStep(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setCaptureStep((prev) => (prev + 1) % 4);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [activeSection]);
 
   const sections = [
     {
@@ -192,23 +206,72 @@ export default function HowToPlayPage() {
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                      <div className="flex justify-center">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center pt-10">
+                      <div className="flex justify-center flex-1">
                         <div className="relative scale-150">
                           <Card
                             card={mockTutorialCard as any}
                             owner="player1"
                           />
                           {/* Callouts */}
+                          {/* CHAKRA - TOP */}
                           <motion.div
-                            animate={{ x: [0, 5, 0] }}
+                            animate={{ y: [0, -5, 0] }}
                             transition={{ repeat: Infinity, duration: 2 }}
-                            className="absolute -top-12 -left-12 flex flex-col items-center"
+                            className="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center"
                           >
-                            <div className="bg-blue-500 text-black text-[8px] px-1 rounded font-black italic">
+                            <div className="bg-blue-500 text-black text-[8px] px-1.5 rounded font-black italic whitespace-nowrap">
                               CHAKRA
                             </div>
-                            <div className="h-4 w-0.5 bg-blue-500" />
+                            <div className="h-6 w-0.5 bg-blue-500/50" />
+                          </motion.div>
+
+                          {/* ATTACK - RIGHT */}
+                          <motion.div
+                            animate={{ x: [0, 5, 0] }}
+                            transition={{
+                              repeat: Infinity,
+                              duration: 2,
+                              delay: 0.5,
+                            }}
+                            className="absolute top-4 -right-16 flex items-center"
+                          >
+                            <div className="w-6 h-0.5 bg-red-500/50" />
+                            <div className="bg-red-500 text-black text-[8px] px-1.5 rounded font-black italic whitespace-nowrap">
+                              ATTACK
+                            </div>
+                          </motion.div>
+
+                          {/* JUTSU - LEFT */}
+                          <motion.div
+                            animate={{ x: [0, -5, 0] }}
+                            transition={{
+                              repeat: Infinity,
+                              duration: 2,
+                              delay: 1,
+                            }}
+                            className="absolute top-4 -left-16 flex items-center"
+                          >
+                            <div className="bg-yellow-500 text-black text-[8px] px-1.5 rounded font-black italic whitespace-nowrap">
+                              JUTSU
+                            </div>
+                            <div className="w-6 h-0.5 bg-yellow-500/50" />
+                          </motion.div>
+
+                          {/* DEFENSE - BOTTOM */}
+                          <motion.div
+                            animate={{ y: [0, 5, 0] }}
+                            transition={{
+                              repeat: Infinity,
+                              duration: 2,
+                              delay: 1.5,
+                            }}
+                            className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center"
+                          >
+                            <div className="h-6 w-0.5 bg-green-500/50" />
+                            <div className="bg-green-500 text-black text-[8px] px-1.5 rounded font-black italic whitespace-nowrap">
+                              DEFENSE
+                            </div>
                           </motion.div>
                         </div>
                       </div>
@@ -268,44 +331,55 @@ export default function HowToPlayPage() {
 
                     <div className="relative h-64 bg-white/5 rounded-3xl border border-white/10 flex items-center justify-center gap-4 overflow-hidden">
                       <div className="flex items-center gap-4">
-                        <motion.div
-                          initial={{ x: -100, opacity: 0 }}
-                          animate={{ x: 0, opacity: 1 }}
-                          transition={{ delay: 1, duration: 0.8 }}
-                        >
-                          <Card
-                            card={
-                              {
-                                ...mockTutorialCard,
-                                stats: { top: 5, right: 9, bottom: 4, left: 3 },
-                              } as any
-                            }
-                            owner="player1"
-                          />
-                          <div className="mt-2 text-[10px] text-center font-bold text-blue-400">
-                            YOUR CARD (RIGHT: 9)
-                          </div>
-                        </motion.div>
+                        <AnimatePresence>
+                          {captureStep >= 1 && (
+                            <motion.div
+                              key="player-card"
+                              initial={{ x: -100, opacity: 0 }}
+                              animate={{ x: 0, opacity: 1 }}
+                              exit={{ x: -100, opacity: 0 }}
+                              transition={{ duration: 0.5 }}
+                            >
+                              <Card
+                                card={
+                                  {
+                                    ...mockTutorialCard,
+                                    stats: {
+                                      top: 5,
+                                      right: 9,
+                                      bottom: 4,
+                                      left: 3,
+                                    },
+                                  } as any
+                                }
+                                owner="player1"
+                              />
+                              <div className="mt-2 text-[10px] text-center font-bold text-blue-400">
+                                YOUR CARD (RIGHT: 9)
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
 
                         <div className="w-8 h-8 flex items-center justify-center">
-                          <motion.div
-                            animate={{ scale: [1, 1.5, 1], opacity: [0, 1, 0] }}
-                            transition={{ repeat: Infinity, duration: 1.5 }}
-                          >
-                            <Sword className="text-red-500" />
-                          </motion.div>
+                          <AnimatePresence>
+                            {captureStep === 2 && (
+                              <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: [1, 1.5, 1], opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                transition={{ duration: 0.5 }}
+                              >
+                                <Sword className="text-red-500" />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         <motion.div
                           animate={{
-                            scale: [1, 1.05, 1],
-                            boxShadow: [
-                              "0 0 0px #ef4444",
-                              "0 0 20px #ef4444",
-                              "0 0 0px #ef4444",
-                            ],
+                            scale: captureStep >= 2 ? [1, 1.05, 1] : 1,
                           }}
-                          transition={{ delay: 1.8, duration: 0.5 }}
                         >
                           <Card
                             card={
@@ -316,18 +390,45 @@ export default function HowToPlayPage() {
                                 stats: { top: 5, right: 3, bottom: 4, left: 6 },
                               } as any
                             }
-                            owner="player2"
+                            owner={captureStep >= 2 ? "player1" : "player2"}
                           />
-                          <div className="mt-2 text-[10px] text-center font-bold text-red-500">
-                            ENEMY (LEFT: 6)
+                          <div
+                            className={cn(
+                              "mt-2 text-[10px] text-center font-bold transition-colors duration-500",
+                              captureStep >= 2
+                                ? "text-blue-400"
+                                : "text-red-500"
+                            )}
+                          >
+                            {captureStep >= 2
+                              ? language === "id"
+                                ? "TERTANGKAP!"
+                                : "CAPTURED!"
+                              : "ENEMY (LEFT: 6)"}
                           </div>
                         </motion.div>
                       </div>
                       <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 to-transparent" />
                     </div>
-                    <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl">
-                      <p className="text-sm text-red-400 font-bold uppercase tracking-widest text-center">
-                        9 VS 6 → CAPTURED!
+                    <div
+                      className={cn(
+                        "p-4 rounded-2xl transition-all duration-500 border",
+                        captureStep >= 2
+                          ? "bg-blue-500/10 border-blue-500/30"
+                          : "bg-red-500/10 border-red-500/30"
+                      )}
+                    >
+                      <p
+                        className={cn(
+                          "text-sm font-bold uppercase tracking-widest text-center transition-colors duration-500",
+                          captureStep >= 2 ? "text-blue-400" : "text-red-400"
+                        )}
+                      >
+                        {captureStep >= 2
+                          ? "9 VS 6 → CAPTURED!"
+                          : language === "id"
+                          ? "BERSIAP UNTUK MENANGKAP..."
+                          : "GET READY TO CAPTURE..."}
                       </p>
                     </div>
                   </div>
