@@ -21,6 +21,7 @@ export const TRANSLATIONS = {
       opponent: "Computer",
       gameResult: "Game Result",
       emptyHand: "Empty Hand",
+      passiveInfo: "Passive Info",
     },
     lobby: {
       title: "Multiplayer Lobby",
@@ -64,6 +65,17 @@ export const TRANSLATIONS = {
         },
       },
     },
+    passives: {
+      title: "ELEMENTAL FATE",
+      footer: "Ninja Arts: Elemental Mastery",
+      fire: "If placed in a corner -> +1 to all attributes.",
+      water:
+        "Center (1,1): +1 all stats. Center-Left: +1 ATK. Center-Right: +1 Jutsu.",
+      earth: "If placed in the bottom row (row 2) -> +1 Chakra.",
+      wind: "If placed in the top row (row 0) -> +1 DEF.",
+      lightning:
+        "Top: +0-2 DEF. Mid: +0-1 ATK/JT. Bottom: +0-2 Chakra. (Stable random per card).",
+    },
   },
   id: {
     home: {
@@ -87,6 +99,7 @@ export const TRANSLATIONS = {
       opponent: "Lawan",
       gameResult: "Hasil Pertandingan",
       emptyHand: "Tangan Kosong",
+      passiveInfo: "Info Pasif",
     },
     lobby: {
       title: "Lobi Multiplayer",
@@ -129,6 +142,17 @@ export const TRANSLATIONS = {
             "Mode debugging. Kamu bisa menjalankan dua sisi sekaligus untuk mencoba kartu dan pasif.",
         },
       },
+    },
+    passives: {
+      title: "NASIB ELEMEN",
+      footer: "Ninja Arts: Elemental Mastery",
+      fire: "Jika ditaruh di pojok (corner) -> +1 semua atribut.",
+      water:
+        "Tengah (1,1): +1 semua atribut. Tengah Kiri: +1 ATK. Tengah Kanan: +1 Jutsu.",
+      earth: "Jika ditaruh di baris paling bawah (row 2) -> +1 Chakra.",
+      wind: "Jika ditaruh di baris paling atas (row 0) -> +1 DEF.",
+      lightning:
+        "Atas: +0-2 DEF. Tengah: +0-1 ATK/JT. Bawah: +0-2 Chakra. (Acak per kartu).",
     },
   },
 } as const;

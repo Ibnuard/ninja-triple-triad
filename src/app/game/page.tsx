@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
+import { LogOut, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import { Board } from "../../components/Board";
 import { Hand } from "../../components/Hand";
+import { PassiveInfoModal } from "../../components/PassiveInfoModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
@@ -52,6 +53,7 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
 });
 
 export default function GamePage() {
+  const [showInfo, setShowInfo] = useState(false);
   const {
     initGame,
     player1,
@@ -149,21 +151,31 @@ export default function GamePage() {
         )}
       </div>
 
-      {/* Exit Button (Absolute Positioned) */}
+      {/* Passive Info Modal */}
+      <PassiveInfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
+
+      {/* Exit & Info Buttons (Absolute Positioned) */}
       {phase !== "game_over" && (
-        <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none">
+        <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] flex items-center gap-2 pointer-events-none">
+          {/* Info Button */}
+          <button
+            onClick={() => setShowInfo(true)}
+            className="p-2 lg:px-3 lg:py-2 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 hover:text-blue-300 hover:border-blue-400 transition-all pointer-events-auto"
+            title={t.passiveInfo}
+          >
+            <Info className="w-4 h-4" />
+          </button>
+
+          {/* Exit Button */}
           <button
             onClick={() => {
               resetGame();
               router.push("/");
             }}
-            className="p-2 lg:px-3 lg:py-1 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"
+            className="p-2 lg:px-3 lg:py-2 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"
             title={t.exit}
           >
-            <span className="hidden lg:inline text-xs font-bold tracking-wider">
-              {t.exit}
-            </span>
-            <LogOut className="w-4 h-4 lg:hidden" />
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       )}
