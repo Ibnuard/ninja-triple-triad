@@ -59,7 +59,7 @@ export default function Home() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.8 }}
         >
-          <Link href="/game">
+          <Link href="/single-player">
             <button className="w-full py-4 bg-white/5 border border-white/10 hover:bg-red-600 hover:border-red-500 hover:text-black transition-all duration-300 rounded-lg font-bold tracking-widest backdrop-blur-sm group">
               <span className="group-hover:mr-2 transition-all">
                 {t.singlePlayer}

@@ -34,6 +34,31 @@ export const TRANSLATIONS = {
       joinButton: "JOIN",
       back: "← Back to Main Menu",
     },
+    spSelection: {
+      title: "Select Mode",
+      back: "Back to Home",
+      trainingSub: {
+        ownDeck: "Own Deck",
+        randomDeck: "Random Deck",
+      },
+      modes: {
+        gauntlet: {
+          title: "Gauntlet Mode",
+          description:
+            "Embark on an adventure of defeating enemies to your limit. The further you go, the tougher the opponents become.",
+        },
+        training: {
+          title: "Training",
+          description:
+            "Practice against a very easy AI to learn basic gameplay and the cards you're playing.",
+        },
+        draft: {
+          title: "Draft Mode",
+          description:
+            "Battle the AI with a deck selected directly before the match begins.",
+        },
+      },
+    },
   },
   id: {
     home: {
@@ -69,6 +94,31 @@ export const TRANSLATIONS = {
       joinPlaceholder: "MASUKKAN KODE",
       joinButton: "GABUNG",
       back: "← Kembali ke Menu Utama",
+    },
+    spSelection: {
+      title: "Pilih Mode",
+      back: "Kembali ke Beranda",
+      trainingSub: {
+        ownDeck: "Dek Sendiri",
+        randomDeck: "Dek Acak",
+      },
+      modes: {
+        gauntlet: {
+          title: "Mode Gauntlet",
+          description:
+            "Di mode ini kamu akan melakukan petualangan meangalahkan musuh sampai batas kemampuan yang kamu bisa, semakin jauh kamu melangkah maka akan semakin susah juga musuh musuhnya",
+        },
+        training: {
+          title: "Mode Training",
+          description:
+            "Di mode ini kamu bisa melakukan latihan melawan AI yang sangat mudah untuk mengetahui basic gameplay dan kartu yang kamu mainkan",
+        },
+        draft: {
+          title: "Mode Draft",
+          description:
+            "Di mode ini kamu akan melawan AI dengan deck yang dipilih secara langsung sebelum pertandingan dimulai",
+        },
+      },
     },
   },
 } as const;
