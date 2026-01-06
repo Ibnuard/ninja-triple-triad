@@ -55,7 +55,7 @@ export const Hand = ({
         className={cn(
           "flex items-center justify-center p-2 lg:p-4 rounded-2xl transition-all duration-500 relative",
           orientation === "vertical"
-            ? "bg-black/20 border border-white/5 shadow-inner min-h-[320px] lg:min-h-[460px] w-full" 
+            ? "bg-black/20 border border-white/5 shadow-inner min-h-[320px] lg:min-h-[460px] w-full"
             : isMyTurn && !isHidden
             ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)] min-h-[100px] lg:min-h-[150px] w-fit min-w-[280px] lg:min-w-[400px]"
             : "bg-black/40 border border-white/5 shadow-inner min-h-[100px] lg:min-h-[150px] w-fit min-w-[280px] lg:min-w-[400px]",
@@ -79,15 +79,22 @@ export const Hand = ({
                 className={cn(
                   "relative", // Removed transition-all duration-300 to avoid conflict
                   compact && "scale-90 origin-center",
-                  orientation === "horizontal" && isSelected && "scale-110 z-20 mx-2",
+                  orientation === "horizontal" &&
+                    isSelected &&
+                    "scale-110 z-20 mx-2",
                   "cursor-pointer"
                 )}
                 whileHover={
-                  orientation === "horizontal"
-                    ? { scale: 1.2, zIndex: 50, margin: "0 1.5rem" }
-                    : { scale: 1.1, zIndex: 50 }
+                  orientation === "vertical"
+                    ? { scale: 1.1, zIndex: 50 }
+                    : undefined
                 }
-                transition={{ type: "spring", stiffness: 500, damping: 30, mass: 0.8 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 30,
+                  mass: 0.8,
+                }}
                 style={{ zIndex: isSelected ? 50 : index }}
               >
                 {isHidden ? (
@@ -97,7 +104,9 @@ export const Hand = ({
                     <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full border border-white/10 flex items-center justify-center">
-                        <span className="text-white/20 text-[10px] lg:text-xs">?</span>
+                        <span className="text-white/20 text-[10px] lg:text-xs">
+                          ?
+                        </span>
                       </div>
                     </div>
                   </div>
