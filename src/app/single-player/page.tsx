@@ -37,17 +37,6 @@ export default function SinglePlayerModes() {
       hasSubMenu: true,
     },
     {
-      id: "draft",
-      title: t.modes.draft.title,
-      description: t.modes.draft.description,
-      icon: Layers,
-      color: "from-emerald-600 to-teal-800",
-      borderColor: "border-emerald-500/30",
-      shadowColor: "shadow-emerald-900/40",
-      glowColor: "group-hover:bg-emerald-500/10",
-      accent: "bg-emerald-500",
-    },
-    {
       id: "custom",
       title: t.modes.custom.title,
       description: t.modes.custom.description,
@@ -83,24 +72,27 @@ export default function SinglePlayerModes() {
         className="relative z-10 w-full max-w-6xl flex flex-col gap-12"
       >
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-0 border-b border-white/5 pb-8 lg:border-0 lg:pb-0">
           <button
             onClick={() =>
               selectedMode ? setSelectedMode(null) : router.push("/")
             }
-            className="group flex items-center gap-2 text-white/50 hover:text-white transition-colors"
+            className="group flex items-center gap-2 text-white/50 hover:text-white transition-colors self-start lg:self-auto"
           >
-            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-bold uppercase tracking-widest text-xs">
+            <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-white/30 transition-colors">
+              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            </div>
+            <span className="font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs">
               {selectedMode ? t.back : t.back}
             </span>
           </button>
 
-          <h1 className="text-4xl lg:text-6xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-linear-to-b from-white via-white to-gray-600 drop-shadow-2xl">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-linear-to-b from-white via-white to-gray-600 drop-shadow-2xl text-center">
             {t.title}
           </h1>
 
-          <div className="w-24 h-px bg-white/10 hidden lg:block" />
+          <div className="hidden lg:block w-24 h-px bg-white/10" />
+          {/* Spacer for mobile to maintain centering if needed, but flex-col handles it */}
         </div>
 
         {/* Modes Grid */}
@@ -121,7 +113,7 @@ export default function SinglePlayerModes() {
                   transition={{ delay: index * 0.1 }}
                   onClick={() => handleModeClick(mode.id)}
                   className={cn(
-                    "group relative flex flex-col text-left p-10 rounded-[2.5rem] border bg-black/60 backdrop-blur-3xl transition-all duration-500 hover:scale-[1.02] active:scale-95 shadow-2xl overflow-hidden min-h-[400px]",
+                    "group relative flex flex-col text-left p-6 lg:p-10 rounded-[2rem] lg:rounded-[2.5rem] border bg-black/60 backdrop-blur-3xl transition-all duration-500 hover:scale-[1.02] active:scale-95 shadow-2xl overflow-hidden min-h-[220px] lg:min-h-[400px]",
                     mode.borderColor,
                     mode.shadowColor
                   )}
@@ -144,18 +136,18 @@ export default function SinglePlayerModes() {
 
                   <div
                     className={cn(
-                      "w-16 h-16 rounded-2xl bg-linear-to-br flex items-center justify-center mb-10 shadow-2xl ring-1 ring-white/10",
+                      "w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl bg-linear-to-br flex items-center justify-center mb-6 lg:mb-10 shadow-2xl ring-1 ring-white/10",
                       mode.color
                     )}
                   >
-                    <mode.icon className="w-8 h-8 text-white drop-shadow-md" />
+                    <mode.icon className="w-6 h-6 lg:w-8 lg:h-8 text-white drop-shadow-md" />
                   </div>
 
-                  <h3 className="text-3xl font-black uppercase tracking-tighter mb-6 group-hover:text-white transition-colors leading-none">
+                  <h3 className="text-xl lg:text-3xl font-black uppercase tracking-tighter mb-4 lg:mb-6 group-hover:text-white transition-colors leading-none">
                     {mode.title}
                   </h3>
 
-                  <p className="text-base leading-relaxed text-gray-400 group-hover:text-gray-200 transition-colors font-medium">
+                  <p className="text-sm lg:text-base leading-relaxed text-gray-400 group-hover:text-gray-200 transition-colors font-medium">
                     {mode.description}
                   </p>
 

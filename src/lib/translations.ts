@@ -47,7 +47,7 @@ export const TRANSLATIONS = {
         gauntlet: {
           title: "Gauntlet Mode",
           description:
-            "Embark on an adventure of defeating enemies to your limit. The further you go, the tougher the opponents become.",
+            "Endless battles. Survive as long as you can while the board grows more hostile.",
         },
         training: {
           title: "Training",
@@ -62,7 +62,7 @@ export const TRANSLATIONS = {
         custom: {
           title: "Custom Mode",
           description:
-            "Testing and debugging mode. Control both players locally to test cards and passives.",
+            "Control both players locally to test cards and passives.",
         },
       },
     },
@@ -155,22 +155,22 @@ export const TRANSLATIONS = {
         gauntlet: {
           title: "Mode Gauntlet",
           description:
-            "Di mode ini kamu akan melakukan petualangan meangalahkan musuh sampai batas kemampuan yang kamu bisa, semakin jauh kamu melangkah maka akan semakin susah juga musuh musuhnya",
+            "Pertarungan tanpa akhir. Bertahanlah selama mungkin saat board semakin kejam.",
         },
         training: {
           title: "Mode Training",
           description:
-            "Di mode ini kamu bisa melakukan latihan melawan AI yang sangat mudah untuk mengetahui basic gameplay dan kartu yang kamu mainkan",
+            "Latihan melawan AI yang sangat mudah untuk mengetahui basic gameplay dan kartu yang kamu mainkan",
         },
         draft: {
           title: "Mode Draft",
           description:
-            "Di mode ini kamu akan melawan AI dengan deck yang dipilih secara langsung sebelum pertandingan dimulai",
+            "Melawan AI dengan deck yang dipilih secara langsung sebelum pertandingan dimulai",
         },
         custom: {
           title: "Mode Kustom",
           description:
-            "Mode debugging. Kamu bisa menjalankan dua sisi sekaligus untuk mencoba kartu dan pasif.",
+            "Kamu bisa menjalankan dua sisi sekaligus untuk mencoba kartu dan pasif.",
         },
       },
     },

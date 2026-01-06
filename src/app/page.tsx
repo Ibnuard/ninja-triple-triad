@@ -1,37 +1,86 @@
 "use client";
 
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSettingsStore, useTranslation } from "../store/useSettingsStore";
 import { Sword, Users, BookOpen, Globe, Zap, Shield } from "lucide-react";
 import React from "react";
-
-const Particle = ({ delay }: { delay: number }) => (
-  <motion.div
-    initial={{ y: "110vh", x: Math.random() * 100 + "vw", opacity: 0 }}
-    animate={{
-      y: "-10vh",
-      opacity: [0, 0.3, 0],
-      x: Math.random() * 100 - 50 + "vw",
-    }}
-    transition={{
-      duration: Math.random() * 10 + 10,
-      repeat: Infinity,
-      delay,
-      ease: "linear",
-    }}
-    className="absolute w-1 h-1 bg-red-500 rounded-full blur-[1px]"
-  />
-);
+import Particles, { initParticlesEngine } from "@tsparticles/react";
+import { type Engine } from "@tsparticles/engine";
+import { loadSlim } from "@tsparticles/slim";
 
 export default function Home() {
   const { language, setLanguage } = useSettingsStore();
   const t = useTranslation().home;
-  const [isMounted, setIsMounted] = React.useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [pInit, setPInit] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsMounted(true);
+    initParticlesEngine(async (engine: Engine) => {
+      await loadSlim(engine);
+    }).then(() => {
+      setPInit(true);
+    });
   }, []);
+
+  const particlesOptions = useMemo(
+    () => ({
+      fullScreen: { enable: false },
+      fpsLimit: 120,
+      particles: {
+        number: {
+          value: 60,
+          density: {
+            enable: true,
+            area: 800,
+          },
+        },
+        color: {
+          value: ["#ff3b00", "#ff7a00", "#ffd000", "#ff0000"],
+        },
+        shape: {
+          type: "circle",
+        },
+        opacity: {
+          value: { min: 0.1, max: 0.6 },
+          animation: {
+            enable: true,
+            speed: 1,
+            minimumValue: 0.1,
+            sync: false,
+          },
+        },
+        size: {
+          value: { min: 1, max: 4 },
+          animation: {
+            enable: true,
+            speed: 2,
+            minimumValue: 1,
+            sync: false,
+          },
+        },
+        move: {
+          enable: true,
+          speed: { min: 1, max: 3 },
+          direction: "top",
+          random: true,
+          straight: false,
+          outModes: {
+            default: "out",
+          },
+        },
+        shadow: {
+          enable: true,
+          color: "#ff4500",
+          blur: 15,
+        },
+      },
+      detectRetina: true,
+    }),
+    []
+  );
 
   const menuItems = [
     {
@@ -40,13 +89,6 @@ export default function Home() {
       icon: Sword,
       color: "from-red-600 to-red-900",
       shadow: "shadow-red-900/40",
-    },
-    {
-      href: "/lobby",
-      label: t.multiplayer,
-      icon: Users,
-      color: "from-blue-600 to-blue-900",
-      shadow: "shadow-blue-900/40",
     },
     {
       href: "/how-to-play",
@@ -62,15 +104,18 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center relative overflow-hidden font-sans">
       {/* Dynamic Background Layers */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/20 via-black to-black" />
         <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
 
-        {/* Animated Particles - Only render on client to avoid hydration mismatch due to Math.random() */}
-        {isMounted &&
-          Array.from({ length: 20 }).map((_, i) => (
-            <Particle key={i} delay={i * 0.8} />
-          ))}
+        {/* Animated Particles */}
+        {pInit && (
+          <Particles
+            id="tsparticles"
+            options={particlesOptions as any}
+            className="absolute inset-0 pointer-events-none"
+          />
+        )}
       </div>
 
       {/* Title Decoration */}
@@ -228,8 +273,20 @@ export default function Home() {
           </span>
           <div className="w-24 h-0.5 bg-red-950/40" />
         </div>
-        <div className="text-[10px] font-black text-white/10 tracking-[1em] uppercase ml-auto">
-          {t.konami}
+
+        <div className="ml-auto">
+          <p className="text-[10px] font-black tracking-widest text-gray-500 uppercase flex items-center gap-1.5">
+            Develop with <span className="text-red-500 animate-pulse">❤️</span>{" "}
+            by{" "}
+            <a
+              href="https://github.com/ibnuard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-white transition-colors underline underline-offset-4 decoration-white/10 hover:decoration-white/30"
+            >
+              Ibnuard
+            </a>
+          </p>
         </div>
       </footer>
     </div>
