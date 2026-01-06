@@ -13,12 +13,12 @@ interface CardProps {
 }
 
 const elementColors: Record<string, string> = {
-  fire: "bg-red-500",
-  water: "bg-blue-500",
-  earth: "bg-amber-600",
-  wind: "bg-emerald-500",
-  lightning: "bg-yellow-400",
-  none: "bg-gray-500",
+  fire: "bg-red-500/20",
+  water: "bg-blue-500/20",
+  earth: "bg-amber-800/20",
+  wind: "bg-emerald-500/20",
+  lightning: "bg-yellow-400/20",
+  none: "bg-gray-500/20",
 };
 
 export const Card = ({
@@ -50,6 +50,18 @@ export const Card = ({
     >
       {/* Background Pattern / Texture */}
       <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+
+      {/* Owner Overlay (Visible when placed on board) */}
+      {isPlaced && (
+        <div
+          className={cn(
+            "absolute inset-0 pointer-events-none transition-colors duration-500",
+            owner === "player1"
+              ? "bg-blue-600/10 shadow-[inset_0_0_40px_rgba(37,99,235,0.2)]"
+              : "bg-red-600/10 shadow-[inset_0_0_40px_rgba(220,38,38,0.2)]"
+          )}
+        />
+      )}
 
       {/* STATS AREA: Top Left Diamond Grid */}
       <div className="absolute top-2 left-2 lg:top-3 lg:left-3 z-10 flex flex-col items-start select-none">
@@ -117,24 +129,33 @@ export const Card = ({
       </div>
 
       {/* ELEMENT BADGE: Bottom Right Circle */}
-      <div className="absolute bottom-2 right-2 lg:bottom-3 lg:right-3 z-10">
+      <div className="absolute bottom-1 right-1 lg:bottom-2 lg:right-2 z-10">
         <motion.div
           animate={
             card.activePassives && card.activePassives.length > 0
-              ? { scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }
-              : { scale: 1, opacity: 1 }
+              ? {
+                  scale: [1, 1.25, 1],
+                  filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"],
+                }
+              : { scale: 1, filter: "brightness(1.1)" }
           }
           transition={{ repeat: Infinity, duration: 1.5 }}
           className={cn(
-            "w-3 h-3 lg:w-4 lg:h-4 rounded-full flex items-center justify-center shadow-lg border border-white/10",
-            elementColors[card.element]
+            "w-4 h-4 lg:w-5 lg:h-5 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-white/20 overflow-hidden",
+            elementColors[card.element] || "bg-gray-500"
           )}
         >
-          <span className="text-[10px] lg:text-sm font-black text-white drop-shadow-md">
-            {card.element !== "none"
-              ? card.element.charAt(0).toUpperCase()
-              : ""}
-          </span>
+          {card.element !== "none" ? (
+            <img
+              src={`/images/${card.element}.webp`}
+              alt={card.element}
+              className="w-[60%] h-[60%] object-contain drop-shadow-md"
+            />
+          ) : (
+            <span className="text-[10px] lg:text-sm font-black text-white drop-shadow-md">
+              ?
+            </span>
+          )}
         </motion.div>
       </div>
 
