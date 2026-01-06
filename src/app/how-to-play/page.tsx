@@ -566,13 +566,6 @@ export default function HowToPlayPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-center pt-4 lg:pt-0">
-                      <Link href="/single-player">
-                        <button className="w-full lg:w-auto px-8 py-4 bg-red-600 hover:bg-red-500 text-black font-black uppercase tracking-tighter transition-all rounded-full lg:hover:scale-105 active:scale-95 shadow-lg shadow-red-500/20">
-                          ARE YOU READY? START BATTLE
-                        </button>
-                      </Link>
-                    </div>
                   </div>
                 )}
               </motion.div>

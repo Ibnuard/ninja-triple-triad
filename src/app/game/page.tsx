@@ -24,8 +24,8 @@ const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
   return {
     id: `card-${i}-${Math.random()}`,
     name: `Ninja ${i + 1}`,
-    element: ["fire", "water", "earth", "wind", "lightning", "none"][
-      Math.floor(Math.random() * 6)
+    element: ["fire", "water", "earth", "wind", "lightning"][
+      Math.floor(Math.random() * 5)
     ] as any,
     image: "",
     stats: { ...stats },
@@ -43,8 +43,8 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
   return {
     id: `opp-card-${i}-${Math.random()}`,
     name: `Ronin ${i + 1}`,
-    element: ["fire", "water", "earth", "wind", "lightning", "none"][
-      Math.floor(Math.random() * 6)
+    element: ["fire", "water", "earth", "wind", "lightning"][
+      Math.floor(Math.random() * 5)
     ] as any,
     image: "",
     stats: { ...stats },
