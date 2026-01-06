@@ -183,7 +183,7 @@ export default function GamePage() {
       {/* Main Layout Container */}
       {/* Mobile: Col. Order: Opponent(1), Board(2), Player(3) */}
       {/* Desktop: 3-Col Grid. */}
-      <div className="relative z-10 w-full h-full p-1 lg:p-8 grid grid-rows-[1fr_2fr_1fr] lg:grid-rows-1 lg:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-1 lg:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
+      <div className="relative z-10 w-full h-full p-1 lg:p-8 grid grid-rows-[auto_1fr_auto] lg:grid-rows-1 lg:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-1 lg:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
         {/* PLAYER 1 HAND */}
         <div className="order-3 lg:order-1 w-full h-full flex flex-col items-center justify-center relative p-1 lg:p-2">
           {/* Mobile View (Horizontal) */}
@@ -287,6 +287,7 @@ export default function GamePage() {
               isCurrentPlayer={currentPlayerId === "player2"}
               orientation="horizontal"
               compact
+              minimal={true}
               isHidden={isCustomMode ? false : true}
               isCustom={isCustomMode}
             />

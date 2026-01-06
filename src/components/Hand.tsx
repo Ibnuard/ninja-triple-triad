@@ -17,6 +17,7 @@ interface HandProps {
   compact?: boolean; // New prop for visual scaling
   isHidden?: boolean; // New prop
   isCustom?: boolean;
+  minimal?: boolean; // New prop for mobile indicator
 }
 
 export const Hand = ({
@@ -27,11 +28,42 @@ export const Hand = ({
   compact = false,
   isHidden = false,
   isCustom = false,
+  minimal = false,
 }: HandProps) => {
   const { selectCard, selectedCardId, currentPlayerId } = useGameStore();
   const t = useTranslation().game;
 
   const isMyTurn = currentPlayerId === ownerId;
+
+  // Minimal mode for mobile opponent indicator
+  if (minimal) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/60 backdrop-blur-md rounded-xl border border-white/10 shadow-lg mt-14 lg:mt-0">
+        <span className="text-[9px] font-black tracking-widest text-gray-500 uppercase mr-1">
+          {t.opponent}
+        </span>
+        <div className="flex gap-1">
+          {cards.map((card) => (
+            <motion.div
+              key={card.id}
+              initial={{ scale: 0, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              className="w-3 h-4.5 bg-gray-800 rounded-sm border border-white/10 relative overflow-hidden shadow-sm"
+            >
+              <div className="absolute inset-0 bg-linear-to-br from-gray-700/50 to-transparent" />
+              <div className="absolute inset-[1px] border border-white/5 rounded-[1px]" />
+            </motion.div>
+          ))}
+          {cards.length === 0 && (
+            <span className="text-[10px] text-gray-600 italic">Empty</span>
+          )}
+        </div>
+        <span className="ml-1 text-[10px] font-black text-gray-400 font-mono bg-black/40 px-1.5 py-0.5 rounded-md border border-white/5">
+          {cards.length}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
