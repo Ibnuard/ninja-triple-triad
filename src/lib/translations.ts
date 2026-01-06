@@ -7,6 +7,7 @@ export const TRANSLATIONS = {
       multiplayer: "Multiplayer",
       konami: "KONAMI CODE NOT ENABLED",
       start: "PRESS START",
+      howToPlay: "How to Play",
     },
     game: {
       yourTurn: "Your Turn",
@@ -76,6 +77,35 @@ export const TRANSLATIONS = {
       lightning:
         "If placed in the top given +0-2 DEF randomly. If placed in the middle given +0-1 ATK or Jutsu randomly. If placed in the bottom given +0-2 Chakra randomly.",
     },
+    tutorial: {
+      title: "How to Play",
+      back: "Back",
+      sections: {
+        basics: {
+          title: "The Basics",
+          content:
+            "Triple Triad is a card game played on a 3x3 grid. Each player brings 5 cards into battle. The goal is to capture as many of the opponent's cards as possible.",
+        },
+        anatomy: {
+          title: "Card Anatomy",
+          desc: "Every card has 4 main attributes arranged in a diamond grid:",
+          cp: "Chakra (Top): Used for vertical defense.",
+          atk: "Attack (Right): Used for horizontal offense.",
+          jt: "Jutsu (Left): Used for horizontal defense.",
+          df: "Defense (Bottom): Used for bottom-up defense.",
+          element:
+            "Elemental Badge: Indicates the card's element (Fire, Water, etc.).",
+        },
+        capturing: {
+          title: "Capturing Cards",
+          desc: "To capture a card, place your card adjacent to an opponent's card. If your card's side-facing stat is higher than the opponent's adjacent stat, the opponent's card flips to your color!",
+        },
+        winning: {
+          title: "Victory",
+          desc: "Once all 9 spaces on the board are filled, the player who controls the majority of the cards wins the match.",
+        },
+      },
+    },
   },
   id: {
     home: {
@@ -85,6 +115,7 @@ export const TRANSLATIONS = {
       multiplayer: "Main Bareng",
       konami: "KODE KONAMI TIDAK AKTIF",
       start: "TEKAN MULAI",
+      howToPlay: "Cara Bermain",
     },
     game: {
       yourTurn: "Giliranmu",
@@ -153,6 +184,34 @@ export const TRANSLATIONS = {
       wind: "Jika ditaruh di baris paling atas maka +1 DEF.",
       lightning:
         "Jika ditaruh di bagian atas maka +0-2 DEF secara acak. Jika ditaruh di bagian tengah maka +0-1 ATK atau Jutsu secara acak. Jika ditaruh di bagian bawah maka +0-2 Chakra secara acak.",
+    },
+    tutorial: {
+      title: "Cara Bermain",
+      back: "Kembali",
+      sections: {
+        basics: {
+          title: "Dasar Permainan",
+          content:
+            "Triple Triad dimainkan di atas grid 3x3. Setiap pemain membawa 5 kartu ke medan tempur. Tujuannya adalah menangkap kartu lawan sebanyak mungkin.",
+        },
+        anatomy: {
+          title: "Anatomi Kartu",
+          desc: "Setiap kartu memiliki 4 atribut utama yang disusun dalam pola diamond:",
+          cp: "Chakra (Atas): Digunakan untuk pertahanan atas.",
+          atk: "Attack (Kanan): Digunakan untuk serangan samping.",
+          jt: "Jutsu (Kiri): Digunakan untuk pertahanan samping.",
+          df: "Defense (Bawah): Digunakan untuk pertahanan bawah.",
+          element: "Badge Elemen: Menunjukkan elemen kartu (Api, Air, dll).",
+        },
+        capturing: {
+          title: "Menangkap Kartu",
+          desc: "Untuk menangkap kartu, letakkan kartumu di sebelah kartu lawan. Jika angka atribut kartumu yang menghadap lawan lebih besar, maka kartu lawan akan ter-flip menjadi warnamu!",
+        },
+        winning: {
+          title: "Kemenangan",
+          desc: "Setelah seluruh 9 kotak di papan terisi, pemain yang memiliki jumlah kartu terbanyak dengan warnanya akan memenangkan pertandingan.",
+        },
+      },
     },
   },
 } as const;

@@ -73,6 +73,13 @@ export default function Home() {
               </span>
             </button>
           </Link>
+          <Link href="/how-to-play">
+            <button className="w-full py-4 bg-white/5 border border-white/10 hover:bg-amber-500 hover:border-amber-400 hover:text-black transition-all duration-300 rounded-lg font-bold tracking-widest backdrop-blur-sm group">
+              <span className="group-hover:mr-2 transition-all">
+                {t.howToPlay}
+              </span>
+            </button>
+          </Link>
         </motion.div>
       </div>
 
