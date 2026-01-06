@@ -131,7 +131,7 @@ export default function GamePage() {
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none" />
 
       {/* Header / Status Bar */}
-      <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-center p-2 lg:p-4 pointer-events-none">
+      <div className="absolute top-1.5 left-0 right-0 z-50 flex items-center justify-center p-2 lg:p-4 pointer-events-none">
         {/* Turn Status Overlay (Central) */}
         {phase !== "game_over" && (
           <div

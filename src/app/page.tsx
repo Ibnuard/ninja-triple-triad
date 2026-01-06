@@ -267,13 +267,6 @@ export default function Home() {
 
       {/* Footer Decoration */}
       <footer className="absolute bottom-8 w-full px-12 flex justify-between items-center z-10">
-        <div className="hidden md:flex flex-col gap-1 items-start">
-          <span className="text-[10px] font-black text-white/20 tracking-widest uppercase">
-            Protocol: Uchiha-TRIAD
-          </span>
-          <div className="w-24 h-0.5 bg-red-950/40" />
-        </div>
-
         <div className="ml-auto">
           <p className="text-[10px] font-black tracking-widest text-gray-500 uppercase flex items-center gap-1.5">
             Develop with <span className="text-red-500 animate-pulse">❤️</span>{" "}

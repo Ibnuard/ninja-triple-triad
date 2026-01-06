@@ -206,13 +206,6 @@ export default function SinglePlayerModes() {
           )}
         </AnimatePresence>
       </motion.div>
-
-      {/* Footer Branding */}
-      <div className="absolute bottom-12 left-0 w-full flex justify-center opacity-10 pointer-events-none">
-        <p className="font-black uppercase tracking-[2em] text-xs">
-          Uchiha Clan Protocol
-        </p>
-      </div>
     </div>
   );
 }
