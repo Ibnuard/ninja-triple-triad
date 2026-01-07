@@ -30,17 +30,26 @@ export const Hand = ({
   isCustom = false,
   minimal = false,
 }: HandProps) => {
-  const { selectCard, selectedCardId, currentPlayerId, draggingCardId } =
+  const { selectCard, selectedCardId, currentPlayerId, draggingCardId, phase } =
     useGameStore();
   const t = useTranslation().game;
 
   const isMyTurn = currentPlayerId === ownerId;
   const isAnyCardDragging = !!draggingCardId;
+  const isGameOver = phase === "game_over";
 
   // Minimal mode for mobile opponent indicator
   if (minimal) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/60 backdrop-blur-md rounded-xl border border-white/10 shadow-lg mt-14 lg:mt-0">
+      <motion.div
+        animate={
+          isGameOver
+            ? { scale: 0, opacity: 0, filter: "blur(10px)" }
+            : { scale: 1, opacity: 1, filter: "blur(0px)" }
+        }
+        transition={{ duration: 1, ease: "circIn" }}
+        className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/60 backdrop-blur-md rounded-xl border border-white/10 shadow-lg mt-14 lg:mt-0"
+      >
         <span className="text-[9px] font-black tracking-widest text-gray-500 uppercase mr-1">
           {t.opponent}
         </span>
@@ -63,12 +72,18 @@ export const Hand = ({
         <span className="ml-1 text-[10px] font-black text-gray-400 font-mono bg-black/40 px-1.5 py-0.5 rounded-md border border-white/5">
           {cards.length}
         </span>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div
+    <motion.div
+      animate={
+        isGameOver
+          ? { scale: 0, opacity: 0, y: 100, filter: "blur(10px)" }
+          : { scale: 1, opacity: 1, y: 0, filter: "blur(0px)" }
+      }
+      transition={{ duration: 1.5, ease: "circOut" }}
       className={cn(
         "flex flex-col items-center gap-1 lg:gap-4 transition-all duration-300 w-full scale-90 sm:scale-100 origin-center",
         isHidden && "opacity-80"
@@ -225,6 +240,6 @@ export const Hand = ({
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

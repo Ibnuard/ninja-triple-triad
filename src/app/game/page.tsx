@@ -207,6 +207,19 @@ export default function GamePage() {
     };
   }, [mechanic]);
 
+  const [showResult, setShowResult] = useState(false);
+
+  useEffect(() => {
+    if (phase === "game_over") {
+      const timer = setTimeout(() => {
+        setShowResult(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowResult(false);
+    }
+  }, [phase]);
+
   useEffect(() => {
     if (player1.hand.length === 0) {
       startGame();
@@ -387,7 +400,7 @@ export default function GamePage() {
             </div>
           </div>
 
-          {phase === "game_over" && (
+          {showResult && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9, backdropFilter: "blur(0px)" }}
               animate={{ opacity: 1, scale: 1, backdropFilter: "blur(12px)" }}
