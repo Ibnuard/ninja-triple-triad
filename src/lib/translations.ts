@@ -98,10 +98,20 @@ export const TRANSLATIONS = {
           buff: "GREEN numbers represent currently buffed stats (+1 or more).",
           debuff:
             "RED numbers represent currently debuffed stats (-1 or less).",
+          buffIndicator: "Bonus Indicator",
+          debuffIndicator: "Debuff Indicator",
         },
         capturing: {
           title: "Capturing Cards",
           desc: "To capture a card, place your card adjacent to an opponent's card. If your card's side-facing stat is higher than the opponent's adjacent stat, the opponent's card flips to your color!",
+          captured: "CAPTURED!",
+          ready: "GET READY TO CAPTURE...",
+          comparison: "9 VS 6 → CAPTURED!",
+        },
+        elements: {
+          title: "Elemental Mastery",
+          desc: "Each element has a unique passive ability triggered based on the card's position on the game board.",
+          note: "Important: Elemental bonuses are only active if the card is placed in the correct position as described above. Strategy is everything!",
         },
         winning: {
           title: "Victory",
@@ -127,6 +137,7 @@ export const TRANSLATIONS = {
           },
         },
       },
+      footer: "Elemental mastery is the key to victory",
     },
   },
   id: {
@@ -227,10 +238,20 @@ export const TRANSLATIONS = {
           buff: "Angka HIJAU melambangkan status yang sedang diperkuat (+1 atau lebih).",
           debuff:
             "Angka MERAH melambangkan status yang sedang dikurangi (-1 atau kurang).",
+          buffIndicator: "Indikator Bonus",
+          debuffIndicator: "Indikator Debuff",
         },
         capturing: {
           title: "Menangkap Kartu",
           desc: "Untuk menangkap kartu, letakkan kartumu di sebelah kartu lawan. Jika angka atribut kartumu yang menghadap lawan lebih besar, maka kartu lawan akan ter-flip menjadi warnamu!",
+          captured: "TERTANGKAP!",
+          ready: "BERSIAP UNTUK MENANGKAP...",
+          comparison: "9 VS 6 → TERTANGKAP!",
+        },
+        elements: {
+          title: "Masteri Elemen",
+          desc: "Setiap elemen memiliki pasif unik yang dipicu berdasarkan posisi kartu di papan permainan.",
+          note: "Penting: Bonus elemen hanya aktif jika kartu diletakkan di posisi yang tepat sesuai deskripsi di atas. Strategi penempatan adalah kunci utama!",
         },
         winning: {
           title: "Kemenangan",
@@ -256,6 +277,7 @@ export const TRANSLATIONS = {
           },
         },
       },
+      footer: "Masteri elemen adalah kunci kemenangan",
     },
   },
 } as const;
