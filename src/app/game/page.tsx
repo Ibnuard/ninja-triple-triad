@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { LogOut, Info } from "lucide-react";
 import { motion } from "framer-motion";
+import { BoardIntroAnimation } from "../../components/BoardIntroAnimation";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { type Engine } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
@@ -59,6 +60,7 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
 export default function GamePage() {
   const [showInfo, setShowInfo] = useState(false);
   const [showMechanicModal, setShowMechanicModal] = useState(false);
+  const [showBoardIntro, setShowBoardIntro] = useState(true);
   
   // Use selective subscriptions to prevent re-renders on drag state changes
   const initGame = useGameStore((state) => state.initGame);
@@ -291,6 +293,15 @@ export default function GamePage() {
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none overflow-hidden">
         {particlesComponent}
       </div>
+
+      {/* Board Intro Animation */}
+      {showBoardIntro && (
+        <BoardIntroAnimation
+          mechanicType={mechanic.type}
+          activeElement={mechanic.activeElement}
+          onComplete={() => setShowBoardIntro(false)}
+        />
+      )}
 
       {/* Header / Status Bar */}
       <div className="absolute top-1.5 left-0 right-0 z-50 flex items-center justify-center p-2 lg:p-4 pointer-events-none">
