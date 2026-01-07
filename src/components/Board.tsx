@@ -81,7 +81,11 @@ const BoardCell = ({
 };
 
 export const Board = () => {
-  const { board, placeCard, lastMove, mechanic } = useGameStore();
+  // Use selective subscriptions to prevent unnecessary re-renders
+  const board = useGameStore((state) => state.board);
+  const placeCard = useGameStore((state) => state.placeCard);
+  const lastMove = useGameStore((state) => state.lastMove);
+  const mechanic = useGameStore((state) => state.mechanic);
 
   // Calculate if we are in the first 2 turns (<= 4 cards placed)
   const occupiedCount = board.flat().filter((cell) => cell.card).length;

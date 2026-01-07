@@ -59,16 +59,16 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
 export default function GamePage() {
   const [showInfo, setShowInfo] = useState(false);
   const [showMechanicModal, setShowMechanicModal] = useState(false);
-  const {
-    initGame,
-    player1,
-    player2,
-    currentPlayerId,
-    phase,
-    winner,
-    resetGame,
-    mechanic,
-  } = useGameStore();
+  
+  // Use selective subscriptions to prevent re-renders on drag state changes
+  const initGame = useGameStore((state) => state.initGame);
+  const player1 = useGameStore((state) => state.player1);
+  const player2 = useGameStore((state) => state.player2);
+  const currentPlayerId = useGameStore((state) => state.currentPlayerId);
+  const phase = useGameStore((state) => state.phase);
+  const winner = useGameStore((state) => state.winner);
+  const resetGame = useGameStore((state) => state.resetGame);
+  const mechanic = useGameStore((state) => state.mechanic);
 
   const t = useTranslation().game;
   const { language } = useSettingsStore();
@@ -154,7 +154,7 @@ export default function GamePage() {
           direction = "bottom";
           break;
         case "earth":
-          color = ["#d97706", "#b45309", "#92400e"];
+          color = ["#d97706", "##b45309", "#92400e"];
           direction = "bottom-left";
           break;
         case "wind":
@@ -205,7 +205,19 @@ export default function GamePage() {
       },
       detectRetina: true,
     };
-  }, [mechanic]);
+  }, [mechanic.type, mechanic.activeElement]);
+
+  // Memoize the Particles component to prevent remounting
+  const particlesComponent = useMemo(() => {
+    if (!pInit) return null;
+    return (
+      <Particles
+        id="tsparticles"
+        options={particlesOptions as any}
+        className="absolute inset-0 pointer-events-none"
+      />
+    );
+  }, [pInit, particlesOptions]);
 
   const [showResult, setShowResult] = useState(false);
 
@@ -234,13 +246,7 @@ export default function GamePage() {
   return (
     <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none overflow-hidden">
-        {pInit && (
-          <Particles
-            id="tsparticles"
-            options={particlesOptions as any}
-            className="absolute inset-0 pointer-events-none"
-          />
-        )}
+        {particlesComponent}
       </div>
 
       {/* Header / Status Bar */}
