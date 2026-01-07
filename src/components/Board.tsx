@@ -15,6 +15,8 @@ import {
   Dices,
 } from "lucide-react";
 
+import { BoardEffects } from "./BoardEffects";
+
 const BoardCell = ({
   rIndex,
   cIndex,
@@ -132,8 +134,12 @@ export const Board = () => {
   };
 
   return (
-    <div className="relative">
-      <div className="grid grid-cols-3 gap-1 lg:gap-4 p-1 lg:p-4 bg-gray-900/50 rounded-xl backdrop-blur-sm border border-white/10 shadow-2xl">
+    <div className="relative p-1 lg:p-4 bg-gray-900/50 rounded-xl backdrop-blur-sm border border-white/10 shadow-2xl overflow-hidden">
+      <BoardEffects
+        mechanicType={mechanic.type}
+        activeElement={mechanic.activeElement}
+      />
+      <div className="grid grid-cols-3 gap-1 lg:gap-4 relative z-10">
         {board.map((row, rIndex) =>
           row.map((cell, cIndex) => {
             const isLastMove =

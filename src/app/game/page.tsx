@@ -1,9 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { LogOut, Info } from "lucide-react";
 import { motion } from "framer-motion";
+import Particles, { initParticlesEngine } from "@tsparticles/react";
+import { type Engine } from "@tsparticles/engine";
+import { loadSlim } from "@tsparticles/slim";
 import { Board } from "../../components/Board";
 import { Hand } from "../../components/Hand";
 import { PassiveInfoModal } from "../../components/PassiveInfoModal";
@@ -124,6 +127,86 @@ export default function GamePage() {
     }));
   };
 
+  const [pInit, setPInit] = useState(false);
+
+  useEffect(() => {
+    initParticlesEngine(async (engine: Engine) => {
+      await loadSlim(engine);
+    }).then(() => {
+      setPInit(true);
+    });
+  }, []);
+
+  const particlesOptions = useMemo(() => {
+    const defaultColor = ["#ffffff"];
+    let color = defaultColor;
+    let direction: any = "top";
+    let speed = { min: 1, max: 3 };
+
+    if (mechanic.type === "random_elemental") {
+      switch (mechanic.activeElement) {
+        case "fire":
+          color = ["#ff3b00", "#ff7a00", "#ffd000"];
+          direction = "top";
+          break;
+        case "water":
+          color = ["#3b82f6", "#60a5fa", "#93c5fd"];
+          direction = "bottom";
+          break;
+        case "earth":
+          color = ["#d97706", "#b45309", "#92400e"];
+          direction = "bottom-left";
+          break;
+        case "wind":
+          color = ["#10b981", "#34d399", "#6ee7b7"];
+          direction = "right";
+          speed = { min: 5, max: 10 };
+          break;
+        case "lightning":
+          color = ["#eab308", "#facc15", "#fef08a"];
+          direction = "none";
+          speed = { min: 2, max: 5 };
+          break;
+      }
+    } else if (mechanic.type === "poison") {
+      color = ["#a855f7", "#c084fc", "#d8b4fe"];
+      direction = "top";
+    } else if (mechanic.type === "foggy") {
+      color = ["#9ca3af", "#d1d5db", "#f3f4f6"];
+      direction = "none";
+    } else if (mechanic.type === "joker") {
+      color = ["#ec4899", "#a855f7", "#3b82f6"];
+      direction = "top";
+    }
+
+    return {
+      fullScreen: { enable: false },
+      fpsLimit: 120,
+      particles: {
+        number: { value: 40, density: { enable: true, area: 800 } },
+        color: { value: color },
+        shape: { type: "circle" },
+        opacity: {
+          value: { min: 0.1, max: 0.4 },
+          animation: { enable: true, speed: 1, minimumValue: 0.1, sync: false },
+        },
+        size: {
+          value: { min: 1, max: 3 },
+          animation: { enable: true, speed: 2, minimumValue: 1, sync: false },
+        },
+        move: {
+          enable: true,
+          speed: speed,
+          direction: direction,
+          random: true,
+          straight: false,
+          outModes: { default: "out" },
+        },
+      },
+      detectRetina: true,
+    };
+  }, [mechanic]);
+
   useEffect(() => {
     if (player1.hand.length === 0) {
       startGame();
@@ -137,7 +220,15 @@ export default function GamePage() {
 
   return (
     <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none overflow-hidden">
+        {pInit && (
+          <Particles
+            id="tsparticles"
+            options={particlesOptions as any}
+            className="absolute inset-0 pointer-events-none"
+          />
+        )}
+      </div>
 
       {/* Header / Status Bar */}
       <div className="absolute top-1.5 left-0 right-0 z-50 flex items-center justify-center p-2 lg:p-4 pointer-events-none">
