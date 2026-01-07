@@ -47,6 +47,22 @@ export interface Player {
 
 export type GamePhase = "lobby" | "deciding_turn" | "playing" | "game_over";
 
+export type BoardMechanicType =
+  | "none"
+  | "random_elemental"
+  | "poison"
+  | "foggy"
+  | "joker";
+
+export interface BoardMechanicState {
+  type: BoardMechanicType;
+  activeElement: ElementType; // For random_elemental
+  jokerModifiers: {
+    player1: number;
+    player2: number;
+  };
+}
+
 export interface GameState {
   roomId: string | null;
   board: BoardState;
@@ -56,4 +72,5 @@ export interface GameState {
   phase: GamePhase;
   winner: "player1" | "player2" | "draw" | null;
   lastMove: { row: number; col: number; playerId: string } | null;
+  mechanic: BoardMechanicState;
 }

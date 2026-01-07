@@ -1,4 +1,10 @@
-import { BoardState, Card, Cell, Player } from "../types/game";
+import {
+  BoardMechanicState,
+  BoardState,
+  Card,
+  Cell,
+  Player,
+} from "../types/game";
 
 // Initialize a 3x3 empty board
 export function createEmptyBoard(): BoardState {
@@ -104,9 +110,21 @@ export function calculateFlips(
   return flips;
 }
 
-// Elemental Passives Logic - SIMPLIFIED as per latest user request
-export function applyElementalPassives(board: BoardState): BoardState {
+// Elemental Passives Logic - Includes Board Mechanics
+export function applyElementalPassives(
+  board: BoardState,
+  mechanic: BoardMechanicState
+): BoardState {
   const newBoard = JSON.parse(JSON.stringify(board)) as BoardState;
+
+  // Count occupied cells to determine "first 2 turns" (approx <= 4 cards placed)
+  let occupiedCount = 0;
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      if (newBoard[r][c].card) occupiedCount++;
+    }
+  }
+  const isFirstTwoTurns = occupiedCount <= 4;
 
   for (let r = 0; r < 3; r++) {
     for (let c = 0; c < 3; c++) {
@@ -119,6 +137,49 @@ export function applyElementalPassives(board: BoardState): BoardState {
       card.stats = { ...card.baseStats };
       card.activePassives = [];
       card.isBuffed = false;
+
+      // --- BOARD MECHANICS ---
+
+      // 1. Random Elemental Board: Matches element -> +1 all stats
+      if (
+        mechanic.type === "random_elemental" &&
+        card.element === mechanic.activeElement
+      ) {
+        card.stats.top += 1;
+        card.stats.bottom += 1;
+        card.stats.left += 1;
+        card.stats.right += 1;
+        card.activePassives.push("mechanic-elemental");
+        card.isBuffed = true;
+      }
+
+      // 2. Poison Board: All cards -1 all stats
+      if (mechanic.type === "poison") {
+        card.stats.top -= 1;
+        card.stats.bottom -= 1;
+        card.stats.left -= 1;
+        card.stats.right -= 1;
+        card.activePassives.push("mechanic-poison");
+        card.isBuffed = true; // technically debuffed, but stats changed
+      }
+
+      // 3. Joker Board: First 2 turns -> random modifier
+      if (mechanic.type === "joker" && isFirstTwoTurns) {
+        const modifier =
+          cell.owner === "player1"
+            ? mechanic.jokerModifiers.player1
+            : mechanic.jokerModifiers.player2; // If null owner (shouldn't happen for card), ignore or default to 0
+        if (modifier !== 0) {
+          card.stats.top += modifier;
+          card.stats.bottom += modifier;
+          card.stats.left += modifier;
+          card.stats.right += modifier;
+          card.activePassives.push("mechanic-joker");
+          card.isBuffed = true;
+        }
+      }
+
+      // --- ORIGINAL ELEMENTAL PASSIVES ---
 
       // 1. TANAH (Earth) -> 3 row paling bawah (row 2) -> +1 chakra (top)
       if (card.element === "earth" && r === 2) {

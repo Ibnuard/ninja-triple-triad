@@ -11,6 +11,7 @@ interface CardProps {
   isSelected?: boolean;
   isPlaced?: boolean;
   isColorful?: boolean;
+  hideStats?: boolean;
 }
 
 const elementColors: Record<string, string> = {
@@ -29,6 +30,7 @@ export const Card = ({
   isSelected,
   isPlaced,
   isColorful,
+  hideStats,
 }: CardProps) => {
   return (
     <motion.div
@@ -78,8 +80,8 @@ export const Card = ({
               isColorful ? "text-blue-500" : ""
             )}
           >
-            {card.stats.top}
-            {card.stats.top > card.baseStats.top && (
+            {hideStats ? "?" : card.stats.top}
+            {!hideStats && card.stats.top > card.baseStats.top && (
               <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
             )}
           </div>
@@ -94,8 +96,8 @@ export const Card = ({
               isColorful ? "text-yellow-500" : ""
             )}
           >
-            {card.stats.left}
-            {card.stats.left > card.baseStats.left && (
+            {hideStats ? "?" : card.stats.left}
+            {!hideStats && card.stats.left > card.baseStats.left && (
               <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
             )}
           </div>
@@ -110,8 +112,8 @@ export const Card = ({
               isColorful ? "text-red-500" : ""
             )}
           >
-            {card.stats.right}
-            {card.stats.right > card.baseStats.right && (
+            {hideStats ? "?" : card.stats.right}
+            {!hideStats && card.stats.right > card.baseStats.right && (
               <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
             )}
           </div>
@@ -126,8 +128,8 @@ export const Card = ({
               isColorful ? "text-green-500" : ""
             )}
           >
-            {card.stats.bottom}
-            {card.stats.bottom > card.baseStats.bottom && (
+            {hideStats ? "?" : card.stats.bottom}
+            {!hideStats && card.stats.bottom > card.baseStats.bottom && (
               <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
             )}
           </div>

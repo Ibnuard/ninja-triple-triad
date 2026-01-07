@@ -1,5 +1,14 @@
 import { create } from "zustand";
-import { BoardState, Card, GamePhase, GameState, Player } from "../types/game";
+import {
+  BoardState,
+  Card,
+  GamePhase,
+  GameState,
+  Player,
+  ElementType,
+  BoardMechanicType,
+  BoardMechanicState,
+} from "../types/game";
 import {
   calculateFlips,
   createEmptyBoard,
@@ -49,6 +58,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   winner: null,
   lastMove: null,
   selectedCardId: null,
+  mechanic: {
+    type: "none",
+    activeElement: "none",
+    jokerModifiers: { player1: 0, player2: 0 },
+  },
 
   initGame: (roomId, vsComputer) => {
     set({
@@ -76,6 +90,51 @@ export const useGameStore = create<GameStore>((set, get) => ({
       lastMove: null,
       selectedCardId: null,
     });
+
+    // Initialize Mechanics
+    const mechanics: BoardMechanicType[] = [
+      "random_elemental",
+      "poison",
+      "foggy",
+      "joker",
+    ];
+    const selectedMechanic =
+      mechanics[Math.floor(Math.random() * mechanics.length)];
+    // DEBUG: Force specific mechanic if needed
+    // const selectedMechanic = "random_elemental";
+
+    let mechanicState: BoardMechanicState = {
+      type: selectedMechanic,
+      activeElement: "none",
+      jokerModifiers: { player1: 0, player2: 0 },
+    };
+
+    if (selectedMechanic === "random_elemental") {
+      const elements: ElementType[] = [
+        "fire",
+        "water",
+        "earth",
+        "wind",
+        "lightning",
+      ];
+      mechanicState.activeElement =
+        elements[Math.floor(Math.random() * elements.length)];
+    } else if (selectedMechanic === "joker") {
+      // +0-2 or -0-2. Simplified: Random integer between -2 and 2?
+      // Prompt says: "random antara + 0-2 ... atau - 0-2".
+      // Let's interpret as: 50% chance POSITIVE (0,1,2), 50% chance NEGATIVE (0,-1,-2).
+      const getMod = () => {
+        const isPositive = Math.random() > 0.5;
+        const val = Math.floor(Math.random() * 3); // 0, 1, 2
+        return isPositive ? val : -val;
+      };
+      mechanicState.jokerModifiers = {
+        player1: getMod(),
+        player2: getMod(),
+      };
+    }
+
+    set({ mechanic: mechanicState });
   },
 
   selectCard: (cardId) => {
@@ -117,7 +176,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     };
 
     // 1. Initial Passive Application (Get buffs for the placed card)
-    newBoard = applyElementalPassives(newBoard);
+    newBoard = applyElementalPassives(newBoard, get().mechanic);
     const placedCardUpdated = newBoard[row][col].card!;
 
     // 2. Calculate flips (Lightning protection is inside)
@@ -139,7 +198,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
 
     // 4. Final Passive Application (Update all cards after ownership changes)
-    newBoard = applyElementalPassives(newBoard);
+    newBoard = applyElementalPassives(newBoard, get().mechanic);
 
     playSound(SOUNDS.PLACE);
     if (flips.length > 0) {
