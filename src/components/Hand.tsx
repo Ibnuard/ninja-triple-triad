@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import React from "react";
+import { Trophy } from "lucide-react";
 import { Card as CardType } from "../types/game";
 import { Card } from "./Card";
 import { useGameStore } from "../store/useGameStore";
@@ -19,6 +20,7 @@ interface HandProps {
   isCustom?: boolean;
   minimal?: boolean; // New prop for mobile indicator
   name?: string; // New prop for dynamic name
+  gauntletRank?: string; // New prop for Gauntlet Rank
 }
 
 export const Hand = ({
@@ -31,6 +33,7 @@ export const Hand = ({
   isCustom = false,
   minimal = false,
   name,
+  gauntletRank,
 }: HandProps) => {
   const { selectCard, selectedCardId, currentPlayerId, draggingCardId, phase } =
     useGameStore();
@@ -43,15 +46,16 @@ export const Hand = ({
   // Minimal mode for mobile opponent indicator
   if (minimal) {
     return (
-      <motion.div
-        animate={
-          isGameOver
-            ? { scale: 0, opacity: 0, filter: "blur(10px)" }
-            : { scale: 1, opacity: 1, filter: "blur(0px)" }
-        }
-        transition={{ duration: 1, ease: "circIn" }}
-        className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/60 backdrop-blur-md rounded-xl border border-white/10 shadow-lg mt-14 lg:mt-0"
-      >
+      <div className="flex flex-col items-center gap-1 mt-14 lg:mt-0">
+        <motion.div
+          animate={
+            isGameOver
+              ? { scale: 0, opacity: 0, filter: "blur(10px)" }
+              : { scale: 1, opacity: 1, filter: "blur(0px)" }
+          }
+          transition={{ duration: 1, ease: "circIn" }}
+          className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/60 backdrop-blur-md rounded-xl border border-white/10 shadow-lg"
+        >
         <span className="text-[9px] font-black tracking-widest text-gray-500 uppercase mr-1">
           {name || t.opponent}
         </span>
@@ -75,6 +79,7 @@ export const Hand = ({
           {cards.length}
         </span>
       </motion.div>
+      </div>
     );
   }
 
@@ -103,12 +108,32 @@ export const Hand = ({
           isMyTurn && "scale-105 border-opacity-80 animate-pulse"
         )}
       >
-        {ownerId === "player1" ? t.player : name || (isCustom ? "Player 2" : t.opponent)}
+        <div className="flex items-center gap-3">
+          <span>{ownerId === "player1" ? t.player : name || (isCustom ? "Player 2" : t.opponent)}</span>
+          {gauntletRank && (
+            <div className="flex items-center gap-1.5 pl-3 border-l border-white/20">
+              <Trophy size={12} className="text-yellow-500" />
+              <span className="text-xs font-black text-yellow-100 uppercase tracking-wider">{gauntletRank}</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Card Container */}
-      <div
-        className={cn(
+      {/* Wrapper for alignment */}
+      <div className="flex flex-col w-fit relative">
+        {/* Mobile Rank Display (Left Aligned) */}
+        {gauntletRank && !minimal && (
+          <div className="lg:hidden self-start mb-2 animate-in fade-in slide-in-from-left-4 duration-500">
+             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-yellow-500/10 rounded-lg border border-yellow-500/20 backdrop-blur-sm shadow-lg">
+                <Trophy size={10} className="text-yellow-500" />
+                <span className="text-[10px] font-black text-yellow-100 uppercase tracking-wider">{gauntletRank}</span>
+             </div>
+          </div>
+        )}
+
+        {/* Card Container */}
+        <div
+          className={cn(
           "flex items-center justify-center p-2 lg:p-4 rounded-2xl transition-all duration-500 relative",
           orientation === "vertical"
             ? "bg-gray-900/80 border border-white/5 shadow-inner min-h-[320px] lg:min-h-[460px] w-full"
@@ -241,6 +266,7 @@ export const Hand = ({
             </div>
           )}
         </div>
+      </div>
       </div>
     </motion.div>
   );

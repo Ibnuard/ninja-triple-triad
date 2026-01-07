@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
-import { LogOut, Info } from "lucide-react";
+import { LogOut, Info, Trophy, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { BoardIntroAnimation } from "../../components/BoardIntroAnimation";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
@@ -15,7 +15,7 @@ import { BoardMechanicModal } from "../../components/BoardMechanicModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
-import { useGauntletStore } from "../../store/useGauntletStore";
+import { useGauntletStore, RANK_MULTIPLIERS } from "../../store/useGauntletStore";
 
 import { useTranslation, useSettingsStore } from "../../store/useSettingsStore";
 import { Card } from "../../types/game";
@@ -482,7 +482,7 @@ export default function GamePage() {
 
       {/* Right Side: Exit Button */}
       {phase !== "game_over" && (
-        <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none">
+        <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none flex flex-col items-end gap-2">
           <button
             onClick={() => {
               resetGame();
@@ -493,6 +493,8 @@ export default function GamePage() {
           >
             <LogOut className="w-4 h-4" />
           </button>
+
+
         </div>
       )}
 
@@ -515,6 +517,7 @@ export default function GamePage() {
               isCurrentPlayer={isMyTurn}
               orientation="horizontal"
               isCustom={isCustomMode}
+              gauntletRank={isGauntletMode ? gauntletRank : undefined}
             />
           </div>
           {/* Desktop View (Vertical) */}
@@ -525,6 +528,7 @@ export default function GamePage() {
               isCurrentPlayer={isMyTurn}
               orientation="vertical"
               isCustom={isCustomMode}
+              gauntletRank={isGauntletMode ? gauntletRank : undefined}
             />
           </div>
 
@@ -535,8 +539,11 @@ export default function GamePage() {
         </div>
 
         {/* CENTER (Board) */}
-        <div className="order-2 w-full h-full flex items-center justify-center relative min-h-0 min-w-0">
-          <div className="relative w-full h-full max-h-[55vh] sm:max-h-[60vh] lg:max-h-[80vh] aspect-square flex items-center justify-center">
+        <div className="order-2 w-full h-full flex flex-col items-center justify-center relative min-h-0 min-w-0 gap-2 lg:gap-6">
+          
+
+
+          <div className="relative w-full h-full max-h-[50vh] sm:max-h-[55vh] lg:max-h-[75vh] aspect-square flex items-center justify-center">
             <div className="scale-85 sm:scale-75 lg:scale-95 transition-transform duration-500">
               <Board />
             </div>
@@ -558,29 +565,29 @@ export default function GamePage() {
                 {isGauntletMode ? (
                   <div className="mb-6 w-full">
                     <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2 uppercase">
-                      {winner === "player1" ? "Round Cleared" : "Gauntlet Over"}
+                      {winner === "player1" ? t.gauntlet.roundCleared : t.gauntlet.gauntletOver}
                     </h2>
                     
                     <h1 className={cn(
                       "text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-2xl mb-4",
                       winner === "player1" ? "text-green-400" : "text-red-500"
                     )}>
-                      {winner === "player1" ? "VICTORY" : "DEFEAT"}
+                      {winner === "player1" ? t.victory : t.defeat}
                     </h1>
 
                     {/* Score Summary */}
                     <div className="bg-black/40 rounded-xl p-4 border border-white/5 mb-6">
                       <div className="flex justify-between items-center mb-2">
-                         <span className="text-gray-400 text-xs uppercase tracking-wider">Rank</span>
+                         <span className="text-gray-400 text-xs uppercase tracking-wider">{t.gauntlet.rank}</span>
                          <span className="text-yellow-400 font-black">{gauntletRank}</span>
                       </div>
                       <div className="flex justify-between items-center mb-2">
-                         <span className="text-gray-400 text-xs uppercase tracking-wider">Total Score</span>
+                         <span className="text-gray-400 text-xs uppercase tracking-wider">{t.gauntlet.totalScore}</span>
                          <span className="text-white font-black text-xl">{gauntletScore}</span>
                       </div>
                       {winner === "player1" && (
                         <div className="text-xs text-green-400 font-bold mt-2 border-t border-white/10 pt-2">
-                          + {player1.totalFlips || 0} Flips Bonus
+                          + {player1.totalFlips || 0} {t.gauntlet.flipsBonus}
                         </div>
                       )}
                     </div>
@@ -618,7 +625,7 @@ export default function GamePage() {
                           }}
                           className="w-full py-4 bg-green-500 text-black font-black text-sm tracking-widest hover:bg-green-400 transition-colors rounded-2xl shadow-xl uppercase"
                         >
-                          Next Battle
+                          {t.gauntlet.nextBattle}
                         </button>
                       ) : (
                         <button
@@ -629,7 +636,7 @@ export default function GamePage() {
                           }}
                           className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl uppercase"
                         >
-                          Return to Menu
+                          {t.gauntlet.returnToMenu}
                         </button>
                       )}
                     </div>

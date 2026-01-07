@@ -28,7 +28,7 @@ const RANK_THRESHOLDS: Record<GauntletRank, number> = {
     Rikudo: 5000,
 };
 
-const RANK_MULTIPLIERS: Record<GauntletRank, number> = {
+export const RANK_MULTIPLIERS: Record<GauntletRank, number> = {
     Genin: 1,
     Chunin: 1.2,
     Jounin: 1.5,

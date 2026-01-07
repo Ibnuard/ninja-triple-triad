@@ -41,6 +41,16 @@ export const TRANSLATIONS = {
           desc: "Chaotic energy fills the air. For the first 2 moves, all cards receive random stat modifiers between -2 and +2.",
         },
       },
+      gauntlet: {
+        roundCleared: "Round Cleared",
+        gauntletOver: "Gauntlet Over",
+        nextBattle: "Next Battle",
+        returnToMenu: "Return to Menu",
+        rank: "Rank",
+        totalScore: "Total Score",
+        multiplier: "Multiplier",
+        flipsBonus: "Flips Bonus",
+      },
     },
     lobby: {
       title: "Multiplayer Lobby",
@@ -208,6 +218,16 @@ export const TRANSLATIONS = {
           title: "Papan Joker",
           desc: "Energi kacau memenuhi udara. Untuk 2 langkah pertama, semua kartu mendapat modifier stat acak antara -2 dan +2.",
         },
+      },
+      gauntlet: {
+        roundCleared: "Ronde Selesai",
+        gauntletOver: "Gauntlet Selesai",
+        nextBattle: "Pertarungan Berikutnya",
+        returnToMenu: "Kembali ke Menu",
+        rank: "Peringkat",
+        totalScore: "Total Skor",
+        multiplier: "Pengali",
+        flipsBonus: "Bonus Balik",
       },
     },
     lobby: {
