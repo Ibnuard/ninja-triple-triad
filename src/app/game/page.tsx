@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Board } from "../../components/Board";
 import { Hand } from "../../components/Hand";
 import { PassiveInfoModal } from "../../components/PassiveInfoModal";
+import { BoardMechanicModal } from "../../components/BoardMechanicModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
@@ -54,6 +55,7 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
 
 export default function GamePage() {
   const [showInfo, setShowInfo] = useState(false);
+  const [showMechanicModal, setShowMechanicModal] = useState(false);
   const {
     initGame,
     player1,
@@ -62,6 +64,7 @@ export default function GamePage() {
     phase,
     winner,
     resetGame,
+    mechanic,
   } = useGameStore();
 
   const t = useTranslation().game;
@@ -160,19 +163,80 @@ export default function GamePage() {
       {/* Passive Info Modal */}
       <PassiveInfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
 
-      {/* Exit & Info Buttons (Absolute Positioned) */}
+      {/* Board Mechanic Modal */}
+      <BoardMechanicModal
+        isOpen={showMechanicModal}
+        onClose={() => setShowMechanicModal(false)}
+        mechanic={mechanic}
+      />
+
+      {/* Left Side: Board Effect & Passive Info */}
       {phase !== "game_over" && (
-        <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] flex items-center gap-2 pointer-events-none">
-          {/* Info Button */}
+        <div className="absolute top-2 left-2 lg:top-4 lg:left-4 z-[60] flex flex-row gap-2 pointer-events-none">
+          {/* Board Effect Chip - Clickable */}
+          {mechanic.type !== "none" && (
+            <button
+              onClick={() => setShowMechanicModal(true)}
+              className="flex items-center gap-2 px-2 py-2 lg:px-4 lg:py-2 rounded-full bg-black/60 border border-white/20 backdrop-blur-md text-xs lg:text-sm font-bold text-white shadow-lg hover:bg-black/80 hover:border-white/30 transition-all pointer-events-auto"
+            >
+              {mechanic.type === "random_elemental" && (
+                <>
+                  {mechanic.activeElement === "fire" && (
+                    <span className="text-red-500">🔥</span>
+                  )}
+                  {mechanic.activeElement === "water" && (
+                    <span className="text-blue-500">💧</span>
+                  )}
+                  {mechanic.activeElement === "earth" && (
+                    <span className="text-amber-600">⛰️</span>
+                  )}
+                  {mechanic.activeElement === "wind" && (
+                    <span className="text-emerald-500">💨</span>
+                  )}
+                  {mechanic.activeElement === "lightning" && (
+                    <span className="text-yellow-500">⚡</span>
+                  )}
+                </>
+              )}
+              {mechanic.type === "poison" && (
+                <span className="text-purple-500">☠️</span>
+              )}
+              {mechanic.type === "foggy" && (
+                <span className="text-gray-400">🌫️</span>
+              )}
+              {mechanic.type === "joker" && (
+                <span className="text-pink-500">🎲</span>
+              )}
+              <span className="hidden lg:inline whitespace-nowrap">
+                {mechanic.type === "random_elemental" &&
+                  `${mechanic.activeElement
+                    ?.charAt(0)
+                    .toUpperCase()}${mechanic.activeElement?.slice(1)} Field`}
+                {mechanic.type === "poison" && "Poison Field"}
+                {mechanic.type === "foggy" && "Foggy Field"}
+                {mechanic.type === "joker" && "Joker Field"}
+              </span>
+            </button>
+          )}
+
+          {/* Passive Info Button */}
           <button
             onClick={() => setShowInfo(true)}
-            className="p-2 lg:px-3 lg:py-2 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 hover:text-blue-300 hover:border-blue-400 transition-all pointer-events-auto"
+            className="flex items-center gap-2 px-2 py-2 lg:px-4 lg:py-2 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 hover:text-blue-300 hover:border-blue-400 transition-all pointer-events-auto"
             title={t.passiveInfo}
           >
             <Info className="w-4 h-4" />
+            {/* Label only on desktop */}
+            <span className="hidden lg:inline whitespace-nowrap text-xs lg:text-sm font-bold">
+              {t.passiveInfo}
+            </span>
           </button>
+        </div>
+      )}
 
-          {/* Exit Button */}
+      {/* Right Side: Exit Button */}
+      {phase !== "game_over" && (
+        <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none">
           <button
             onClick={() => {
               resetGame();

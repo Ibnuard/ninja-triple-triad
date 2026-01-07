@@ -23,6 +23,24 @@ export const TRANSLATIONS = {
       gameResult: "Game Result",
       emptyHand: "Empty Hand",
       passiveInfo: "Passive Info",
+      mechanics: {
+        randomElemental: {
+          title: "Elemental Board",
+          desc: "The board has been infused with {element} energy. All cards with the {element} element receive +1 to all stats.",
+        },
+        poison: {
+          title: "Poison Board",
+          desc: "Toxic fumes cover the battlefield. All cards suffer -1 to all stats.",
+        },
+        foggy: {
+          title: "Foggy Board",
+          desc: "Dense fog obscures the battlefield. For the first 2 moves, you cannot see opponent card stats unless you capture them.",
+        },
+        joker: {
+          title: "Joker Board",
+          desc: "Chaotic energy fills the air. For the first 2 moves, all cards receive random stat modifiers between -2 and +2.",
+        },
+      },
     },
     lobby: {
       title: "Multiplayer Lobby",
@@ -164,6 +182,24 @@ export const TRANSLATIONS = {
       gameResult: "Hasil Pertandingan",
       emptyHand: "Tangan Kosong",
       passiveInfo: "Info Pasif",
+      mechanics: {
+        randomElemental: {
+          title: "Papan Elemental",
+          desc: "Papan telah dipenuhi energi {element}. Semua kartu dengan elemen {element} mendapat +1 untuk semua stat.",
+        },
+        poison: {
+          title: "Papan Racun",
+          desc: "Asap beracun menutupi medan perang. Semua kartu mendapat -1 untuk semua stat.",
+        },
+        foggy: {
+          title: "Papan Berkabut",
+          desc: "Kabut tebal mengaburkan medan perang. Untuk 2 langkah pertama, kamu tidak bisa melihat stat kartu lawan kecuali kamu menangkapnya.",
+        },
+        joker: {
+          title: "Papan Joker",
+          desc: "Energi kacau memenuhi udara. Untuk 2 langkah pertama, semua kartu mendapat modifier stat acak antara -2 dan +2.",
+        },
+      },
     },
     lobby: {
       title: "Lobi Multiplayer",

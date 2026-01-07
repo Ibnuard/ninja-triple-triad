@@ -70,19 +70,6 @@ export const Board = () => {
 
   return (
     <div className="relative">
-      {mechanic.type !== "none" && (
-        <div className="absolute -top-8 left-0 right-0 flex justify-center">
-          <motion.div
-            initial={{ y: -10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 border border-white/10 backdrop-blur-md text-xs font-bold text-white shadow-lg"
-          >
-            {getMechanicIcon()}
-            <span>{getMechanicText()}</span>
-          </motion.div>
-        </div>
-      )}
-
       <div className="grid grid-cols-3 gap-1 lg:gap-4 p-1 lg:p-4 bg-gray-900/50 rounded-xl backdrop-blur-sm border border-white/10 shadow-2xl">
         {board.map((row, rIndex) =>
           row.map((cell, cIndex) => {
