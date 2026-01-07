@@ -61,208 +61,226 @@ export default function SinglePlayerModes() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 lg:p-8 relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-950 via-black to-black z-0" />
-      <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none" />
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-mono">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 via-black to-black z-0" />
+      <div className="absolute inset-0 opacity-20 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
 
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-6xl flex flex-col gap-6 lg:gap-8"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative z-10 w-full max-w-7xl flex flex-col gap-8"
       >
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-2 lg:gap-0 border-b border-white/5 pb-2 lg:border-0 lg:pb-0">
+        {/* Compact Header */}
+        <div className="flex items-center justify-between border-b border-white/10 pb-4 mx-4 lg:mx-0">
           <button
             onClick={() =>
               selectedMode ? setSelectedMode(null) : router.push("/")
             }
-            className="group flex items-center gap-2 text-white/50 hover:text-white transition-colors self-start lg:self-auto"
+            className="group flex items-center gap-2 text-gray-500 hover:text-white transition-colors"
           >
-            <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-white/30 transition-colors">
-              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            </div>
-            <span className="font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs">
-              {selectedMode ? t.back : t.back}
+            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="font-bold tracking-widest text-xs uppercase">
+              {selectedMode ? "BACK" : "MAIN MENU"}
             </span>
           </button>
 
-          <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-linear-to-b from-white via-white to-gray-600 drop-shadow-2xl text-center">
+          <h1 className="text-3xl lg:text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 uppercase">
             {t.title}
           </h1>
 
-          <div className="hidden lg:block w-24 h-px bg-white/10" />
-          {/* Spacer for mobile to maintain centering if needed, but flex-col handles it */}
+          <div className="hidden lg:block w-32 h-1 bg-white/10 skew-x-[-45deg]" />
         </div>
 
-        {/* Modes Grid */}
-        <AnimatePresence mode="wait">
-          {!selectedMode ? (
-            <motion.div
-              key="grid"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4"
-            >
-              {modes.map((mode, index) => (
-                <motion.button
-                  key={mode.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  onClick={() => handleModeClick(mode.id)}
-                  className={cn(
-                    "group relative flex flex-col text-left p-4 lg:p-6 rounded-[1.5rem] lg:rounded-[2rem] border bg-black/60 backdrop-blur-3xl transition-all duration-500 hover:scale-[1.02] active:scale-95 shadow-2xl overflow-hidden min-h-[160px] lg:min-h-[280px]",
-                    mode.borderColor,
-                    mode.shadowColor
-                  )}
-                >
-                  {/* Ninja Accent Line */}
-                  <div
-                    className={cn(
-                      "absolute top-0 left-0 w-full h-1 opacity-50 group-hover:opacity-100 transition-opacity",
-                      mode.accent
-                    )}
-                  />
-
-                  {/* Glow background */}
-                  <div
-                    className={cn(
-                      "absolute inset-0 transition-opacity duration-500 pointer-events-none opacity-0 group-hover:opacity-100",
-                      mode.glowColor
-                    )}
-                  />
-
-                  <div
-                    className={cn(
-                      "w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-linear-to-br flex items-center justify-center mb-4 lg:mb-6 shadow-2xl ring-1 ring-white/10",
-                      mode.color
-                    )}
+        {/* Content Area */}
+        <div className="min-h-[400px] flex flex-col items-center justify-center">
+          <AnimatePresence mode="wait">
+            {!selectedMode ? (
+              <motion.div
+                key="mode-selection"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-8 px-4"
+              >
+                {modes.map((mode, index) => (
+                  <motion.button
+                    key={mode.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => handleModeClick(mode.id)}
+                    className="group relative h-[320px] lg:h-[400px] w-full bg-gray-900/50 hover:bg-gray-800/80 border border-white/5 hover:border-white/20 transition-all duration-300 overflow-hidden flex flex-col items-center text-center p-6 skew-x-0 md:-skew-x-6 hover:skew-x-0 hover:scale-105 hover:z-10 hover:shadow-[0_0_50px_rgba(255,255,255,0.1)] rounded-xl md:rounded-3xl"
                   >
-                    <mode.icon className="w-5 h-5 lg:w-7 lg:h-7 text-white drop-shadow-md" />
+                    {/* Un-skew content for readability */}
+                    <div className="skew-x-0 md:skew-x-6 w-full h-full flex flex-col items-center justify-center gap-6">
+                      <div
+                        className={cn(
+                          "w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12 bg-gradient-to-br",
+                          mode.color
+                        )}
+                      >
+                        <mode.icon className="w-10 h-10 text-white drop-shadow-md" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <h3 className="text-3xl font-black italic tracking-tighter text-white">
+                          {mode.title}
+                        </h3>
+                        <div className="h-0.5 w-12 bg-white/20 mx-auto group-hover:w-full group-hover:bg-white transition-all duration-500" />
+                        <p className="text-sm text-gray-400 font-medium max-w-[200px] mx-auto opacity-60 group-hover:opacity-100 transition-opacity">
+                          {mode.description}
+                        </p>
+                      </div>
+
+                      <div className="mt-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <span className="text-xs font-bold tracking-[0.2em] uppercase text-white border border-white/20 px-4 py-2 rounded-full backdrop-blur-md">
+                          Select Mode
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Decorative Background Elements */}
+                    <div
+                      className={cn(
+                        "absolute -bottom-20 -right-20 w-64 h-64 rounded-full blur-[80px] opacity-0 group-hover:opacity-30 transition-opacity duration-500 pointer-events-none",
+                        mode.accent.replace("bg-", "bg-")
+                      )}
+                    />
+                  </motion.button>
+                ))}
+              </motion.div>
+            ) : selectedMode === "training" ? (
+              <motion.div
+                key="training-submenu"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="w-full max-w-4xl flex flex-col md:flex-row gap-6 items-stretch"
+              >
+                {/* Training Option 1 */}
+                <button
+                  onClick={() => router.push("/game")}
+                  className="flex-1 group relative bg-gray-900/80 border border-blue-500/30 p-8 rounded-3xl hover:bg-blue-900/20 transition-all hover:-translate-y-2 overflow-hidden text-left"
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <Disc className="w-32 h-32 text-blue-500 rotate-12" />
                   </div>
+                  <div className="relative z-10 flex flex-col h-full justify-between">
+                    <div>
+                      <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-4 text-black">
+                        <Disc className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-3xl font-black italic uppercase text-white mb-2">
+                        {t.trainingSub.ownDeck}
+                      </h3>
+                      <p className="text-sm text-gray-400">
+                        Use your collection to train strategies.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 text-blue-400 font-bold uppercase tracking-widest text-xs mt-8 group-hover:translate-x-2 transition-transform">
+                      Select <ChevronLeft className="rotate-180 w-4 h-4" />
+                    </div>
+                  </div>
+                </button>
 
-                  <h3 className="text-lg lg:text-2xl font-black uppercase tracking-tighter mb-2 lg:mb-4 group-hover:text-white transition-colors leading-none">
-                    {mode.title}
-                  </h3>
+                {/* Training Option 2 */}
+                <button
+                  onClick={() => router.push("/game")}
+                  className="flex-1 group relative bg-gray-900/80 border border-cyan-500/30 p-8 rounded-3xl hover:bg-cyan-900/20 transition-all hover:-translate-y-2 overflow-hidden text-left"
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <Layers className="w-32 h-32 text-cyan-500 -rotate-12" />
+                  </div>
+                  <div className="relative z-10 flex flex-col h-full justify-between">
+                    <div>
+                      <div className="w-12 h-12 bg-cyan-500 rounded-xl flex items-center justify-center mb-4 text-black">
+                        <Layers className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-3xl font-black italic uppercase text-white mb-2">
+                        {t.trainingSub.randomDeck}
+                      </h3>
+                      <p className="text-sm text-gray-400">
+                        Challenge yourself with randomized cards.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 text-cyan-400 font-bold uppercase tracking-widest text-xs mt-8 group-hover:translate-x-2 transition-transform">
+                      Select <ChevronLeft className="rotate-180 w-4 h-4" />
+                    </div>
+                  </div>
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="custom-submenu"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="w-full max-w-4xl bg-gray-900/80 border border-purple-500/30 rounded-[3rem] p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row gap-8 items-center"
+              >
+                {/* Decorative Elements */}
+                <div className="absolute top-0 left-0 w-32 h-32 bg-purple-500/20 blur-[60px]" />
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-pink-500/20 blur-[60px]" />
 
-                  <p className="text-xs lg:text-sm leading-relaxed text-gray-400 group-hover:text-gray-200 transition-colors font-medium">
-                    {mode.description}
+                {/* Left Side: Info */}
+                <div className="flex-1 text-center md:text-left z-10">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-black uppercase tracking-widest mb-4">
+                    <Zap className="w-3 h-3" /> Sandbox Mode
+                  </div>
+                  <h2 className="text-4xl md:text-5xl font-black italic uppercase text-white mb-4 leading-none">
+                    {t.modes.custom.title}
+                  </h2>
+                  <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-8 max-w-md">
+                    {t.modes.custom.description}
                   </p>
 
-                  <Zap
-                    className={cn(
-                      "absolute bottom-4 right-4 w-8 h-8 lg:w-10 lg:h-10 opacity-5 scale-0 group-hover:scale-100 transition-all duration-500",
-                      mode.accent.replace("bg-", "text-")
-                    )}
-                  />
-                </motion.button>
-              ))}
-            </motion.div>
-          ) : selectedMode === "training" ? (
-            <motion.div
-              key="submenu-training"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="flex flex-col items-center gap-8 py-12"
-            >
-              {/* Training Header */}
-              <div className="text-center mb-8">
-                <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-blue-600 to-indigo-800 flex items-center justify-center mx-auto mb-6 shadow-2xl ring-1 ring-white/10">
-                  <School className="w-10 h-10 text-white" />
+                  <button
+                    onClick={() =>
+                      router.push(
+                        `/game?mode=custom&mechanic=${customMechanic}`
+                      )
+                    }
+                    className="group relative px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-purple-400 transition-colors w-full md:w-auto overflow-hidden rounded-xl"
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      Start Battle{" "}
+                      <ChevronLeft className="rotate-180 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </button>
                 </div>
-                <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">
-                  {t.modes.training.title}
-                </h2>
-                <p className="text-gray-400 max-w-md mx-auto">
-                  {t.modes.training.description}
-                </p>
-              </div>
 
-              {/* Training Options */}
-              <div className="flex flex-col sm:flex-row gap-6 w-full max-w-2xl">
-                <button
-                  onClick={() => router.push("/game")}
-                  className="flex-1 group relative p-8 rounded-[2rem] border border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 transition-all duration-300 text-center overflow-hidden active:scale-95 shadow-xl"
-                >
-                  <div className="absolute top-0 left-0 w-full h-1 bg-blue-500 opacity-50" />
-                  <Disc className="w-8 h-8 mx-auto mb-4 text-blue-400 group-hover:rotate-180 transition-transform duration-700" />
-                  <span className="text-xl font-black uppercase tracking-widest">
-                    {t.trainingSub.ownDeck}
-                  </span>
-                </button>
-                <button
-                  onClick={() => router.push("/game")}
-                  className="flex-1 group relative p-8 rounded-[2rem] border border-cyan-500/20 bg-cyan-500/5 hover:bg-cyan-500/10 transition-all duration-300 text-center overflow-hidden active:scale-95 shadow-xl"
-                >
-                  <div className="absolute top-0 left-0 w-full h-1 bg-cyan-500 opacity-50" />
-                  <Layers className="w-8 h-8 mx-auto mb-4 text-cyan-400 group-hover:translate-y-[-4px] transition-transform duration-300" />
-                  <span className="text-xl font-black uppercase tracking-widest">
-                    {t.trainingSub.randomDeck}
-                  </span>
-                </button>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="submenu-custom"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="flex flex-col items-center gap-8 py-12"
-            >
-              {/* Custom Header */}
-              <div className="text-center mb-8">
-                <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-purple-600 to-pink-800 flex items-center justify-center mx-auto mb-6 shadow-2xl ring-1 ring-white/10">
-                  <Zap className="w-10 h-10 text-white" />
-                </div>
-                <h2 className="text-4xl font-black uppercase tracking-tighter mb-2">
-                  {t.modes.custom.title}
-                </h2>
-                <p className="text-gray-400 max-w-md mx-auto">
-                  {t.modes.custom.description}
-                </p>
-              </div>
-
-              {/* Board Mechanic Selector */}
-              <div className="w-full max-w-xl bg-white/5 border border-white/10 rounded-2xl p-6">
-                <label className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 block">
-                  Select Board Effect
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {["none", "random_elemental", "poison", "foggy", "joker"].map(
-                    (mechanic) => (
+                {/* Right Side: Mechanic Selector */}
+                <div className="flex-1 w-full z-10 bg-black/40 rounded-2xl p-6 border border-white/5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 block text-center">
+                    Board Mechanic Configuration
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      "none",
+                      "random_elemental",
+                      "poison",
+                      "foggy",
+                      "joker",
+                    ].map((mechanic) => (
                       <button
                         key={mechanic}
                         onClick={() => setCustomMechanic(mechanic)}
                         className={cn(
-                          "px-4 py-3 rounded-xl border text-sm font-bold uppercase tracking-wider transition-all",
+                          "relative h-16 rounded-xl border-2 transition-all flex items-center justify-center uppercase font-black italic text-[10px] sm:text-xs",
                           customMechanic === mechanic
-                            ? "bg-purple-600 border-purple-500 text-white shadow-[0_0_15px_rgba(147,51,234,0.4)]"
-                            : "bg-black/40 border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
+                            ? "border-purple-500 bg-purple-500/20 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105 z-10"
+                            : "border-white/5 bg-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300"
                         )}
                       >
                         {mechanic.replace("_", " ")}
                       </button>
-                    )
-                  )}
+                    ))}
+                  </div>
                 </div>
-              </div>
-
-              {/* Start Button */}
-              <button
-                onClick={() =>
-                  router.push(`/game?mode=custom&mechanic=${customMechanic}`)
-                }
-                className="w-full max-w-sm py-4 bg-white text-black font-black text-lg tracking-[0.2em] uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-              >
-                Start Battle
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.div>
     </div>
   );
