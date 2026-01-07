@@ -123,11 +123,11 @@ export function BoardIntroAnimation({ mechanicType, activeElement, onComplete }:
 
           {/* Dynamic Slash Background */}
           <motion.div
-            initial={{ x: "100%", skewX: -20 }}
-            animate={{ x: "-10%", skewX: -20 }}
-            exit={{ x: "-150%", skewX: -20 }}
+            initial={{ x: "100%", skewX: -12 }}
+            animate={{ x: "-25%", skewX: -12 }}
+            exit={{ x: "-200%", skewX: -12 }}
             transition={{ type: "spring", damping: 25, stiffness: 120 }}
-            className={`absolute inset-y-0 w-[120%] bg-gradient-to-r ${config.color} border-y-4 ${config.borderColor} shadow-[0_0_100px_rgba(0,0,0,0.5)]`}
+            className={`absolute inset-y-0 w-[200%] bg-gradient-to-r ${config.color} border-y-4 ${config.borderColor} shadow-[0_0_100px_rgba(0,0,0,0.5)]`}
           />
 
           {/* Content Container */}
@@ -157,9 +157,9 @@ export function BoardIntroAnimation({ mechanicType, activeElement, onComplete }:
             </div>
 
             {/* Title Text - Big & Bold */}
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center text-center px-4">
               <motion.h1 
-                className="text-6xl md:text-8xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] tracking-tighter"
+                className="text-4xl sm:text-6xl md:text-8xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] tracking-tighter leading-none mb-2"
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2, type: "spring" }}
@@ -173,9 +173,9 @@ export function BoardIntroAnimation({ mechanicType, activeElement, onComplete }:
                   initial={{ width: 0, opacity: 0 }}
                   animate={{ width: "auto", opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="overflow-hidden whitespace-nowrap"
+                  className="overflow-hidden whitespace-nowrap max-w-full"
                 >
-                  <span className={`text-2xl md:text-4xl font-bold uppercase tracking-[0.5em] text-white ${config.shadow} px-4 py-1 border-x-2 border-white/50 bg-black/30`}>
+                  <span className={`text-sm sm:text-2xl md:text-4xl font-bold uppercase tracking-[0.2em] sm:tracking-[0.5em] text-white ${config.shadow} px-2 sm:px-4 py-1 border-x-2 border-white/50 bg-black/30 block`}>
                     {activeElement} ACTIVE
                   </span>
                 </motion.div>
