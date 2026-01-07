@@ -5,6 +5,11 @@ export const SOUNDS = {
     WIN: '/sounds/game-win.mp3',
     LOSE: '/sounds/game-lose.mp3',
     DRAW: '/sounds/game-draw.mp3',
+    FIRE: '/sounds/flame-effect.mp3',
+    WATER: '/sounds/water-effect.mp3',
+    EARTH: '/sounds/earth-effect.mp3',
+    WIND: '/sounds/wind-effect.mp3',
+    LIGHTNING: '/sounds/lightning-effect.mp3',
 };
 
 export const playSound = (soundPath: string) => {

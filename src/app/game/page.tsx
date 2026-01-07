@@ -292,19 +292,49 @@ export default function GamePage() {
               {mechanic.type === "random_elemental" && (
                 <>
                   {mechanic.activeElement === "fire" && (
-                    <span className="text-red-500">🔥</span>
+                    <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-red-500/20 flex items-center justify-center">
+                      <img
+                        src="/images/fire.webp"
+                        alt="fire"
+                        className="w-[60%] h-[60%] object-contain"
+                      />
+                    </div>
                   )}
                   {mechanic.activeElement === "water" && (
-                    <span className="text-blue-500">💧</span>
+                    <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
+                      <img
+                        src="/images/water.webp"
+                        alt="water"
+                        className="w-[60%] h-[60%] object-contain"
+                      />
+                    </div>
                   )}
                   {mechanic.activeElement === "earth" && (
-                    <span className="text-amber-600">⛰️</span>
+                    <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-amber-800/20 flex items-center justify-center">
+                      <img
+                        src="/images/earth.webp"
+                        alt="earth"
+                        className="w-[60%] h-[60%] object-contain"
+                      />
+                    </div>
                   )}
                   {mechanic.activeElement === "wind" && (
-                    <span className="text-emerald-500">💨</span>
+                    <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                      <img
+                        src="/images/wind.webp"
+                        alt="wind"
+                        className="w-[60%] h-[60%] object-contain"
+                      />
+                    </div>
                   )}
                   {mechanic.activeElement === "lightning" && (
-                    <span className="text-yellow-500">⚡</span>
+                    <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-yellow-400/20 flex items-center justify-center">
+                      <img
+                        src="/images/lightning.webp"
+                        alt="lightning"
+                        className="w-[60%] h-[60%] object-contain"
+                      />
+                    </div>
                   )}
                 </>
               )}

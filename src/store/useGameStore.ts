@@ -218,7 +218,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // 4. Final Passive Application (Update all cards after ownership changes)
     newBoard = applyElementalPassives(newBoard, get().mechanic);
 
-    playSound(SOUNDS.PLACE);
+    // Play element-specific sound effect
+    const elementSoundMap: Record<string, string> = {
+      fire: SOUNDS.FIRE,
+      water: SOUNDS.WATER,
+      earth: SOUNDS.EARTH,
+      wind: SOUNDS.WIND,
+      lightning: SOUNDS.LIGHTNING,
+    };
+
+    const elementSound = elementSoundMap[card.element];
+    if (elementSound) {
+      playSound(elementSound);
+    } else {
+      playSound(SOUNDS.PLACE);
+    }
+
     if (flips.length > 0) {
       setTimeout(() => playSound(SOUNDS.FLIP), 200);
     }
