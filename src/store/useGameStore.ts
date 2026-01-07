@@ -21,7 +21,11 @@ import { playSound, SOUNDS } from "../lib/sounds";
 
 interface GameStore extends GameState {
   // Actions
-  initGame: (roomId: string | null, vsComputer: boolean) => void;
+  initGame: (
+    roomId: string | null,
+    vsComputer: boolean,
+    initialMechanic?: BoardMechanicType
+  ) => void;
   selectCard: (cardId: string) => void;
   placeCard: (row: number, col: number) => void;
   resetGame: () => void;
@@ -64,7 +68,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     jokerModifiers: { player1: 0, player2: 0 },
   },
 
-  initGame: (roomId, vsComputer) => {
+  initGame: (roomId, vsComputer, initialMechanic) => {
     set({
       roomId,
       board: createEmptyBoard(),
@@ -92,16 +96,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
 
     // Initialize Mechanics
-    const mechanics: BoardMechanicType[] = [
-      "random_elemental",
-      "poison",
-      "foggy",
-      "joker",
-    ];
-    const selectedMechanic =
-      mechanics[Math.floor(Math.random() * mechanics.length)];
-    // DEBUG: Force specific mechanic if needed
-    // const selectedMechanic = "random_elemental";
+    let selectedMechanic = initialMechanic;
+
+    if (!selectedMechanic || selectedMechanic === "none") {
+      const mechanics: BoardMechanicType[] = [
+        "random_elemental",
+        "poison",
+        "foggy",
+        "joker",
+      ];
+      selectedMechanic =
+        mechanics[Math.floor(Math.random() * mechanics.length)];
+    }
 
     let mechanicState: BoardMechanicState = {
       type: selectedMechanic,
@@ -120,9 +126,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       mechanicState.activeElement =
         elements[Math.floor(Math.random() * elements.length)];
     } else if (selectedMechanic === "joker") {
-      // +0-2 or -0-2. Simplified: Random integer between -2 and 2?
-      // Prompt says: "random antara + 0-2 ... atau - 0-2".
-      // Let's interpret as: 50% chance POSITIVE (0,1,2), 50% chance NEGATIVE (0,-1,-2).
+      // +0-2 or -0-2.
       const getMod = () => {
         const isPositive = Math.random() > 0.5;
         const val = Math.floor(Math.random() * 3); // 0, 1, 2

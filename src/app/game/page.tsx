@@ -96,7 +96,13 @@ export default function GamePage() {
     const isCustom =
       typeof window !== "undefined" &&
       window.location.search.includes("mode=custom");
-    initGame("test-room", !isCustom); // vsComputer true unless mode is custom
+
+    // Parse mechanic from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const mechanicParam = urlParams.get("mechanic");
+    const initialMechanic = mechanicParam as any; // Cast to BoardMechanicType
+
+    initGame("test-room", !isCustom, initialMechanic); // vsComputer true unless mode is custom
 
     useGameStore.setState((state) => ({
       player1: {

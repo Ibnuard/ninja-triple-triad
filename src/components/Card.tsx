@@ -76,6 +76,8 @@ export const Card = ({
               "col-start-2 row-start-1 flex items-center",
               card.stats.top > card.baseStats.top
                 ? "text-green-400"
+                : card.stats.top < card.baseStats.top
+                ? "text-red-400"
                 : "text-gray-200",
               isColorful ? "text-blue-500" : ""
             )}
@@ -83,6 +85,9 @@ export const Card = ({
             {hideStats ? "?" : card.stats.top}
             {!hideStats && card.stats.top > card.baseStats.top && (
               <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
+            )}
+            {!hideStats && card.stats.top < card.baseStats.top && (
+              <span className="text-[8px] lg:text-[12px] ml-0.5">↓</span>
             )}
           </div>
 
@@ -92,6 +97,8 @@ export const Card = ({
               "col-start-1 row-start-2 flex items-center",
               card.stats.left > card.baseStats.left
                 ? "text-green-400"
+                : card.stats.left < card.baseStats.left
+                ? "text-red-400"
                 : "text-gray-200",
               isColorful ? "text-yellow-500" : ""
             )}
@@ -99,6 +106,9 @@ export const Card = ({
             {hideStats ? "?" : card.stats.left}
             {!hideStats && card.stats.left > card.baseStats.left && (
               <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
+            )}
+            {!hideStats && card.stats.left < card.baseStats.left && (
+              <span className="text-[8px] lg:text-[12px] ml-0.5">↓</span>
             )}
           </div>
 
@@ -108,6 +118,8 @@ export const Card = ({
               "col-start-3 row-start-2 flex items-center",
               card.stats.right > card.baseStats.right
                 ? "text-green-400"
+                : card.stats.right < card.baseStats.right
+                ? "text-red-400"
                 : "text-gray-200",
               isColorful ? "text-red-500" : ""
             )}
@@ -115,6 +127,9 @@ export const Card = ({
             {hideStats ? "?" : card.stats.right}
             {!hideStats && card.stats.right > card.baseStats.right && (
               <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
+            )}
+            {!hideStats && card.stats.right < card.baseStats.right && (
+              <span className="text-[8px] lg:text-[12px] ml-0.5">↓</span>
             )}
           </div>
 
@@ -124,6 +139,8 @@ export const Card = ({
               "col-start-2 row-start-3 flex items-center",
               card.stats.bottom > card.baseStats.bottom
                 ? "text-green-400"
+                : card.stats.bottom < card.baseStats.bottom
+                ? "text-red-400"
                 : "text-gray-200",
               isColorful ? "text-green-500" : ""
             )}
@@ -131,6 +148,9 @@ export const Card = ({
             {hideStats ? "?" : card.stats.bottom}
             {!hideStats && card.stats.bottom > card.baseStats.bottom && (
               <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
+            )}
+            {!hideStats && card.stats.bottom < card.baseStats.bottom && (
+              <span className="text-[8px] lg:text-[12px] ml-0.5">↓</span>
             )}
           </div>
         </div>

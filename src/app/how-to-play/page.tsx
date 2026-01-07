@@ -3,7 +3,19 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Info, Sword, Shield, Zap, Target } from "lucide-react";
+import {
+  ChevronLeft,
+  Info,
+  Sword,
+  Shield,
+  Zap,
+  Target,
+  Skull,
+  CloudFog,
+  Dices,
+  Layers,
+  Bandage,
+} from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useTranslation, useSettingsStore } from "../../store/useSettingsStore";
 import { Card } from "../../components/Card";
@@ -49,6 +61,11 @@ export default function HowToPlayPage() {
       id: "elements",
       icon: <Zap className="w-5 h-5" />,
       title: language === "id" ? "Masteri Elemen" : "Elemental Mastery",
+    },
+    {
+      id: "mechanics",
+      icon: <Layers className="w-5 h-5" />,
+      title: t.sections.mechanics.title,
     },
     {
       id: "winning",
@@ -459,38 +476,72 @@ export default function HowToPlayPage() {
                         </p>
                       </div>
 
-                      {/* Compact Visual Legend */}
-                      <div className="bg-green-500/5 border border-green-500/20 p-4 rounded-2xl flex items-center gap-4 shrink-0">
-                        <div className="relative scale-75 lg:scale-90 origin-center">
-                          <div className="absolute inset-0 bg-green-500/20 blur-[20px] rounded-full animate-pulse" />
-                          <Card
-                            card={{
-                              ...mockTutorialCard,
-                              element: "fire",
-                              stats: { top: 9, right: 8, bottom: 6, left: 7 },
-                              baseStats: {
-                                top: 7,
-                                right: 8,
-                                bottom: 4,
-                                left: 7,
-                              },
-                            }}
-                            owner="player1"
-                            isPlaced
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-[10px] font-black text-green-500 uppercase tracking-widest flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                            {language === "id"
-                              ? "Indikator Bonus"
-                              : "Bonus Indicator"}
+                      {/* Indicators Legend */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Buff Indicator */}
+                        <div className="bg-green-500/5 border border-green-500/20 p-3 lg:p-4 rounded-2xl flex items-center gap-4">
+                          <div className="relative scale-75 lg:scale-90 origin-center shrink-0">
+                            <div className="absolute inset-0 bg-green-500/20 blur-[20px] rounded-full animate-pulse" />
+                            <Card
+                              card={{
+                                ...mockTutorialCard,
+                                element: "fire",
+                                stats: { top: 9, right: 8, bottom: 6, left: 7 },
+                                baseStats: {
+                                  top: 7,
+                                  right: 8,
+                                  bottom: 4,
+                                  left: 7,
+                                },
+                              }}
+                              owner="player1"
+                              isPlaced
+                            />
                           </div>
-                          <p className="text-[10px] text-gray-400 max-w-[140px] leading-tight">
-                            {language === "id"
-                              ? "Angka HIJAU melambangkan status yang sedang diperkuat."
-                              : "GREEN numbers represent currently buffed stats."}
-                          </p>
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-black text-green-500 uppercase tracking-widest flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                              {language === "id"
+                                ? "Indikator Bonus"
+                                : "Bonus Indicator"}
+                            </div>
+                            <p className="text-[10px] text-gray-400 leading-tight">
+                              {t.sections.anatomy.buff}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Debuff Indicator */}
+                        <div className="bg-red-500/5 border border-red-500/20 p-3 lg:p-4 rounded-2xl flex items-center gap-4">
+                          <div className="relative scale-75 lg:scale-90 origin-center shrink-0">
+                            <div className="absolute inset-0 bg-red-500/20 blur-[20px] rounded-full animate-pulse" />
+                            <Card
+                              card={{
+                                ...mockTutorialCard,
+                                element: "water",
+                                stats: { top: 3, right: 6, bottom: 2, left: 2 },
+                                baseStats: {
+                                  top: 5,
+                                  right: 7,
+                                  bottom: 4,
+                                  left: 3,
+                                },
+                              }}
+                              owner="player1"
+                              isPlaced
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                              {language === "id"
+                                ? "Indikator Debuff"
+                                : "Debuff Indicator"}
+                            </div>
+                            <p className="text-[10px] text-gray-400 leading-tight">
+                              {t.sections.anatomy.debuff}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -563,6 +614,91 @@ export default function HowToPlayPage() {
                         </div>
                         <div className="text-[10px] lg:text-xs font-bold tracking-widest uppercase text-red-500/60">
                           {gameT.opponent}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* BOARD MECHANICS SECTION */}
+                {activeSection === "mechanics" && (
+                  <div className="space-y-10">
+                    <div className="space-y-4">
+                      <h2 className="text-3xl lg:text-4xl font-black italic tracking-tight">
+                        {t.sections.mechanics.title}
+                      </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Random Elemental */}
+                      <div className="p-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col gap-4 group hover:bg-white/[0.07] transition-colors relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-5">
+                          <Zap className="w-24 h-24 text-white" />
+                        </div>
+                        <div className="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center shrink-0 border border-purple-500/30">
+                          <Zap className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-black uppercase tracking-tight mb-2 text-purple-400">
+                            {t.sections.mechanics.random.title}
+                          </h3>
+                          <p className="text-sm text-gray-400 leading-relaxed">
+                            {t.sections.mechanics.random.desc}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Poison */}
+                      <div className="p-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col gap-4 group hover:bg-white/[0.07] transition-colors relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-5">
+                          <Bandage className="w-24 h-24 text-white" />
+                        </div>
+                        <div className="w-12 h-12 bg-green-500/20 text-green-400 rounded-2xl flex items-center justify-center shrink-0 border border-green-500/30">
+                          <Skull className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-black uppercase tracking-tight mb-2 text-green-400">
+                            {t.sections.mechanics.poison.title}
+                          </h3>
+                          <p className="text-sm text-gray-400 leading-relaxed">
+                            {t.sections.mechanics.poison.desc}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Foggy */}
+                      <div className="p-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col gap-4 group hover:bg-white/[0.07] transition-colors relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-5">
+                          <CloudFog className="w-24 h-24 text-white" />
+                        </div>
+                        <div className="w-12 h-12 bg-gray-500/20 text-gray-400 rounded-2xl flex items-center justify-center shrink-0 border border-gray-500/30">
+                          <CloudFog className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-black uppercase tracking-tight mb-2 text-gray-300">
+                            {t.sections.mechanics.foggy.title}
+                          </h3>
+                          <p className="text-sm text-gray-400 leading-relaxed">
+                            {t.sections.mechanics.foggy.desc}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Joker */}
+                      <div className="p-6 bg-white/5 border border-white/10 rounded-3xl flex flex-col gap-4 group hover:bg-white/[0.07] transition-colors relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-5">
+                          <Dices className="w-24 h-24 text-white" />
+                        </div>
+                        <div className="w-12 h-12 bg-red-500/20 text-red-400 rounded-2xl flex items-center justify-center shrink-0 border border-red-500/30">
+                          <Dices className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-black uppercase tracking-tight mb-2 text-red-400">
+                            {t.sections.mechanics.joker.title}
+                          </h3>
+                          <p className="text-sm text-gray-400 leading-relaxed">
+                            {t.sections.mechanics.joker.desc}
+                          </p>
                         </div>
                       </div>
                     </div>

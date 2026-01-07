@@ -95,6 +95,9 @@ export const TRANSLATIONS = {
           df: "Defense (Bottom): Used for bottom-up defense.",
           element:
             "Elemental Badge: Indicates the card's element (Fire, Water, etc.).",
+          buff: "GREEN numbers represent currently buffed stats (+1 or more).",
+          debuff:
+            "RED numbers represent currently debuffed stats (-1 or less).",
         },
         capturing: {
           title: "Capturing Cards",
@@ -103,6 +106,25 @@ export const TRANSLATIONS = {
         winning: {
           title: "Victory",
           desc: "Once all 9 spaces on the board are filled, the player who controls the majority of the cards wins the match.",
+        },
+        mechanics: {
+          title: "Board Mechanics",
+          random: {
+            title: "Elemental Board",
+            desc: "The board changes to a specific elemental type. All cards sharing the same element as the board grant +1 to all attributes.",
+          },
+          poison: {
+            title: "Poison Board",
+            desc: "All cards suffer -1 to all attributes.",
+          },
+          foggy: {
+            title: "Foggy Board",
+            desc: "For the first 2 moves, players cannot see opponent card attributes unless they successfully capture the card.",
+          },
+          joker: {
+            title: "Joker Board",
+            desc: "For the first 2 moves, each player gets random attribute modifiers between -2 and +2.",
+          },
         },
       },
     },
@@ -202,6 +224,9 @@ export const TRANSLATIONS = {
           jt: "Jutsu (Kiri): Digunakan untuk pertahanan samping.",
           df: "Defense (Bawah): Digunakan untuk pertahanan bawah.",
           element: "Badge Elemen: Menunjukkan elemen kartu (Api, Air, dll).",
+          buff: "Angka HIJAU melambangkan status yang sedang diperkuat (+1 atau lebih).",
+          debuff:
+            "Angka MERAH melambangkan status yang sedang dikurangi (-1 atau kurang).",
         },
         capturing: {
           title: "Menangkap Kartu",
@@ -210,6 +235,25 @@ export const TRANSLATIONS = {
         winning: {
           title: "Kemenangan",
           desc: "Setelah seluruh 9 kotak di papan terisi, pemain yang memiliki jumlah kartu terbanyak dengan warnanya akan memenangkan pertandingan.",
+        },
+        mechanics: {
+          title: "Mekanik Papan",
+          random: {
+            title: "Elemental Board",
+            desc: "Board akan berubah menjadi tipe elemen tertentu, semua kartu dengan elemen yang sama dengan board akan mendapatkan +1 di semua atribut.",
+          },
+          poison: {
+            title: "Poison Board",
+            desc: "Semua kartu akan -1 di semua atribut.",
+          },
+          foggy: {
+            title: "Foggy Board",
+            desc: "Untuk 2 langkah pertama setiap player tidak dapat melihat atribut kartu milik lawan, kecuali secara kebetulan berhasil mengalahkan kartunya maka atribut akan terlihat.",
+          },
+          joker: {
+            title: "Joker Board",
+            desc: "Untuk 2 langkah pertama setiap player akan mendapatkan random atribut antara + 0-2 atau - 0-2.",
+          },
         },
       },
     },
