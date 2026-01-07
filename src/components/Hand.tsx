@@ -30,10 +30,12 @@ export const Hand = ({
   isCustom = false,
   minimal = false,
 }: HandProps) => {
-  const { selectCard, selectedCardId, currentPlayerId } = useGameStore();
+  const { selectCard, selectedCardId, currentPlayerId, draggingCardId } =
+    useGameStore();
   const t = useTranslation().game;
 
   const isMyTurn = currentPlayerId === ownerId;
+  const isAnyCardDragging = !!draggingCardId;
 
   // Minimal mode for mobile opponent indicator
   if (minimal) {
@@ -110,6 +112,8 @@ export const Hand = ({
         >
           {cards.map((card, index) => {
             const isSelected = selectedCardId === card.id;
+            const isDraggingThisCard = draggingCardId === card.id;
+
             return (
               <motion.div
                 key={card.id}
@@ -118,11 +122,12 @@ export const Hand = ({
                   compact && "scale-90 origin-center",
                   orientation === "horizontal" &&
                     isSelected &&
+                    !isAnyCardDragging &&
                     "scale-110 z-20 mx-2",
                   "cursor-pointer"
                 )}
                 whileHover={
-                  orientation === "vertical"
+                  orientation === "vertical" && !isAnyCardDragging
                     ? { scale: 1.1, zIndex: 50 }
                     : undefined
                 }
@@ -132,7 +137,9 @@ export const Hand = ({
                   damping: 30,
                   mass: 0.8,
                 }}
-                style={{ zIndex: isSelected ? 50 : index }}
+                style={{
+                  zIndex: isSelected || isDraggingThisCard ? 50 : index,
+                }}
               >
                 {isHidden ? (
                   // Card Back (Modernized)
@@ -156,7 +163,11 @@ export const Hand = ({
                           ? {
                               drag: true,
                               dragSnapToOrigin: true,
-                              dragElastic: 0.1,
+                              dragElastic: 0,
+                              dragTransition: {
+                                bounceStiffness: 10000,
+                                bounceDamping: 100,
+                              },
                               onDragStart: () => {
                                 selectCard(card.id);
                                 useGameStore
@@ -197,11 +208,9 @@ export const Hand = ({
                     }
                     owner={ownerId}
                     onClick={() => isMyTurn && selectCard(card.id)}
-                    isSelected={isSelected}
+                    isSelected={isSelected && !isAnyCardDragging}
                     isPlaced={false}
-                    isDragging={
-                      useGameStore.getState().draggingCardId === card.id
-                    }
+                    isDragging={isDraggingThisCard}
                   />
                 )}
               </motion.div>
