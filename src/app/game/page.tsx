@@ -142,64 +142,107 @@ export default function GamePage() {
     let color = defaultColor;
     let direction: any = "top";
     let speed = { min: 1, max: 3 };
+    let shape: any = "circle";
+    let size: any = { min: 1, max: 3 };
+    let particleCount = 40;
+    let opacity: any = { min: 0.1, max: 0.4 };
 
     if (mechanic.type === "random_elemental") {
       switch (mechanic.activeElement) {
         case "fire":
-          color = ["#ff3b00", "#ff7a00", "#ffd000"];
+          // Fire: Rising embers with varying sizes
+          color = ["#ff3b00", "#ff7a00", "##ffd000", "#ff4500"];
           direction = "top";
+          speed = { min: 2, max: 5 };
+          shape = "circle";
+          size = { min: 2, max: 6 };
+          particleCount = 50;
+          opacity = { min: 0.3, max: 0.8 };
           break;
         case "water":
-          color = ["#3b82f6", "#60a5fa", "#93c5fd"];
+          // Water: Falling droplets
+          color = ["#3b82f6", "#60a5fa", "#93c5fd", "#0ea5e9"];
           direction = "bottom";
+          speed = { min: 1, max: 4 };
+          shape = "circle";
+          size = { min: 1, max: 4 };
+          particleCount = 60;
+          opacity = { min: 0.2, max: 0.6 };
           break;
         case "earth":
-          color = ["#d97706", "##b45309", "#92400e"];
+          // Earth: Slow-moving rocks/crystals
+          color = ["#d97706", "#b45309", "#92400e", "#78350f"];
           direction = "bottom-left";
+          speed = { min: 0.5, max: 2 };
+          shape = "square";
+          size = { min: 2, max: 5 };
+          particleCount = 30;
+          opacity = { min: 0.3, max: 0.7 };
           break;
         case "wind":
-          color = ["#10b981", "#34d399", "#6ee7b7"];
+          // Wind: Fast horizontal streaks
+          color = ["#10b981", "#34d399", "#6ee7b7", "#059669"];
           direction = "right";
-          speed = { min: 5, max: 10 };
+          speed = { min: 8, max: 15 };
+          shape = "edge";
+          size = { min: 3, max: 8 };
+          particleCount = 35;
+          opacity = { min: 0.1, max: 0.4 };
           break;
         case "lightning":
-          color = ["#eab308", "#facc15", "#fef08a"];
+          // Lightning: Erratic stars/sparks
+          color = ["#eab308", "#facc15", "#fef08a", "#fbbf24"];
           direction = "none";
-          speed = { min: 2, max: 5 };
+          speed = { min: 3, max: 8 };
+          shape = "star";
+          size = { min: 2, max: 5 };
+          particleCount = 45;
+          opacity = { min: 0.4, max: 0.9 };
           break;
       }
     } else if (mechanic.type === "poison") {
-      color = ["#a855f7", "#c084fc", "#d8b4fe"];
+      color = ["#a855f7", "#c084fc", "#d8b4fe", "#9333ea"];
       direction = "top";
+      shape = "circle";
+      size = { min: 1, max: 4 };
+      opacity = { min: 0.2, max: 0.5 };
     } else if (mechanic.type === "foggy") {
-      color = ["#9ca3af", "#d1d5db", "#f3f4f6"];
+      color = ["#9ca3af", "#d1d5db", "#f3f4f6", "#6b7280"];
       direction = "none";
+      shape = "circle";
+      size = { min: 10, max: 30 };
+      particleCount = 20;
+      opacity = { min: 0.05, max: 0.2 };
+      speed = { min: 0.3, max: 1 };
     } else if (mechanic.type === "joker") {
-      color = ["#ec4899", "#a855f7", "#3b82f6"];
+      color = ["#ec4899", "#a855f7", "#3b82f6", "#f59e0b"];
       direction = "top";
+      shape = "triangle";
+      size = { min: 2, max: 5 };
+      opacity = { min: 0.3, max: 0.7 };
     }
 
     return {
       fullScreen: { enable: false },
       fpsLimit: 120,
       particles: {
-        number: { value: 40, density: { enable: true, area: 800 } },
+        number: { value: particleCount, density: { enable: true, area: 800 } },
         color: { value: color },
-        shape: { type: "circle" },
+        shape: { type: shape },
         opacity: {
-          value: { min: 0.1, max: 0.4 },
-          animation: { enable: true, speed: 1, minimumValue: 0.1, sync: false },
+          value: opacity,
+          animation: { enable: true, speed: 1, minimumValue: opacity.min, sync: false },
         },
         size: {
-          value: { min: 1, max: 3 },
-          animation: { enable: true, speed: 2, minimumValue: 1, sync: false },
+          value: size,
+          animation: { enable: true, speed: 2, minimumValue: size.min, sync: false },
         },
         move: {
           enable: true,
           speed: speed,
           direction: direction,
           random: true,
-          straight: false,
+          straight: shape === "edge", // Wind moves more straight
           outModes: { default: "out" },
         },
       },
