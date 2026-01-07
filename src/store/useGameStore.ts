@@ -153,8 +153,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   selectCard: (cardId) => {
-    const { phase, currentPlayerId, player1, player2 } = get();
+    const { phase, currentPlayerId, player1, player2, selectedCardId } = get();
     if (phase !== "playing") return;
+
+    // If card is already selected, don't play sound again
+    if (selectedCardId === cardId) return;
 
     // Only allow selecting own cards
     const player = currentPlayerId === "player1" ? player1 : player2;
