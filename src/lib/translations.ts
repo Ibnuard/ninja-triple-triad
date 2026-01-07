@@ -66,6 +66,15 @@ export const TRANSLATIONS = {
           title: "Gauntlet Mode",
           description:
             "Endless battles. Survive as long as you can while the board grows more hostile.",
+          submenu: {
+            survivalMode: "Survival Mode",
+            deckStatus: "Deck Status",
+            startGauntlet: "Start Gauntlet",
+            manageDeck: "Manage Deck",
+            selectCards: "Select 5 Cards",
+            cancel: "Cancel",
+            saveDeck: "Save Deck",
+          },
         },
         training: {
           title: "Training",
@@ -225,6 +234,15 @@ export const TRANSLATIONS = {
           title: "Mode Gauntlet",
           description:
             "Pertarungan tanpa akhir. Bertahanlah selama mungkin saat board semakin kejam.",
+          submenu: {
+            survivalMode: "Mode Survival",
+            deckStatus: "Status Dek",
+            startGauntlet: "Mulai Gauntlet",
+            manageDeck: "Atur Dek",
+            selectCards: "Pilih 5 Kartu",
+            cancel: "Batal",
+            saveDeck: "Simpan Dek",
+          },
         },
         training: {
           title: "Mode Training",
