@@ -41,6 +41,7 @@ export interface Player {
   name: string;
   hand: Card[]; // Cards currently available to play
   capturedCount: number; // Score
+  totalFlips?: number; // Total cards flipped during match
   color: string; // e.g. 'blue' or 'red'
   isComputer: boolean;
 }

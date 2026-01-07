@@ -242,14 +242,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newHand = [...currentPlayer.hand];
     newHand.splice(cardIndex, 1);
 
+    // Update Player State (Hand & Flips)
     const newPlayer1 =
       currentPlayerId === "player1"
-        ? { ...player1, hand: newHand }
+        ? {
+          ...player1,
+          hand: newHand,
+          totalFlips: (player1.totalFlips || 0) + flips.length
+        }
         : { ...player1 };
 
     const newPlayer2 =
       currentPlayerId === "player2"
-        ? { ...player2, hand: newHand }
+        ? {
+          ...player2,
+          hand: newHand,
+          totalFlips: (player2.totalFlips || 0) + flips.length
+        }
         : { ...player2 };
 
     // Determine next state

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "../../store/useSettingsStore";
 import { Swords, School, Zap, ChevronLeft } from "lucide-react";
 import { useDeckStore } from "../../store/useDeckStore";
+import { useGauntletStore } from "../../store/useGauntletStore";
 import { CARD_POOL } from "../../data/cardPool";
 import { Card as CardType } from "../../types/game";
 import { ModeSelectionGrid } from "./components/ModeSelectionGrid";
@@ -20,6 +21,7 @@ export default function SinglePlayerModes() {
   const [customMechanic, setCustomMechanic] = useState<string>("none");
   
   // Gauntlet Mode State
+  const startGauntletRun = useGauntletStore((state) => state.startRun);
   const { selectedDeck, loadDeck, saveDeck, isDeckComplete, lastRunScore, lastBoss } = useDeckStore();
   const [showDeckSelection, setShowDeckSelection] = useState(false);
   const [tempDeck, setTempDeck] = useState<CardType[]>([]);
@@ -100,6 +102,13 @@ export default function SinglePlayerModes() {
     }
   };
 
+  const handleStartGauntlet = () => {
+    if (isDeckComplete()) {
+      startGauntletRun(selectedDeck);
+      router.push("/game?mode=gauntlet");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-mono">
       {/* Dynamic Background */}
@@ -149,7 +158,7 @@ export default function SinglePlayerModes() {
                 lastRunScore={lastRunScore}
                 lastBoss={lastBoss}
                 cardPool={CARD_POOL}
-                onStartGauntlet={() => isDeckComplete() && router.push("/gauntlet/play")}
+                onStartGauntlet={handleStartGauntlet}
                 onManageDeck={() => setShowDeckSelection(true)}
                 onToggleCard={toggleCardSelection}
                 onSaveDeck={saveGauntletDeck}

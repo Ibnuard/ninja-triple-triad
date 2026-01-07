@@ -1,0 +1,19 @@
+sekarang untuk hari ini kita akan target selesaikan development mode gauntlet, setelah memilih kartu dan menekan tombol start maka mode gauntlet akan dimulai, lawan memiliki urutan tingkatan, urutannya adalah genin, chunin, jounin, anbu, kage, dan rikudo, dimana untuk genin memiliki target point 200, setelah target point lebih dari 200 maka naik level ke chunin dengan target 500, jika sudah lewat lagi maka
+jounin -> 1000
+anbu -> 2000
+kage -> 5000,
+rikudo - 10000
+
+lalu ada tingkat kesulitan lagi untuk kartyu nantidnya sebenernya akan ambil dari db tapi utnuk sekarang genrated aja dulu, untuk genin attribut nya kisaran 1-4 aja
+chunin 1-6
+joinin 1-7
+anbu 1-8
+kage 1-10
+rikudo 1-15
+
+
+lalu dari mana player mendapatkan point? untuk setiap kemenangan adalah 20 point lalu ada efek multiplier tiap kali player berhasil memflip kartu lawan itu dapat bonus dan juga bonus dari penggunaan sinergi kartu kamu boleh bantu atur gimanapun caranya biar seru deh
+
+dan karena ini modenya endless jadi poin player selalu kumulatif dan jika kalah mode langsung selesai, catet di statistik player
+
+lalu untuk mode genin-jonin boardnya itu tidak memiliki tipe apapun, anbu hany ada elemental board, kage-rikudo akan diarandom semuanya

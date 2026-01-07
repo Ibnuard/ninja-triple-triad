@@ -15,10 +15,12 @@ import { BoardMechanicModal } from "../../components/BoardMechanicModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
+import { useGauntletStore } from "../../store/useGauntletStore";
+
 import { useTranslation, useSettingsStore } from "../../store/useSettingsStore";
 import { Card } from "../../types/game";
 
-// Mock Cards (Same as before)
+// Mock Cards
 const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
   const stats = {
     top: Math.floor(Math.random() * 9) + 1,
@@ -99,34 +101,80 @@ export default function GamePage() {
       } as Card;
     });
   };
+  
+  // Gauntlet Store
+  const gauntletRank = useGauntletStore((state) => state.rank);
+  const gauntletScore = useGauntletStore((state) => state.score);
+  const gauntletDeck = useGauntletStore((state) => state.deck);
+  const processMatchResult = useGauntletStore((state) => state.processMatchResult);
+  const getOpponentConfig = useGauntletStore((state) => state.getOpponentConfig);
+  const isGauntletActive = useGauntletStore((state) => state.isActive);
+
+  const isGauntletMode = 
+    typeof window !== "undefined" && 
+    window.location.search.includes("mode=gauntlet");
+
+  // ... existing code
 
   const startGame = () => {
     const isCustom =
       typeof window !== "undefined" &&
       window.location.search.includes("mode=custom");
+    
+    const isGauntlet = 
+      typeof window !== "undefined" &&
+      window.location.search.includes("mode=gauntlet");
 
     // Parse mechanic from URL
     const urlParams = new URLSearchParams(window.location.search);
     const mechanicParam = urlParams.get("mechanic");
     const initialMechanic = mechanicParam as any; // Cast to BoardMechanicType
 
-    initGame("test-room", !isCustom, initialMechanic); // vsComputer true unless mode is custom
+    if (isGauntlet) {
+       // Gauntlet Initialization
+       const config = getOpponentConfig();
+       initGame("gauntlet-room", true, config.mechanic);
+       
+       useGameStore.setState((state) => ({
+        mechanic: { 
+          type: config.mechanic, 
+          activeElement: config.activeElement || "none",
+          jokerModifiers: { player1: 0, player2: 0 }
+        },
+        player1: {
+          ...state.player1,
+          hand: [...gauntletDeck].map(c => ({...c, id: c.id + Math.random()})), // Refresh IDs
+          totalFlips: 0
+        },
+        player2: {
+          ...state.player2,
+          hand: config.deck,
+          name: `Enemy ${gauntletRank}`,
+          totalFlips: 0
+        },
+      }));
+    } else {
+      // Standard / Custom Initialization
+      initGame("test-room", !isCustom, initialMechanic); 
 
-    useGameStore.setState((state) => ({
-      player1: {
-        ...state.player1,
-        hand: isCustom
-          ? generateDiverseHand("p1")
-          : [...MOCK_CARDS].sort(() => Math.random() - 0.5),
-      },
-      player2: {
-        ...state.player2,
-        hand: isCustom
-          ? generateDiverseHand("p2")
-          : [...OPPONENT_CARDS].sort(() => Math.random() - 0.5),
-        name: isCustom ? "Player 2" : "Computer",
-      },
-    }));
+      useGameStore.setState((state) => ({
+        player1: {
+          ...state.player1,
+          hand: isCustom
+            ? generateDiverseHand("p1")
+            : [...MOCK_CARDS].sort(() => Math.random() - 0.5),
+          totalFlips: 0
+        },
+        player2: {
+          ...state.player2,
+          hand: isCustom
+            ? generateDiverseHand("p2")
+            : [...OPPONENT_CARDS].sort(() => Math.random() - 0.5),
+          name: isCustom ? "Player 2" : "Computer",
+          totalFlips: 0
+        },
+      }));
+    }
   };
 
   const [pInit, setPInit] = useState(false);
@@ -502,45 +550,130 @@ export default function GamePage() {
                 transition={{ delay: 0.2 }}
                 className="bg-gray-900/80 border border-white/10 p-8 lg:p-12 rounded-[2rem] shadow-2xl flex flex-col items-center max-w-[90vw] w-[400px] text-center"
               >
-                <div className="mb-6">
-                  <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2">
-                    Game Result
-                  </h2>
-                  <h1
-                    className={cn(
-                      "text-5xl lg:text-7xl font-black tracking-tighter drop-shadow-2xl",
-                      winner === "player1"
-                        ? "text-blue-400"
-                        : winner === "player2"
-                        ? "text-red-500"
-                        : "text-yellow-500"
-                    )}
-                  >
-                    {winner === "draw"
-                      ? t.draw
-                      : `${winner === "player1" ? t.victory : t.defeat}`}
-                  </h1>
-                </div>
+                {/* GAUNTLET MODE RESULT */}
+                {isGauntletMode ? (
+                  <div className="mb-6 w-full">
+                    <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2 uppercase">
+                      {winner === "player1" ? "Round Cleared" : "Gauntlet Over"}
+                    </h2>
+                    
+                    <h1 className={cn(
+                      "text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-2xl mb-4",
+                      winner === "player1" ? "text-green-400" : "text-red-500"
+                    )}>
+                      {winner === "player1" ? "VICTORY" : "DEFEAT"}
+                    </h1>
 
-                <div className="flex flex-col gap-3 w-full">
-                  <button
-                    onClick={() => {
-                      startGame();
-                    }}
-                    className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl"
-                  >
-                    {t.playAgain}
-                  </button>
-                  <button
-                    onClick={() => {
-                      resetGame();
-                      router.push("/");
-                    }}
-                    className="w-full py-4 bg-white/5 text-white/50 font-bold text-sm tracking-widest hover:bg-white/10 hover:text-white transition-all rounded-2xl"
-                  >
-                    {t.exit}
-                  </button>
-                </div>
+                    {/* Score Summary */}
+                    <div className="bg-black/40 rounded-xl p-4 border border-white/5 mb-6">
+                      <div className="flex justify-between items-center mb-2">
+                         <span className="text-gray-400 text-xs uppercase tracking-wider">Rank</span>
+                         <span className="text-yellow-400 font-black">{gauntletRank}</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-2">
+                         <span className="text-gray-400 text-xs uppercase tracking-wider">Total Score</span>
+                         <span className="text-white font-black text-xl">{gauntletScore}</span>
+                      </div>
+                      {winner === "player1" && (
+                        <div className="text-xs text-green-400 font-bold mt-2 border-t border-white/10 pt-2">
+                          + {player1.totalFlips || 0} Flips Bonus
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-3 w-full">
+                      {winner === "player1" ? (
+                        <button
+                          onClick={() => {
+                            // Process result and start next round
+                            processMatchResult("player1", player1.totalFlips || 0);
+                            const config = getOpponentConfig();
+                            
+                            // Re-init game with new config
+                            initGame("gauntlet-room", true, config.mechanic);
+                            useGameStore.setState((state) => ({
+                              mechanic: { 
+                                type: config.mechanic, 
+                                activeElement: config.activeElement || "none",
+                                jokerModifiers: { player1: 0, player2: 0 }
+                              },
+                              player1: {
+                                ...state.player1,
+                                hand: [...gauntletDeck].map(c => ({...c, id: c.id + Math.random()})), // Refresh IDs
+                                totalFlips: 0
+                              },
+                              player2: {
+                                ...state.player2,
+                                hand: config.deck,
+                                name: `Enemy ${gauntletRank}`,
+                                totalFlips: 0
+                              },
+                            }));
+                            setShowResult(false);
+                            setShowBoardIntro(true);
+                          }}
+                          className="w-full py-4 bg-green-500 text-black font-black text-sm tracking-widest hover:bg-green-400 transition-colors rounded-2xl shadow-xl uppercase"
+                        >
+                          Next Battle
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            processMatchResult(winner || "draw", player1.totalFlips || 0); // This ends the run
+                            resetGame();
+                            router.push("/single-player");
+                          }}
+                          className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl uppercase"
+                        >
+                          Return to Menu
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  // STANDARD MODE RESULT
+                  <>
+                    <div className="mb-6">
+                      <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2">
+                        Game Result
+                      </h2>
+                      <h1
+                        className={cn(
+                          "text-5xl lg:text-7xl font-black tracking-tighter drop-shadow-2xl",
+                          winner === "player1"
+                            ? "text-blue-400"
+                            : winner === "player2"
+                            ? "text-red-500"
+                            : "text-yellow-500"
+                        )}
+                      >
+                        {winner === "draw"
+                          ? t.draw
+                          : `${winner === "player1" ? t.victory : t.defeat}`}
+                      </h1>
+                    </div>
+
+                    <div className="flex flex-col gap-3 w-full">
+                      <button
+                        onClick={() => {
+                          startGame();
+                        }}
+                        className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl"
+                      >
+                        {t.playAgain}
+                      </button>
+                      <button
+                        onClick={() => {
+                          resetGame();
+                          router.push("/");
+                        }}
+                        className="w-full py-4 bg-white/5 text-white/50 font-bold text-sm tracking-widest hover:bg-white/10 hover:text-white transition-all rounded-2xl"
+                      >
+                        {t.exit}
+                      </button>
+                    </div>
+                  </>
+                )}
               </motion.div>
             </motion.div>
           )}
