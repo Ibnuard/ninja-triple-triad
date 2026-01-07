@@ -15,6 +15,69 @@ import {
   Dices,
 } from "lucide-react";
 
+const BoardCell = ({
+  rIndex,
+  cIndex,
+  cell,
+  isLastMove,
+  isFirstTwoTurns,
+  mechanic,
+  placeCard,
+}: {
+  rIndex: number;
+  cIndex: number;
+  cell: any;
+  isLastMove: boolean;
+  isFirstTwoTurns: boolean;
+  mechanic: any;
+  placeCard: (r: number, c: number) => void;
+}) => {
+  const isHovered = useGameStore(
+    (state) =>
+      state.hoveredCell?.row === rIndex && state.hoveredCell?.col === cIndex
+  );
+
+  const draggingCard = useGameStore((state) => state.draggingCard);
+
+  return (
+    <motion.div
+      key={`${rIndex}-${cIndex}`}
+      data-cell-index={`${rIndex}-${cIndex}`}
+      className={cn(
+        "relative w-[28vw] h-[38vw] max-w-[120px] max-h-[160px] lg:w-32 lg:h-40 bg-black/40 rounded-lg flex items-center justify-center border border-white/5 transition-all",
+        !cell.card && "hover:bg-white/5 cursor-pointer",
+        isLastMove && "ring-2 ring-yellow-400/50",
+        isHovered && !cell.card && "ring-2 ring-blue-500 bg-blue-500/20"
+      )}
+      onClick={() => placeCard(rIndex, cIndex)}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: (rIndex * 3 + cIndex) * 0.05 }}
+    >
+      {cell.card ? (
+        <Card
+          card={cell.card}
+          owner={cell.owner || undefined}
+          isPlaced
+          hideStats={
+            mechanic.type === "foggy" &&
+            isFirstTwoTurns &&
+            cell.owner === "player2"
+          }
+        />
+      ) : isHovered && draggingCard ? (
+        <div className="absolute inset-0 p-1 opacity-50 scale-90 pointer-events-none">
+          <Card card={draggingCard} owner="player1" isGhost isPlaced />
+        </div>
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center opacity-10 user-select-none pointer-events-none">
+          <div className="w-2 h-2 rounded-full bg-white/20" />
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
 export const Board = () => {
   const { board, placeCard, lastMove, mechanic } = useGameStore();
 
@@ -77,35 +140,16 @@ export const Board = () => {
               lastMove?.row === rIndex && lastMove?.col === cIndex;
 
             return (
-              <motion.div
+              <BoardCell
                 key={`${rIndex}-${cIndex}`}
-                className={cn(
-                  "relative w-[28vw] h-[38vw] max-w-[120px] max-h-[160px] lg:w-32 lg:h-40 bg-black/40 rounded-lg flex items-center justify-center border border-white/5 transition-all",
-                  !cell.card && "hover:bg-white/5 cursor-pointer",
-                  isLastMove && "ring-2 ring-yellow-400/50"
-                )}
-                onClick={() => placeCard(rIndex, cIndex)}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: (rIndex * 3 + cIndex) * 0.05 }}
-              >
-                {cell.card ? (
-                  <Card
-                    card={cell.card}
-                    owner={cell.owner || undefined}
-                    isPlaced
-                    hideStats={
-                      mechanic.type === "foggy" &&
-                      isFirstTwoTurns &&
-                      cell.owner === "player2"
-                    }
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-10 user-select-none pointer-events-none">
-                    <div className="w-2 h-2 rounded-full bg-white/20" />
-                  </div>
-                )}
-              </motion.div>
+                rIndex={rIndex}
+                cIndex={cIndex}
+                cell={cell}
+                isLastMove={isLastMove}
+                isFirstTwoTurns={isFirstTwoTurns}
+                mechanic={mechanic}
+                placeCard={placeCard}
+              />
             );
           })
         )}

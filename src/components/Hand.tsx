@@ -149,11 +149,59 @@ export const Hand = ({
                   </div>
                 ) : (
                   <Card
-                    card={card}
+                    card={
+                      {
+                        ...card,
+                        dragProps: isMyTurn
+                          ? {
+                              drag: true,
+                              dragSnapToOrigin: true,
+                              dragElastic: 0.1,
+                              onDragStart: () => {
+                                selectCard(card.id);
+                                useGameStore
+                                  .getState()
+                                  .setDraggingCardId(card.id);
+                              },
+                              onDrag: (_: any, info: any) => {
+                                const x = info.point.x;
+                                const y = info.point.y;
+                                const element = document.elementFromPoint(x, y);
+                                const cellData = element
+                                  ?.closest("[data-cell-index]")
+                                  ?.getAttribute("data-cell-index");
+                                if (cellData) {
+                                  const [r, c] = cellData
+                                    .split("-")
+                                    .map(Number);
+                                  useGameStore
+                                    .getState()
+                                    .setHoveredCell({ row: r, col: c });
+                                } else {
+                                  useGameStore.getState().setHoveredCell(null);
+                                }
+                              },
+                              onDragEnd: () => {
+                                const { hoveredCell, placeCard } =
+                                  useGameStore.getState();
+                                if (hoveredCell) {
+                                  placeCard(hoveredCell.row, hoveredCell.col);
+                                }
+                                useGameStore.getState().setDraggingCardId(null);
+                                useGameStore.getState().setHoveredCell(null);
+                              },
+                              whileDrag: { scale: 1.1, zIndex: 1000 },
+                            }
+                          : undefined,
+                      } as any
+                    }
                     owner={ownerId}
                     onClick={() => isMyTurn && selectCard(card.id)}
                     isSelected={isSelected}
                     isPlaced={false}
+                    isDragging={
+                      useGameStore.getState().draggingCardId === card.id
+                    }
                   />
                 )}
               </motion.div>

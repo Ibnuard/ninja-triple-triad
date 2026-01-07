@@ -30,6 +30,11 @@ interface GameStore extends GameState {
   placeCard: (row: number, col: number) => void;
   resetGame: () => void;
   selectedCardId: string | null;
+  draggingCardId: string | null;
+  draggingCard: Card | null;
+  hoveredCell: { row: number; col: number } | null;
+  setDraggingCardId: (cardId: string | null) => void;
+  setHoveredCell: (cell: { row: number; col: number } | null) => void;
   setWinner: (winner: "player1" | "player2" | "draw") => void;
 }
 
@@ -62,6 +67,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   winner: null,
   lastMove: null,
   selectedCardId: null,
+  draggingCardId: null,
+  draggingCard: null,
+  hoveredCell: null,
   mechanic: {
     type: "none",
     activeElement: "none",
@@ -93,6 +101,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       winner: null,
       lastMove: null,
       selectedCardId: null,
+      draggingCardId: null,
+      draggingCard: null,
+      hoveredCell: null,
     });
 
     // Initialize Mechanics
@@ -251,7 +262,29 @@ export const useGameStore = create<GameStore>((set, get) => ({
       lastMove: { row, col, playerId: currentPlayerId },
       phase: nextPhase,
       winner: nextWinner,
+      draggingCardId: null,
+      draggingCard: null,
+      hoveredCell: null,
     });
+  },
+
+  setDraggingCardId: (cardId) => {
+    if (get().draggingCardId === cardId) return;
+
+    let card: Card | null = null;
+    if (cardId) {
+      const player =
+        get().currentPlayerId === "player1" ? get().player1 : get().player2;
+      card = player.hand.find((c) => c.id === cardId) || null;
+    }
+
+    set({ draggingCardId: cardId, draggingCard: card });
+  },
+
+  setHoveredCell: (cell) => {
+    const current = get().hoveredCell;
+    if (current?.row === cell?.row && current?.col === cell?.col) return;
+    set({ hoveredCell: cell });
   },
 
   resetGame: () => {
@@ -262,6 +295,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       player1: { ...get().player1, hand: [] },
       player2: { ...get().player2, hand: [] },
       selectedCardId: null,
+      draggingCardId: null,
+      draggingCard: null,
+      hoveredCell: null,
       lastMove: null,
     });
   },

@@ -12,6 +12,8 @@ interface CardProps {
   isPlaced?: boolean;
   isColorful?: boolean;
   hideStats?: boolean;
+  isDragging?: boolean;
+  isGhost?: boolean;
 }
 
 const elementColors: Record<string, string> = {
@@ -31,26 +33,38 @@ export const Card = ({
   isPlaced,
   isColorful,
   hideStats,
+  isDragging,
+  isGhost,
 }: CardProps) => {
   return (
     <motion.div
       className={cn(
-        "relative aspect-[2.5/3.5] rounded-xl lg:rounded-2xl transition-all duration-500 cursor-pointer overflow-hidden border-2",
+        "relative aspect-[2.5/3.5] rounded-xl lg:rounded-2xl cursor-pointer overflow-hidden border-2",
+        !isDragging && "transition-all duration-500",
         isPlaced
           ? "w-full h-full"
           : "w-[18vw] h-[25vw] max-w-[100px] max-h-[140px] lg:w-24 lg:h-32",
         isSelected
           ? "ring-4 ring-blue-500 ring-offset-2 ring-offset-black scale-105 z-20 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
-          : "hover:shadow-2xl hover:-translate-y-1",
+          : !isGhost && "hover:shadow-2xl hover:-translate-y-1",
         owner === "player1"
           ? "border-blue-500/30 bg-gray-900/90"
-          : "border-red-500/30 bg-gray-900/90"
+          : "border-red-500/30 bg-gray-900/90",
+        isGhost &&
+          "opacity-40 grayscale-[0.2] border-dashed border-blue-400/50",
+        isDragging && "z-[1000] rotate-2 shadow-2xl pointer-events-none"
       )}
       onClick={onClick}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
+      whileDrag={{
+        scale: 1.1,
+        zIndex: 100,
+        pointerEvents: "none", // CRITICAL: Allow elementFromPoint to see through
+      }}
+      {...((card as any).dragProps || {})}
     >
       {/* Background Pattern / Texture */}
       <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
