@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { useGameStore } from "../store/useGameStore";
 
-export const useComputerAI = () => {
+export const useComputerAI = ({ isPaused = false }: { isPaused?: boolean } = {}) => {
   const { currentPlayerId, player2, board, placeCard, phase } = useGameStore();
 
   useEffect(() => {
+    if (isPaused) return;
     if (phase !== "playing") return;
     if (currentPlayerId !== "player2") return;
     if (!player2.isComputer) return;
@@ -42,5 +43,5 @@ export const useComputerAI = () => {
     }, 1000 + Math.random() * 1000); // 1-2s delay
 
     return () => clearTimeout(timer);
-  }, [currentPlayerId, phase, player2.isComputer, player2.hand.length, board]); // Re-run when turn changes
+  }, [currentPlayerId, phase, player2.isComputer, player2.hand.length, board, isPaused]); // Re-run when turn changes
 };

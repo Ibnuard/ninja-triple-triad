@@ -18,6 +18,7 @@ interface HandProps {
   isHidden?: boolean; // New prop
   isCustom?: boolean;
   minimal?: boolean; // New prop for mobile indicator
+  name?: string; // New prop for dynamic name
 }
 
 export const Hand = ({
@@ -29,6 +30,7 @@ export const Hand = ({
   isHidden = false,
   isCustom = false,
   minimal = false,
+  name,
 }: HandProps) => {
   const { selectCard, selectedCardId, currentPlayerId, draggingCardId, phase } =
     useGameStore();
@@ -51,7 +53,7 @@ export const Hand = ({
         className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/60 backdrop-blur-md rounded-xl border border-white/10 shadow-lg mt-14 lg:mt-0"
       >
         <span className="text-[9px] font-black tracking-widest text-gray-500 uppercase mr-1">
-          {t.opponent}
+          {name || t.opponent}
         </span>
         <div className="flex gap-1">
           {cards.map((card) => (
@@ -101,7 +103,7 @@ export const Hand = ({
           isMyTurn && "scale-105 border-opacity-80 animate-pulse"
         )}
       >
-        {ownerId === "player1" ? t.player : isCustom ? "Player 2" : t.opponent}
+        {ownerId === "player1" ? t.player : name || (isCustom ? "Player 2" : t.opponent)}
       </div>
 
       {/* Card Container */}

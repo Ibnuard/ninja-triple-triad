@@ -79,9 +79,6 @@ export default function GamePage() {
 
   const router = useRouter();
 
-  // Use AI Hook
-  useComputerAI();
-
   const generateDiverseHand = (prefix: string): Card[] => {
     const elements: any[] = ["fire", "water", "earth", "wind", "lightning"];
     return elements.map((el, i) => {
@@ -186,6 +183,9 @@ export default function GamePage() {
       setPInit(true);
     });
   }, []);
+
+  // Use AI Hook with Pause
+  useComputerAI({ isPaused: showBoardIntro });
 
   const particlesOptions = useMemo(() => {
     const defaultColor = ["#ffffff"];
@@ -326,7 +326,9 @@ export default function GamePage() {
   }, [phase]);
 
   useEffect(() => {
-    if (player1.hand.length === 0) {
+    // Always start game if in Gauntlet mode to ensure correct opponent name/config
+    // Or if hand is empty (standard flow)
+    if (isGauntletMode || player1.hand.length === 0) {
       startGame();
     }
   }, []);
@@ -365,6 +367,8 @@ export default function GamePage() {
           >
             {isMyTurn
               ? t.yourTurn
+              : isGauntletMode
+              ? player2.name
               : isCustomMode
               ? "Player 2 Turn"
               : t.opponentTurn}
@@ -692,6 +696,7 @@ export default function GamePage() {
               minimal={true}
               isHidden={isCustomMode ? false : true}
               isCustom={isCustomMode}
+              name={player2.name}
             />
           </div>
           {/* Desktop View (Vertical Compact) */}
@@ -705,6 +710,7 @@ export default function GamePage() {
               compact
               isHidden={isCustomMode ? false : true}
               isCustom={isCustomMode}
+              name={player2.name}
             />
           </div>
         </div>
