@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { cn } from "../lib/utils";
 import { FireEffect } from "./effects/FireEffect";
 import { LightningEffect } from "./effects/LightningEffect";
+import { WaterEffect } from "./effects/WaterEffect";
 
 interface BoardEffectsProps {
   mechanicType: string;
@@ -29,6 +30,9 @@ export const BoardEffects = ({
 
       {/* Fire Effect */}
       {effectKey === "fire" && <FireEffect />}
+
+      {/* Water Effect */}
+      {effectKey === "water" && <WaterEffect />}
 
       {/* Poison Effect */}
       {effectKey === "poison" && (
@@ -68,24 +72,6 @@ export const BoardEffects = ({
               />
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Water Effect */}
-      {effectKey === "water" && (
-        <div className="absolute inset-0">
-          <motion.div
-            animate={{
-              boxShadow: [
-                "inset 0 0 30px rgba(59, 130, 246, 0.1)",
-                "inset 0 0 50px rgba(59, 130, 246, 0.3)",
-                "inset 0 0 30px rgba(59, 130, 246, 0.1)",
-              ],
-            }}
-            transition={{ duration: 4, repeat: Infinity }}
-            className="absolute inset-0 border-2 border-blue-500/10 rounded-2xl"
-          />
-          {/* Subtle Waves or Ripples could go here */}
         </div>
       )}
 
