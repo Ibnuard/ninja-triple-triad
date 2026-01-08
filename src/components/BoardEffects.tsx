@@ -10,13 +10,17 @@ interface BoardEffectsProps {
   mechanicType: string;
   activeElement?: string;
   lastMove: { row: number; col: number; playerId: string } | null;
+  phase: string;
 }
 
 export const BoardEffects = ({
   mechanicType,
   activeElement,
   lastMove,
+  phase,
 }: BoardEffectsProps) => {
+  if (phase === "game_over") return null;
+
   // Determine which effect to show
   const getEffectKey = () => {
     if (mechanicType === "random_elemental") return activeElement;

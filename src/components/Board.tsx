@@ -86,12 +86,15 @@ export const Board = () => {
   const placeCard = useGameStore((state) => state.placeCard);
   const lastMove = useGameStore((state) => state.lastMove);
   const mechanic = useGameStore((state) => state.mechanic);
+  const phase = useGameStore((state) => state.phase);
+  const isGameOver = phase === "game_over";
 
   // Calculate if we are in the first 2 turns (<= 4 cards placed)
   const occupiedCount = board.flat().filter((cell) => cell.card).length;
   const isFirstTwoTurns = occupiedCount <= 4;
 
   const getMechanicIcon = () => {
+    if (isGameOver) return null;
     switch (mechanic.type) {
       case "random_elemental":
         switch (mechanic.activeElement) {
@@ -120,6 +123,7 @@ export const Board = () => {
   };
 
   const getMechanicText = () => {
+    if (isGameOver) return null;
     switch (mechanic.type) {
       case "random_elemental":
         return `${
@@ -138,6 +142,8 @@ export const Board = () => {
   };
 
   const getBoardBg = () => {
+    if (isGameOver) return "bg-gray-900/40 border-white/5 shadow-none";
+
     if (mechanic.type === "random_elemental") {
       switch (mechanic.activeElement) {
         case "fire":
@@ -164,7 +170,7 @@ export const Board = () => {
   return (
     <div
       className={cn(
-        "relative p-1 lg:p-4 rounded-xl backdrop-blur-sm border shadow-2xl transition-colors duration-1000",
+        "relative p-1 lg:p-4 rounded-xl backdrop-blur-sm border shadow-2xl transition-all duration-1000",
         getBoardBg()
       )}
     >
@@ -173,6 +179,7 @@ export const Board = () => {
           mechanicType={mechanic.type}
           activeElement={mechanic.activeElement}
           lastMove={lastMove}
+          phase={phase}
         />
         <div className="grid grid-cols-3 gap-1 lg:gap-4 relative z-10">
           {board.map((row, rIndex) =>
