@@ -138,7 +138,7 @@ export function BoardIntroAnimation({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/95"
           />
 
           {/* Dynamic Slash Background */}
@@ -153,9 +153,9 @@ export function BoardIntroAnimation({
           {/* Content Container */}
           <motion.div
             className="relative z-10 flex flex-col items-center justify-center gap-4"
-            initial={{ scale: 2, opacity: 0, filter: "blur(10px)" }}
-            animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
-            exit={{ scale: 0.8, opacity: 0, filter: "blur(10px)" }}
+            initial={{ scale: 2, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
             transition={{
               type: "spring",
               damping: 20,
@@ -172,7 +172,7 @@ export function BoardIntroAnimation({
                   filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"],
                 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className={`w-32 h-32 flex items-center justify-center rounded-full border-4 ${config.borderColor} bg-black/50 backdrop-blur-md ${config.shadow}`}
+                className={`w-32 h-32 flex items-center justify-center rounded-full border-4 ${config.borderColor} bg-black/80 ${config.shadow}`}
               >
                 <Icon className="w-16 h-16 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
               </motion.div>

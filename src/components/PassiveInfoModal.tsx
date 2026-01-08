@@ -64,7 +64,7 @@ export const PassiveInfoModal = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            className="absolute inset-0 bg-black/90"
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}

@@ -170,7 +170,7 @@ export const Board = () => {
   return (
     <div
       className={cn(
-        "relative p-1 lg:p-4 rounded-xl backdrop-blur-sm border shadow-2xl transition-all duration-1000",
+        "relative p-1 lg:p-4 rounded-xl border bg-black/40 shadow-2xl transition-all duration-1000",
         getBoardBg()
       )}
     >

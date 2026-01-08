@@ -31,8 +31,8 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
 
   return (
     <div className="absolute inset-[-24px] pointer-events-none z-0 rounded-2xl overflow-hidden">
-      {/* DEEP BLUE BASE GLOW */}
-      <div className="absolute inset-0 bg-blue-900/5 blur-xl animate-pulse-slow" />
+      {/* DEEP BLUE BASE GLOW - No blur, use opacity/gradient instead */}
+      <div className="absolute inset-0 bg-blue-900/10 animate-pulse-slow" />
 
       {/* REACTIVE WATER SURFACE - SVG FILTER */}
       <svg

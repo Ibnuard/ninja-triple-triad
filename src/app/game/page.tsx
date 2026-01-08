@@ -396,7 +396,7 @@ export default function GamePage() {
         {phase !== "game_over" && (
           <div
             className={cn(
-              "px-3 py-1 lg:px-4 lg:py-2 rounded-full border backdrop-blur-md font-bold text-[10px] lg:text-xl tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
+              "px-3 py-1 lg:px-4 lg:py-2 rounded-full border bg-black/80 font-bold text-[10px] lg:text-xl tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
               isMyTurn
                 ? "bg-blue-500/10 border-blue-500 text-blue-400 animate-pulse ring-blue-500"
                 : "bg-red-500/10 border-red-500 text-red-500"
@@ -430,7 +430,7 @@ export default function GamePage() {
           {mechanic.type !== "none" && (
             <button
               onClick={() => setShowMechanicModal(true)}
-              className="flex items-center gap-2 px-2 py-2 lg:px-4 lg:py-2 rounded-full bg-black/60 border border-white/20 backdrop-blur-md text-xs lg:text-sm font-bold text-white shadow-lg hover:bg-black/80 hover:border-white/30 transition-all pointer-events-auto"
+              className="flex items-center gap-2 px-2 py-2 lg:px-4 lg:py-2 rounded-full bg-black/80 border border-white/20 text-xs lg:text-sm font-bold text-white shadow-lg hover:bg-black/90 hover:border-white/30 transition-all pointer-events-auto"
             >
               {mechanic.type === "random_elemental" && (
                 <>
@@ -583,9 +583,9 @@ export default function GamePage() {
 
           {showResult && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, backdropFilter: "blur(0px)" }}
-              animate={{ opacity: 1, scale: 1, backdropFilter: "blur(12px)" }}
-              className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/80"
             >
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
