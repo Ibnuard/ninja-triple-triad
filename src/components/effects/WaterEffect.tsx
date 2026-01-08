@@ -17,13 +17,27 @@ interface RippleData {
   graphics: PIXI.Graphics;
   life: number;
   maxLife: number;
+  isRain?: boolean;
+}
+
+interface FishData {
+  container: PIXI.Container;
+  body: PIXI.Graphics;
+  fins: PIXI.Graphics;
+  tail: PIXI.Graphics;
+  speed: number;
+  turnSpeed: number;
+  angle: number;
+  targetAngle: number;
+  x: number;
+  y: number;
+  color: number;
 }
 
 export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const rippleQueue = useRef<{ x: number; y: number }[]>([]);
 
-  // Queue ripples when lastMove changes
   useEffect(() => {
     if (lastMove) {
       rippleQueue.current.push({
@@ -60,9 +74,8 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
 
         const { width, height } = app.screen;
 
-        // 1. Water Surface with Displacement
-        // We'll use a generated noise texture for displacement
-        const noiseSize = 512;
+        // 1. Uniform Water Surface & Displacement
+        const noiseSize = 256;
         const noiseCanvas = document.createElement("canvas");
         noiseCanvas.width = noiseSize;
         noiseCanvas.height = noiseSize;
@@ -70,19 +83,21 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
         if (ctx) {
           const imageData = ctx.createImageData(noiseSize, noiseSize);
           for (let i = 0; i < imageData.data.length; i += 4) {
-            const val = Math.random() * 255;
-            imageData.data[i] = val; // R
-            imageData.data[i + 1] = val; // G
-            imageData.data[i + 2] = val; // B
-            imageData.data[i + 3] = 255; // A
+            const px = (i / 4) % noiseSize;
+            const py = Math.floor(i / 4 / noiseSize);
+            const val = 127 + Math.sin(px / 20) * 60 + Math.cos(py / 20) * 60;
+            imageData.data[i] = val;
+            imageData.data[i + 1] = val;
+            imageData.data[i + 2] = val;
+            imageData.data[i + 3] = 255;
           }
           ctx.putImageData(imageData, 0, 0);
         }
-
         const noiseTexture = PIXI.Texture.from(noiseCanvas);
+        noiseTexture.source.addressMode = "repeat";
         const displacementSprite = new PIXI.Sprite(noiseTexture);
-        displacementSprite.texture.baseTexture.wrapMode = "repeat";
-        displacementSprite.scale.set(2);
+        displacementSprite.scale.set(4);
+        displacementSprite.position.set(-100, -100);
 
         const displacementFilter = new PIXI.DisplacementFilter(
           displacementSprite
@@ -94,121 +109,193 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
         app.stage.addChild(displacementSprite);
         app.stage.addChild(surfaceContainer);
 
-        // Add a blue tint background sprite to be displaced
         const bg = new PIXI.Graphics();
-        bg.rect(0, 0, width, height);
-        bg.fill({ color: 0x1e40af, alpha: 0.2 });
+        bg.rect(-50, -50, width + 100, height + 100);
+        bg.fill({ color: 0x1e40af, alpha: 0.25 });
         surfaceContainer.addChild(bg);
 
-        // 2. Bubbles System
-        const bubbles: BubbleData[] = [];
-        const bubbleContainer = new PIXI.Container();
-        app.stage.addChild(bubbleContainer);
+        // 2. High-Quality Fish (Koi)
+        const fishes: FishData[] = [];
+        const fishLayer = new PIXI.Container();
+        surfaceContainer.addChild(fishLayer);
 
-        const createBubble = () => {
-          const g = new PIXI.Graphics();
-          const size = 2 + Math.random() * 4;
-          g.circle(0, 0, size);
-          g.stroke({ width: 1, color: 0xffffff, alpha: 0.3 });
-          g.fill({ color: 0xffffff, alpha: 0.1 });
+        const createFish = () => {
+          const container = new PIXI.Container();
+          const body = new PIXI.Graphics();
+          const fins = new PIXI.Graphics();
+          const tail = new PIXI.Graphics();
 
-          const b: BubbleData = {
-            graphics: g,
-            speed: 1 + Math.random() * 2,
-            jitter: (Math.random() - 0.5) * 0.5,
+          const color = Math.random() > 0.4 ? 0xfb923c : 0xffffff;
+
+          // Body
+          body.moveTo(0, 0);
+          body.bezierCurveTo(8, -4, 8, 4, 0, 0);
+          body.bezierCurveTo(-10, 3, -10, -3, 0, 0);
+          body.fill({ color: color, alpha: 0.85 });
+
+          // Eyes
+          body.circle(6, -1.5, 0.8);
+          body.fill(0x000000);
+          body.circle(6, 1.5, 0.8);
+          body.fill(0x000000);
+
+          // Fins
+          fins.moveTo(2, -2);
+          fins.quadraticCurveTo(4, -6, 0, -5);
+          fins.fill({ color: color, alpha: 0.6 });
+          fins.moveTo(2, 2);
+          fins.quadraticCurveTo(4, 6, 0, 5);
+          fins.fill({ color: color, alpha: 0.6 });
+
+          // Tail
+          tail.moveTo(0, 0);
+          tail.bezierCurveTo(-4, -6, -8, -4, -6, 0);
+          tail.bezierCurveTo(-8, 4, -4, 6, 0, 0);
+          tail.fill({ color: color, alpha: 0.7 });
+          tail.x = -8;
+
+          container.addChild(fins);
+          container.addChild(tail);
+          container.addChild(body);
+          fishLayer.addChild(container);
+
+          fishes.push({
+            container,
+            body,
+            fins,
+            tail,
+            speed: 0.3 + Math.random() * 0.5,
+            turnSpeed: 0.012,
+            angle: Math.random() * Math.PI * 2,
+            targetAngle: Math.random() * Math.PI * 2,
             x: Math.random() * width,
-            y: height + 10,
-          };
-
-          bubbleContainer.addChild(g);
-          bubbles.push(b);
+            y: Math.random() * height,
+            color,
+          });
         };
+        for (let i = 0; i < 5; i++) createFish();
 
-        for (let i = 0; i < 15; i++) createBubble();
-
-        // 3. Ripples System
+        // 3. Ambient Raindrops & Ripples
         const ripples: RippleData[] = [];
         const rippleLayer = new PIXI.Container();
         app.stage.addChild(rippleLayer);
 
-        const createRipple = (x: number, y: number) => {
+        const createRipple = (x: number, y: number, isRain = false) => {
           const g = new PIXI.Graphics();
           rippleLayer.addChild(g);
           ripples.push({
             graphics: g,
             life: 0,
-            maxLife: 1.5,
+            maxLife: isRain ? 0.7 : 1.4,
+            isRain,
           });
-          // Initial position
           g.x = x * width;
           g.y = y * height;
         };
 
-        // Animation Loop
+        // 4. Shimmer/Reflections
+        const shimmerLayer = new PIXI.Container();
+        shimmerLayer.alpha = 0.25;
+        surfaceContainer.addChild(shimmerLayer);
+        const shimmers: PIXI.Graphics[] = [];
+        for (let i = 0; i < 10; i++) {
+          const s = new PIXI.Graphics();
+          s.ellipse(0, 0, 30 + Math.random() * 30, 2 + Math.random() * 3);
+          s.fill({ color: 0xffffff, alpha: 0.3 });
+          s.x = Math.random() * width;
+          s.y = Math.random() * height;
+          shimmerLayer.addChild(s);
+          shimmers.push(s);
+        }
+
+        let totalTime = 0;
+        let rainTimer = 0;
+
         app.ticker.add((ticker) => {
           if (isDisposed || !app) return;
           const deltaInSeconds = ticker.deltaTime / 60;
+          totalTime += deltaInSeconds;
 
-          // Animate displacement noise
-          displacementSprite.x += 1;
-          displacementSprite.y += 0.8;
+          // Smooth Liquid Movement
+          displacementSprite.x += 0.5;
+          displacementSprite.y += 0.3;
+          if (displacementSprite.x > 0) displacementSprite.x = -100;
+          if (displacementSprite.y > 0) displacementSprite.y = -100;
 
-          // Update Bubbles
-          bubbles.forEach((b) => {
-            b.y -= b.speed;
-            b.x += Math.sin(b.y / 20) * b.jitter;
+          // Rain
+          rainTimer += deltaInSeconds;
+          if (rainTimer > 0.5 + Math.random() * 1.0) {
+            createRipple(Math.random(), Math.random(), true);
+            rainTimer = 0;
+          }
 
-            if (b.y < -20) {
-              b.y = height + 20;
-              b.x = Math.random() * width;
-            }
+          // Liquid Fish Logic
+          fishes.forEach((f) => {
+            if (Math.random() < 0.01)
+              f.targetAngle += (Math.random() - 0.5) * 3;
+            let dAngle = f.targetAngle - f.angle;
+            while (dAngle > Math.PI) dAngle -= Math.PI * 2;
+            while (dAngle < -Math.PI) dAngle += Math.PI * 2;
+            f.angle += dAngle * f.turnSpeed;
 
-            b.graphics.x = b.x;
-            b.graphics.y = b.y;
-            b.graphics.alpha = Math.min(1, (b.y / height) * 2);
+            f.x += Math.cos(f.angle) * f.speed;
+            f.y += Math.sin(f.angle) * f.speed;
+
+            if (f.x < -10) f.x = width + 10;
+            if (f.x > width + 10) f.x = -10;
+            if (f.y < -10) f.y = height + 10;
+            if (f.y > height + 10) f.y = -10;
+
+            f.container.x = f.x;
+            f.container.y = f.y;
+            f.container.rotation = f.angle;
+            f.tail.rotation = Math.sin(totalTime * 8) * 0.35;
+            f.fins.scale.y = 0.9 + Math.sin(totalTime * 4) * 0.1;
           });
 
-          // Handle queued ripples
+          // Shimmer animation
+          shimmers.forEach((s, i) => {
+            s.x += Math.cos(totalTime * 0.4 + i) * 0.3;
+            s.alpha = 0.2 + Math.sin(totalTime + i) * 0.15;
+          });
+
+          // Handle Placement Ripples
           while (rippleQueue.current.length > 0) {
             const r = rippleQueue.current.shift();
             if (r) createRipple(r.x, r.y);
           }
 
-          // Update Ripples
+          // Ripples update
           for (let i = ripples.length - 1; i >= 0; i--) {
             const r = ripples[i];
             r.life += deltaInSeconds;
-
             if (r.life >= r.maxLife) {
-              rippleLayer.removeChild(r.graphics);
               r.graphics.destroy();
               ripples.splice(i, 1);
               continue;
             }
-
-            const progress = r.life / r.maxLife;
+            const prog = r.life / r.maxLife;
             r.graphics.clear();
-
-            // Multiple rings
-            for (let ring = 0; ring < 2; ring++) {
-              const ringProgress = Math.max(0, progress - ring * 0.2);
-              if (ringProgress <= 0) continue;
-
-              const radius = ringProgress * 80;
-              const alpha = (1 - ringProgress) * 0.5;
-
+            const count = r.isRain ? 1 : 2;
+            for (let ring = 0; ring < count; ring++) {
+              const ringProg = Math.max(0, prog - ring * 0.15);
+              if (ringProg <= 0) continue;
+              const radius = ringProg * (r.isRain ? 25 : 120);
               r.graphics.circle(0, 0, radius);
-              r.graphics.stroke({ width: 2, color: 0x93c5fd, alpha });
+              r.graphics.stroke({
+                width: 1.5,
+                color: 0x93c5fd,
+                alpha: (1 - ringProg) * (r.isRain ? 0.4 : 0.6),
+              });
             }
           }
         });
-      } catch (error) {
-        console.error("Failed to initialize PixiJS WaterEffect:", error);
+      } catch (err) {
+        console.error("PixiJS Water Error:", err);
       }
     };
 
     init();
-
     return () => {
       isDisposed = true;
       if (app) {
@@ -219,16 +306,16 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
   }, []);
 
   return (
-    <div className="absolute inset-[-24px] pointer-events-none z-0 rounded-2xl overflow-hidden">
-      {/* BASE TINT */}
-      <div className="absolute inset-0 bg-blue-900/10" />
+    <div className="absolute inset-[-12px] pointer-events-none z-0 rounded-xl overflow-hidden shadow-[inset_0_0_30px_rgba(30,64,175,0.4)]">
+      {/* DEEP BASE */}
+      <div className="absolute inset-0 bg-blue-900/15" />
 
-      {/* PIXI CANVAS */}
+      {/* CANVAS */}
       <div ref={containerRef} className="absolute inset-0" />
 
-      {/* STATIC OVERLAYS */}
-      <div className="absolute inset-0 bg-blue-500/5 mix-blend-overlay pointer-events-none" />
-      <div className="absolute inset-[8px] border border-blue-400/10 rounded-xl" />
+      {/* LIQUID BORDER HIGHLIGHT */}
+      <div className="absolute inset-0 border-[3px] border-blue-400/10 rounded-xl mix-blend-screen" />
+      <div className="absolute inset-2 border border-white/5 rounded-lg pointer-events-none" />
     </div>
   );
 });
