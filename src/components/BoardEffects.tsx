@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { cn } from "../lib/utils";
+import { FireEffect } from "./effects/FireEffect";
 
 interface BoardEffectsProps {
   mechanicType: string;
@@ -21,7 +22,7 @@ export const BoardEffects = ({
   const effectKey = getEffectKey();
 
   return (
-    <div className="absolute -inset-1 lg:-inset-4 pointer-events-none z-[-1] rounded-2xl overflow-hidden">
+    <div className="absolute -inset-1 lg:-inset-4 pointer-events-none z-0 rounded-2xl">
       {/* Lightning Effect */}
       {effectKey === "lightning" && (
         <div className="absolute inset-0">
@@ -64,45 +65,7 @@ export const BoardEffects = ({
       )}
 
       {/* Fire Effect */}
-      {effectKey === "fire" && (
-        <div className="absolute inset-0">
-          <motion.div
-            animate={{
-              boxShadow: [
-                "inset 0 0 30px rgba(239, 68, 68, 0.2)",
-                "inset 0 0 60px rgba(239, 68, 68, 0.4)",
-                "inset 0 0 30px rgba(239, 68, 68, 0.2)",
-              ],
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="absolute inset-0 border-2 border-red-500/20 rounded-2xl"
-          />
-          {/* Floating Embers */}
-          <div className="absolute inset-0">
-            {[...Array(10)].map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{
-                  bottom: "-10%",
-                  left: Math.random() * 100 + "%",
-                  opacity: 0,
-                }}
-                animate={{
-                  bottom: "110%",
-                  opacity: [0, 1, 0],
-                  x: [0, Math.random() * 20 - 10, 0],
-                }}
-                transition={{
-                  duration: 2 + Math.random() * 2,
-                  repeat: Infinity,
-                  delay: Math.random() * 2,
-                }}
-                className="absolute w-1 h-1 bg-red-500 rounded-full blur-[1px]"
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {effectKey === "fire" && <FireEffect />}
 
       {/* Poison Effect */}
       {effectKey === "poison" && (

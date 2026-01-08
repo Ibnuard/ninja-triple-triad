@@ -1,24 +1,29 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Zap, ChevronLeft } from "lucide-react";
 import { cn } from "../../../lib/utils";
 
 interface CustomModeViewProps {
   t: any;
   customMechanic: string;
+  activeElement: string;
   onMechanicChange: (mechanic: string) => void;
+  onActiveElementChange: (element: string) => void;
   onStartBattle: () => void;
 }
 
-export function CustomModeView({ t, customMechanic, onMechanicChange, onStartBattle }: CustomModeViewProps) {
-  const mechanics = [
-    "none",
-    "random_elemental",
-    "poison",
-    "foggy",
-    "joker",
-  ];
+export function CustomModeView({
+  t,
+  customMechanic,
+  activeElement,
+  onMechanicChange,
+  onActiveElementChange,
+  onStartBattle,
+}: CustomModeViewProps) {
+  const mechanics = ["none", "random_elemental", "poison", "foggy", "joker"];
+
+  const elements = ["random", "fire", "water", "earth", "wind", "lightning"];
 
   return (
     <motion.div
@@ -33,7 +38,7 @@ export function CustomModeView({ t, customMechanic, onMechanicChange, onStartBat
       <div className="absolute bottom-0 right-0 w-32 h-32 bg-pink-500/20 blur-[60px]" />
 
       {/* Left Side: Info */}
-      <div className="flex-1 text-center md:text-left z-10">
+      <div className="flex-1 text-center md:text-left z-10 text-white">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-black uppercase tracking-widest mb-4">
           <Zap className="w-3 h-3" /> Sandbox Mode
         </div>
@@ -56,26 +61,60 @@ export function CustomModeView({ t, customMechanic, onMechanicChange, onStartBat
       </div>
 
       {/* Right Side: Mechanic Selector */}
-      <div className="flex-1 w-full z-10 bg-black/40 rounded-2xl p-6 border border-white/5">
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 block text-center">
-          Board Mechanic Configuration
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          {mechanics.map((mechanic) => (
-            <button
-              key={mechanic}
-              onClick={() => onMechanicChange(mechanic)}
-              className={cn(
-                "relative h-16 rounded-xl border-2 transition-all flex items-center justify-center uppercase font-black italic text-[10px] sm:text-xs",
-                customMechanic === mechanic
-                  ? "border-purple-500 bg-purple-500/20 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105 z-10"
-                  : "border-white/5 bg-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300"
-              )}
-            >
-              {mechanic.replace("_", " ")}
-            </button>
-          ))}
+      <div className="flex-1 w-full z-10 space-y-4">
+        <div className="bg-black/40 rounded-2xl p-6 border border-white/5">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 block text-center">
+            Board Mechanic Configuration
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {mechanics.map((mechanic) => (
+              <button
+                key={mechanic}
+                onClick={() => onMechanicChange(mechanic)}
+                className={cn(
+                  "relative h-16 rounded-xl border-2 transition-all flex items-center justify-center uppercase font-black italic text-[10px] sm:text-xs",
+                  customMechanic === mechanic
+                    ? "border-purple-500 bg-purple-500/20 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105 z-10"
+                    : "border-white/5 bg-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300"
+                )}
+              >
+                {mechanic.replace("_", " ")}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Element Selector Sub-menu */}
+        <AnimatePresence>
+          {customMechanic === "random_elemental" && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-black/40 rounded-2xl p-6 border border-white/5"
+            >
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 block text-center">
+                Select Active Element
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {elements.map((el) => (
+                  <button
+                    key={el}
+                    onClick={() => onActiveElementChange(el)}
+                    className={cn(
+                      "relative h-10 rounded-lg border transition-all flex items-center justify-center uppercase font-bold text-[10px]",
+                      activeElement === el
+                        ? "border-purple-500 bg-purple-500/20 text-white"
+                        : "border-white/5 bg-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300"
+                    )}
+                  >
+                    {el}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );

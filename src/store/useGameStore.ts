@@ -24,7 +24,8 @@ interface GameStore extends GameState {
   initGame: (
     roomId: string | null,
     vsComputer: boolean,
-    initialMechanic?: BoardMechanicType
+    initialMechanic?: BoardMechanicType,
+    activeElement?: ElementType | "random"
   ) => void;
   selectCard: (cardId: string) => void;
   placeCard: (row: number, col: number) => void;
@@ -76,7 +77,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     jokerModifiers: { player1: 0, player2: 0 },
   },
 
-  initGame: (roomId, vsComputer, initialMechanic) => {
+  initGame: (roomId, vsComputer, initialMechanic, activeElement) => {
     set({
       roomId,
       board: createEmptyBoard(),
@@ -127,15 +128,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
     };
 
     if (selectedMechanic === "random_elemental") {
-      const elements: ElementType[] = [
-        "fire",
-        "water",
-        "earth",
-        "wind",
-        "lightning",
-      ];
-      mechanicState.activeElement =
-        elements[Math.floor(Math.random() * elements.length)];
+      if (
+        activeElement &&
+        activeElement !== "random" &&
+        activeElement !== "none"
+      ) {
+        mechanicState.activeElement = activeElement as ElementType;
+      } else {
+        const elements: ElementType[] = [
+          "fire",
+          "water",
+          "earth",
+          "wind",
+          "lightning",
+        ];
+        mechanicState.activeElement =
+          elements[Math.floor(Math.random() * elements.length)];
+      }
     } else if (selectedMechanic === "joker") {
       // +0-2 or -0-2.
       const getMod = () => {
@@ -246,19 +255,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newPlayer1 =
       currentPlayerId === "player1"
         ? {
-          ...player1,
-          hand: newHand,
-          totalFlips: (player1.totalFlips || 0) + flips.length
-        }
+            ...player1,
+            hand: newHand,
+            totalFlips: (player1.totalFlips || 0) + flips.length,
+          }
         : { ...player1 };
 
     const newPlayer2 =
       currentPlayerId === "player2"
         ? {
-          ...player2,
-          hand: newHand,
-          totalFlips: (player2.totalFlips || 0) + flips.length
-        }
+            ...player2,
+            hand: newHand,
+            totalFlips: (player2.totalFlips || 0) + flips.length,
+          }
         : { ...player2 };
 
     // Determine next state

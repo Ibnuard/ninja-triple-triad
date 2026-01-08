@@ -138,7 +138,7 @@ export const Board = () => {
   };
 
   return (
-    <div className="relative p-1 lg:p-4 bg-gray-900/50 rounded-xl backdrop-blur-sm border border-white/10 shadow-2xl overflow-hidden">
+    <div className="relative p-1 lg:p-4 bg-gray-900/50 rounded-xl backdrop-blur-sm border border-white/10 shadow-2xl">
       <BoardEffects
         mechanicType={mechanic.type}
         activeElement={mechanic.activeElement}

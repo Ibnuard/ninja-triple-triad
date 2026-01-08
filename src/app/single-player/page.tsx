@@ -19,10 +19,18 @@ export default function SinglePlayerModes() {
   const t = useTranslation().spSelection;
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [customMechanic, setCustomMechanic] = useState<string>("none");
-  
+  const [activeElement, setActiveElement] = useState<string>("random");
+
   // Gauntlet Mode State
   const startGauntletRun = useGauntletStore((state) => state.startRun);
-  const { selectedDeck, loadDeck, saveDeck, isDeckComplete, lastRunScore, lastBoss } = useDeckStore();
+  const {
+    selectedDeck,
+    loadDeck,
+    saveDeck,
+    isDeckComplete,
+    lastRunScore,
+    lastBoss,
+  } = useDeckStore();
   const [showDeckSelection, setShowDeckSelection] = useState(false);
   const [tempDeck, setTempDeck] = useState<CardType[]>([]);
 
@@ -168,8 +176,19 @@ export default function SinglePlayerModes() {
               <CustomModeView
                 t={t}
                 customMechanic={customMechanic}
+                activeElement={activeElement}
                 onMechanicChange={setCustomMechanic}
-                onStartBattle={() => router.push(`/game?mode=custom&mechanic=${customMechanic}`)}
+                onActiveElementChange={setActiveElement}
+                onStartBattle={() => {
+                  let url = `/game?mode=custom&mechanic=${customMechanic}`;
+                  if (
+                    customMechanic === "random_elemental" &&
+                    activeElement !== "random"
+                  ) {
+                    url += `&element=${activeElement}`;
+                  }
+                  router.push(url);
+                }}
               />
             )}
           </AnimatePresence>
