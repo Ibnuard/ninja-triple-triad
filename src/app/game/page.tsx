@@ -378,10 +378,6 @@ export default function GamePage() {
         {particlesComponent}
       </div>
 
-      {/* Full-Screen Effects */}
-      {mechanic.type === "random_elemental" &&
-        mechanic.activeElement === "lightning" && <FullScreenLightning />}
-
       {/* Board Intro Animation */}
       {showBoardIntro && (
         <BoardIntroAnimation
@@ -391,391 +387,407 @@ export default function GamePage() {
         />
       )}
 
-      {/* Header / Status Bar */}
-      <div className="absolute top-1.5 left-0 right-0 z-50 flex items-center justify-center p-2 lg:p-4 pointer-events-none">
-        {/* Turn Status Overlay (Central) */}
-        {phase !== "game_over" && (
-          <div
-            className={cn(
-              "px-3 py-1 lg:px-4 lg:py-2 rounded-full border bg-black/80 font-bold text-[10px] lg:text-xl tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
-              isMyTurn
-                ? "bg-blue-500/10 border-blue-500 text-blue-400 animate-pulse ring-blue-500"
-                : "bg-red-500/10 border-red-500 text-red-500"
-            )}
-          >
-            {isMyTurn
-              ? t.yourTurn
-              : isGauntletMode
-              ? player2.name
-              : isCustomMode
-              ? "Player 2 Turn"
-              : t.opponentTurn}
-          </div>
-        )}
-      </div>
+      {/* Main Game UI - Only render after Intro */}
+      {!showBoardIntro && (
+        <>
+          {/* Full-Screen Effects */}
+          {mechanic.type === "random_elemental" &&
+            mechanic.activeElement === "lightning" && <FullScreenLightning />}
 
-      {/* Passive Info Modal */}
-      <PassiveInfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
-
-      {/* Board Mechanic Modal */}
-      <BoardMechanicModal
-        isOpen={showMechanicModal}
-        onClose={() => setShowMechanicModal(false)}
-        mechanic={mechanic}
-      />
-
-      {/* Left Side: Board Effect & Passive Info */}
-      {phase !== "game_over" && (
-        <div className="absolute top-2 left-2 lg:top-4 lg:left-4 z-[60] flex flex-row gap-2 pointer-events-none">
-          {/* Board Effect Chip - Clickable */}
-          {mechanic.type !== "none" && (
-            <button
-              onClick={() => setShowMechanicModal(true)}
-              className="flex items-center gap-2 px-2 py-2 lg:px-4 lg:py-2 rounded-full bg-black/80 border border-white/20 text-xs lg:text-sm font-bold text-white shadow-lg hover:bg-black/90 hover:border-white/30 transition-all pointer-events-auto"
-            >
-              {mechanic.type === "random_elemental" && (
-                <>
-                  {mechanic.activeElement === "fire" && (
-                    <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-red-500/20 flex items-center justify-center">
-                      <img
-                        src="/images/fire.webp"
-                        alt="fire"
-                        className="w-[60%] h-[60%] object-contain"
-                      />
-                    </div>
-                  )}
-                  {mechanic.activeElement === "water" && (
-                    <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
-                      <img
-                        src="/images/water.webp"
-                        alt="water"
-                        className="w-[60%] h-[60%] object-contain"
-                      />
-                    </div>
-                  )}
-                  {mechanic.activeElement === "earth" && (
-                    <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-amber-800/20 flex items-center justify-center">
-                      <img
-                        src="/images/earth.webp"
-                        alt="earth"
-                        className="w-[60%] h-[60%] object-contain"
-                      />
-                    </div>
-                  )}
-                  {mechanic.activeElement === "wind" && (
-                    <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                      <img
-                        src="/images/wind.webp"
-                        alt="wind"
-                        className="w-[60%] h-[60%] object-contain"
-                      />
-                    </div>
-                  )}
-                  {mechanic.activeElement === "lightning" && (
-                    <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-yellow-400/20 flex items-center justify-center">
-                      <img
-                        src="/images/lightning.webp"
-                        alt="lightning"
-                        className="w-[60%] h-[60%] object-contain"
-                      />
-                    </div>
-                  )}
-                </>
-              )}
-              {mechanic.type === "poison" && (
-                <span className="text-purple-500">☠️</span>
-              )}
-              {mechanic.type === "foggy" && (
-                <span className="text-gray-400">🌫️</span>
-              )}
-              {mechanic.type === "joker" && (
-                <span className="text-pink-500">🎲</span>
-              )}
-              <span className="hidden lg:inline whitespace-nowrap">
-                {mechanic.type === "random_elemental" &&
-                  `${mechanic.activeElement
-                    ?.charAt(0)
-                    .toUpperCase()}${mechanic.activeElement?.slice(1)} Field`}
-                {mechanic.type === "poison" && "Poison Field"}
-                {mechanic.type === "foggy" && "Foggy Field"}
-                {mechanic.type === "joker" && "Joker Field"}
-              </span>
-            </button>
-          )}
-
-          {/* Passive Info Button */}
-          <button
-            onClick={() => setShowInfo(true)}
-            className="flex items-center gap-2 px-2 py-2 lg:px-4 lg:py-2 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 hover:text-blue-300 hover:border-blue-400 transition-all pointer-events-auto"
-            title={t.passiveInfo}
-          >
-            <Info className="w-4 h-4" />
-            {/* Label only on desktop */}
-            <span className="hidden lg:inline whitespace-nowrap text-xs lg:text-sm font-bold">
-              {t.passiveInfo}
-            </span>
-          </button>
-        </div>
-      )}
-
-      {/* Right Side: Exit Button */}
-      {phase !== "game_over" && (
-        <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none flex flex-col items-end gap-2">
-          <button
-            onClick={() => {
-              resetGame();
-              router.push("/");
-            }}
-            className="p-2 lg:px-3 lg:py-2 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"
-            title={t.exit}
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Main Layout Container */}
-      {/* Mobile: Col. Order: Opponent(1), Board(2), Player(3) */}
-      {/* Desktop: 3-Col Grid. */}
-      <div className="relative z-10 w-full h-full p-1 lg:p-8 grid grid-rows-[auto_1fr_auto] lg:grid-rows-1 lg:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-1 lg:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
-        {/* PLAYER 1 HAND */}
-        <div
-          className={cn(
-            "order-3 lg:order-1 w-full h-full flex flex-col items-center justify-center relative p-1 lg:p-2",
-            useGameStore.getState().draggingCardId && "z-[100]"
-          )}
-        >
-          {/* Mobile View (Horizontal) */}
-          <div className="lg:hidden w-full flex justify-center items-center">
-            <Hand
-              cards={player1.hand}
-              ownerId="player1"
-              isCurrentPlayer={isMyTurn}
-              orientation="horizontal"
-              isCustom={isCustomMode}
-              gauntletRank={isGauntletMode ? gauntletRank : undefined}
-            />
-          </div>
-          {/* Desktop View (Vertical) */}
-          <div className="hidden lg:flex w-full h-full items-center justify-center">
-            <Hand
-              cards={player1.hand}
-              ownerId="player1"
-              isCurrentPlayer={isMyTurn}
-              orientation="vertical"
-              isCustom={isCustomMode}
-              gauntletRank={isGauntletMode ? gauntletRank : undefined}
-            />
-          </div>
-
-          {/* Turn label for player (Mobile) */}
-          {/* <div className="md:hidden absolute bottom-full mb-2 text-xs font-bold text-blue-500 animate-pulse">
-            {isMyTurn && t.yourTurn}
-          </div> */}
-        </div>
-
-        {/* CENTER (Board) */}
-        <div className="order-2 w-full h-full flex flex-col items-center justify-center relative min-h-0 min-w-0 gap-2 lg:gap-6">
-          <div className="relative w-full h-full max-h-[50vh] sm:max-h-[55vh] lg:max-h-[75vh] aspect-square flex items-center justify-center">
-            <div className="scale-85 sm:scale-75 lg:scale-95 transition-transform duration-500">
-              <Board />
-            </div>
-          </div>
-
-          {showResult && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/80"
-            >
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="bg-gray-900/80 border border-white/10 p-8 lg:p-12 rounded-[2rem] shadow-2xl flex flex-col items-center max-w-[90vw] w-[400px] text-center"
+          {/* Header / Status Bar */}
+          <div className="absolute top-1.5 left-0 right-0 z-50 flex items-center justify-center p-2 lg:p-4 pointer-events-none">
+            {/* Turn Status Overlay (Central) */}
+            {phase !== "game_over" && (
+              <div
+                className={cn(
+                  "px-3 py-1 lg:px-4 lg:py-2 rounded-full border bg-black/80 font-bold text-[10px] lg:text-xl tracking-[0.2em] shadow-lg transition-all duration-500 pointer-events-auto",
+                  isMyTurn
+                    ? "bg-blue-500/10 border-blue-500 text-blue-400 animate-pulse ring-blue-500"
+                    : "bg-red-500/10 border-red-500 text-red-500"
+                )}
               >
-                {/* GAUNTLET MODE RESULT */}
-                {isGauntletMode ? (
-                  <div className="mb-6 w-full">
-                    <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2 uppercase">
-                      {winner === "player1"
-                        ? t.gauntlet.roundCleared
-                        : t.gauntlet.gauntletOver}
-                    </h2>
+                {isMyTurn
+                  ? t.yourTurn
+                  : isGauntletMode
+                  ? player2.name
+                  : isCustomMode
+                  ? "Player 2 Turn"
+                  : t.opponentTurn}
+              </div>
+            )}
+          </div>
 
-                    <h1
-                      className={cn(
-                        "text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-2xl mb-4",
-                        winner === "player1" ? "text-green-400" : "text-red-500"
-                      )}
-                    >
-                      {winner === "player1" ? t.victory : t.defeat}
-                    </h1>
+          {/* Passive Info Modal */}
+          <PassiveInfoModal
+            isOpen={showInfo}
+            onClose={() => setShowInfo(false)}
+          />
 
-                    {/* Score Summary */}
-                    <div className="bg-black/40 rounded-xl p-4 border border-white/5 mb-6">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-gray-400 text-xs uppercase tracking-wider">
-                          {t.gauntlet.rank}
-                        </span>
-                        <span className="text-yellow-400 font-black">
-                          {gauntletRank}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-gray-400 text-xs uppercase tracking-wider">
-                          {t.gauntlet.totalScore}
-                        </span>
-                        <span className="text-white font-black text-xl">
-                          {gauntletScore}
-                        </span>
-                      </div>
-                      {winner === "player1" && (
-                        <div className="text-xs text-green-400 font-bold mt-2 border-t border-white/10 pt-2">
-                          + {player1.totalFlips || 0} {t.gauntlet.flipsBonus}
+          {/* Board Mechanic Modal */}
+          <BoardMechanicModal
+            isOpen={showMechanicModal}
+            onClose={() => setShowMechanicModal(false)}
+            mechanic={mechanic}
+          />
+
+          {/* Left Side: Board Effect & Passive Info */}
+          {phase !== "game_over" && (
+            <div className="absolute top-2 left-2 lg:top-4 lg:left-4 z-[60] flex flex-row gap-2 pointer-events-none">
+              {/* Board Effect Chip - Clickable */}
+              {mechanic.type !== "none" && (
+                <button
+                  onClick={() => setShowMechanicModal(true)}
+                  className="flex items-center gap-2 px-2 py-2 lg:px-4 lg:py-2 rounded-full bg-black/80 border border-white/20 text-xs lg:text-sm font-bold text-white shadow-lg hover:bg-black/90 hover:border-white/30 transition-all pointer-events-auto"
+                >
+                  {mechanic.type === "random_elemental" && (
+                    <>
+                      {mechanic.activeElement === "fire" && (
+                        <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-red-500/20 flex items-center justify-center">
+                          <img
+                            src="/images/fire.webp"
+                            alt="fire"
+                            className="w-[60%] h-[60%] object-contain"
+                          />
                         </div>
                       )}
-                    </div>
-
-                    <div className="flex flex-col gap-3 w-full">
-                      {winner === "player1" ? (
-                        <button
-                          onClick={() => {
-                            // Process result and start next round
-                            processMatchResult(
-                              "player1",
-                              player1.totalFlips || 0
-                            );
-                            const config = getOpponentConfig();
-
-                            // Re-init game with new config
-                            initGame("gauntlet-room", true, config.mechanic);
-                            useGameStore.setState((state) => ({
-                              mechanic: {
-                                type: config.mechanic,
-                                activeElement: config.activeElement || "none",
-                                jokerModifiers: { player1: 0, player2: 0 },
-                              },
-                              player1: {
-                                ...state.player1,
-                                hand: [...gauntletDeck].map((c) => ({
-                                  ...c,
-                                  id: c.id + Math.random(),
-                                })), // Refresh IDs
-                                totalFlips: 0,
-                              },
-                              player2: {
-                                ...state.player2,
-                                hand: config.deck,
-                                name: `Enemy ${gauntletRank}`,
-                                totalFlips: 0,
-                              },
-                            }));
-                            setShowResult(false);
-                            setShowBoardIntro(true);
-                          }}
-                          className="w-full py-4 bg-green-500 text-black font-black text-sm tracking-widest hover:bg-green-400 transition-colors rounded-2xl shadow-xl uppercase"
-                        >
-                          {t.gauntlet.nextBattle}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            processMatchResult(
-                              winner || "draw",
-                              player1.totalFlips || 0
-                            ); // This ends the run
-                            resetGame();
-                            router.push("/single-player");
-                          }}
-                          className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl uppercase"
-                        >
-                          {t.gauntlet.returnToMenu}
-                        </button>
+                      {mechanic.activeElement === "water" && (
+                        <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
+                          <img
+                            src="/images/water.webp"
+                            alt="water"
+                            className="w-[60%] h-[60%] object-contain"
+                          />
+                        </div>
                       )}
-                    </div>
-                  </div>
-                ) : (
-                  // STANDARD MODE RESULT
-                  <>
-                    <div className="mb-6">
-                      <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2">
-                        Game Result
-                      </h2>
-                      <h1
-                        className={cn(
-                          "text-5xl lg:text-7xl font-black tracking-tighter drop-shadow-2xl",
-                          winner === "player1"
-                            ? "text-blue-400"
-                            : winner === "player2"
-                            ? "text-red-500"
-                            : "text-yellow-500"
-                        )}
-                      >
-                        {winner === "draw"
-                          ? t.draw
-                          : `${winner === "player1" ? t.victory : t.defeat}`}
-                      </h1>
-                    </div>
+                      {mechanic.activeElement === "earth" && (
+                        <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-amber-800/20 flex items-center justify-center">
+                          <img
+                            src="/images/earth.webp"
+                            alt="earth"
+                            className="w-[60%] h-[60%] object-contain"
+                          />
+                        </div>
+                      )}
+                      {mechanic.activeElement === "wind" && (
+                        <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                          <img
+                            src="/images/wind.webp"
+                            alt="wind"
+                            className="w-[60%] h-[60%] object-contain"
+                          />
+                        </div>
+                      )}
+                      {mechanic.activeElement === "lightning" && (
+                        <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-yellow-400/20 flex items-center justify-center">
+                          <img
+                            src="/images/lightning.webp"
+                            alt="lightning"
+                            className="w-[60%] h-[60%] object-contain"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {mechanic.type === "poison" && (
+                    <span className="text-purple-500">☠️</span>
+                  )}
+                  {mechanic.type === "foggy" && (
+                    <span className="text-gray-400">🌫️</span>
+                  )}
+                  {mechanic.type === "joker" && (
+                    <span className="text-pink-500">🎲</span>
+                  )}
+                  <span className="hidden lg:inline whitespace-nowrap">
+                    {mechanic.type === "random_elemental" &&
+                      `${mechanic.activeElement
+                        ?.charAt(0)
+                        .toUpperCase()}${mechanic.activeElement?.slice(
+                        1
+                      )} Field`}
+                    {mechanic.type === "poison" && "Poison Field"}
+                    {mechanic.type === "foggy" && "Foggy Field"}
+                    {mechanic.type === "joker" && "Joker Field"}
+                  </span>
+                </button>
+              )}
 
-                    <div className="flex flex-col gap-3 w-full">
-                      <button
-                        onClick={() => {
-                          startGame();
-                        }}
-                        className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl"
-                      >
-                        {t.playAgain}
-                      </button>
-                      <button
-                        onClick={() => {
-                          resetGame();
-                          router.push("/");
-                        }}
-                        className="w-full py-4 bg-white/5 text-white/50 font-bold text-sm tracking-widest hover:bg-white/10 hover:text-white transition-all rounded-2xl"
-                      >
-                        {t.exit}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </motion.div>
-            </motion.div>
+              {/* Passive Info Button */}
+              <button
+                onClick={() => setShowInfo(true)}
+                className="flex items-center gap-2 px-2 py-2 lg:px-4 lg:py-2 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 hover:text-blue-300 hover:border-blue-400 transition-all pointer-events-auto"
+                title={t.passiveInfo}
+              >
+                <Info className="w-4 h-4" />
+                {/* Label only on desktop */}
+                <span className="hidden lg:inline whitespace-nowrap text-xs lg:text-sm font-bold">
+                  {t.passiveInfo}
+                </span>
+              </button>
+            </div>
           )}
-        </div>
 
-        {/* PLAYER 2 / OPPONENT HAND */}
-        <div className="order-1 lg:order-3 w-full h-full flex flex-col items-center justify-center relative p-1 lg:p-2">
-          {/* Mobile View (Horizontal Compact) */}
-          <div className={cn("lg:hidden w-full flex justify-center")}>
-            <Hand
-              cards={player2.hand}
-              ownerId="player2"
-              isCurrentPlayer={currentPlayerId === "player2"}
-              orientation="horizontal"
-              compact
-              minimal={true}
-              isHidden={isCustomMode ? false : true}
-              isCustom={isCustomMode}
-              name={player2.name}
-            />
+          {/* Right Side: Exit Button */}
+          {phase !== "game_over" && (
+            <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none flex flex-col items-end gap-2">
+              <button
+                onClick={() => {
+                  resetGame();
+                  router.push("/");
+                }}
+                className="p-2 lg:px-3 lg:py-2 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"
+                title={t.exit}
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Main Layout Container */}
+          <div className="relative z-10 w-full h-full p-1 lg:p-8 grid grid-rows-[auto_1fr_auto] lg:grid-rows-1 lg:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-1 lg:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
+            {/* PLAYER 1 HAND */}
+            <div
+              className={cn(
+                "order-3 lg:order-1 w-full h-full flex flex-col items-center justify-center relative p-1 lg:p-2",
+                useGameStore.getState().draggingCardId && "z-[100]"
+              )}
+            >
+              {/* Mobile View (Horizontal) */}
+              <div className="lg:hidden w-full flex justify-center items-center">
+                <Hand
+                  cards={player1.hand}
+                  ownerId="player1"
+                  isCurrentPlayer={isMyTurn}
+                  orientation="horizontal"
+                  isCustom={isCustomMode}
+                  gauntletRank={isGauntletMode ? gauntletRank : undefined}
+                />
+              </div>
+              {/* Desktop View (Vertical) */}
+              <div className="hidden lg:flex w-full h-full items-center justify-center">
+                <Hand
+                  cards={player1.hand}
+                  ownerId="player1"
+                  isCurrentPlayer={isMyTurn}
+                  orientation="vertical"
+                  isCustom={isCustomMode}
+                  gauntletRank={isGauntletMode ? gauntletRank : undefined}
+                />
+              </div>
+            </div>
+
+            {/* CENTER (Board) */}
+            <div className="order-2 w-full h-full flex flex-col items-center justify-center relative min-h-0 min-w-0 gap-2 lg:gap-6">
+              <div className="relative w-full h-full max-h-[50vh] sm:max-h-[55vh] lg:max-h-[75vh] aspect-square flex items-center justify-center">
+                <div className="scale-85 sm:scale-75 lg:scale-95 transition-transform duration-500">
+                  <Board />
+                </div>
+              </div>
+
+              {showResult && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/80"
+                >
+                  <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="bg-gray-900/80 border border-white/10 p-8 lg:p-12 rounded-[2rem] shadow-2xl flex flex-col items-center max-w-[90vw] w-[400px] text-center"
+                  >
+                    {/* GAUNTLET MODE RESULT */}
+                    {isGauntletMode ? (
+                      <div className="mb-6 w-full">
+                        <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2 uppercase">
+                          {winner === "player1"
+                            ? t.gauntlet.roundCleared
+                            : t.gauntlet.gauntletOver}
+                        </h2>
+
+                        <h1
+                          className={cn(
+                            "text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-2xl mb-4",
+                            winner === "player1"
+                              ? "text-green-400"
+                              : "text-red-500"
+                          )}
+                        >
+                          {winner === "player1" ? t.victory : t.defeat}
+                        </h1>
+
+                        {/* Score Summary */}
+                        <div className="bg-black/40 rounded-xl p-4 border border-white/5 mb-6">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-gray-400 text-xs uppercase tracking-wider">
+                              {t.gauntlet.rank}
+                            </span>
+                            <span className="text-yellow-400 font-black">
+                              {gauntletRank}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-gray-400 text-xs uppercase tracking-wider">
+                              {t.gauntlet.totalScore}
+                            </span>
+                            <span className="text-white font-black text-xl">
+                              {gauntletScore}
+                            </span>
+                          </div>
+                          {winner === "player1" && (
+                            <div className="text-xs text-green-400 font-bold mt-2 border-t border-white/10 pt-2">
+                              + {player1.totalFlips || 0}{" "}
+                              {t.gauntlet.flipsBonus}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-3 w-full">
+                          {winner === "player1" ? (
+                            <button
+                              onClick={() => {
+                                // Process result and start next round
+                                processMatchResult(
+                                  "player1",
+                                  player1.totalFlips || 0
+                                );
+                                const config = getOpponentConfig();
+
+                                // Re-init game with new config
+                                initGame(
+                                  "gauntlet-room",
+                                  true,
+                                  config.mechanic
+                                );
+                                useGameStore.setState((state) => ({
+                                  mechanic: {
+                                    type: config.mechanic,
+                                    activeElement:
+                                      config.activeElement || "none",
+                                    jokerModifiers: { player1: 0, player2: 0 },
+                                  },
+                                  player1: {
+                                    ...state.player1,
+                                    hand: [...gauntletDeck].map((c) => ({
+                                      ...c,
+                                      id: c.id + Math.random(),
+                                    })), // Refresh IDs
+                                    totalFlips: 0,
+                                  },
+                                  player2: {
+                                    ...state.player2,
+                                    hand: config.deck,
+                                    name: `Enemy ${gauntletRank}`,
+                                    totalFlips: 0,
+                                  },
+                                }));
+                                setShowResult(false);
+                                setShowBoardIntro(true);
+                              }}
+                              className="w-full py-4 bg-green-500 text-black font-black text-sm tracking-widest hover:bg-green-400 transition-colors rounded-2xl shadow-xl uppercase"
+                            >
+                              {t.gauntlet.nextBattle}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                processMatchResult(
+                                  winner || "draw",
+                                  player1.totalFlips || 0
+                                ); // This ends the run
+                                resetGame();
+                                router.push("/single-player");
+                              }}
+                              className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl uppercase"
+                            >
+                              {t.gauntlet.returnToMenu}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      // STANDARD MODE RESULT
+                      <>
+                        <div className="mb-6">
+                          <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2">
+                            Game Result
+                          </h2>
+                          <h1
+                            className={cn(
+                              "text-5xl lg:text-7xl font-black tracking-tighter drop-shadow-2xl",
+                              winner === "player1"
+                                ? "text-blue-400"
+                                : winner === "player2"
+                                ? "text-red-500"
+                                : "text-yellow-500"
+                            )}
+                          >
+                            {winner === "draw"
+                              ? t.draw
+                              : `${
+                                  winner === "player1" ? t.victory : t.defeat
+                                }`}
+                          </h1>
+                        </div>
+
+                        <div className="flex flex-col gap-3 w-full">
+                          <button
+                            onClick={() => {
+                              startGame();
+                            }}
+                            className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl"
+                          >
+                            {t.playAgain}
+                          </button>
+                          <button
+                            onClick={() => {
+                              resetGame();
+                              router.push("/");
+                            }}
+                            className="w-full py-4 bg-white/5 text-white/50 font-bold text-sm tracking-widest hover:bg-white/10 hover:text-white transition-all rounded-2xl"
+                          >
+                            {t.exit}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </motion.div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* PLAYER 2 / OPPONENT HAND */}
+            <div className="order-1 lg:order-3 w-full h-full flex flex-col items-center justify-center relative p-1 lg:p-2">
+              {/* Mobile View (Horizontal Compact) */}
+              <div className={cn("lg:hidden w-full flex justify-center")}>
+                <Hand
+                  cards={player2.hand}
+                  ownerId="player2"
+                  isCurrentPlayer={currentPlayerId === "player2"}
+                  orientation="horizontal"
+                  compact
+                  minimal={true}
+                  isHidden={isCustomMode ? false : true}
+                  isCustom={isCustomMode}
+                  name={player2.name}
+                />
+              </div>
+              {/* Desktop View (Vertical Compact) */}
+              <div className="hidden lg:flex w-full h-full items-center justify-center">
+                <Hand
+                  cards={player2.hand}
+                  ownerId="player2"
+                  isCurrentPlayer={currentPlayerId === "player2"}
+                  orientation="vertical"
+                  compact
+                  isHidden={isCustomMode ? false : true}
+                  isCustom={isCustomMode}
+                  name={player2.name}
+                />
+              </div>
+            </div>
           </div>
-          {/* Desktop View (Vertical Compact) */}
-          {/* Made full width/height to center nicely */}
-          <div className="hidden lg:flex w-full h-full items-center justify-center">
-            <Hand
-              cards={player2.hand}
-              ownerId="player2"
-              isCurrentPlayer={currentPlayerId === "player2"}
-              orientation="vertical"
-              compact
-              isHidden={isCustomMode ? false : true}
-              isCustom={isCustomMode}
-              name={player2.name}
-            />
-          </div>
-        </div>
-      </div>
+        </>
+      )}
       <FPSCounter />
     </div>
   );
