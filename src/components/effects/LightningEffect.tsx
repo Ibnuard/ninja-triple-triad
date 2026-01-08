@@ -5,6 +5,9 @@ export const LightningEffect = memo(() => {
 
   return (
     <div className="absolute inset-[-12px] pointer-events-none z-0 rounded-2xl overflow-visible">
+      {/* GLOW HALO */}
+      <div className="absolute inset-0 bg-yellow-400/5 blur-2xl animate-pulse-slow" />
+
       <svg
         className="absolute inset-0 w-full h-full"
         xmlns="http://www.w3.org/2000/svg"
@@ -36,10 +39,11 @@ export const LightningEffect = memo(() => {
             <feDisplacementMap
               in="SourceGraphic"
               in2="noise"
-              scale="5"
+              scale="4.5"
               xChannelSelector="R"
               yChannelSelector="G"
             />
+            <feGaussianBlur stdDeviation="0.3" />
           </filter>
 
           <linearGradient
@@ -64,9 +68,9 @@ export const LightningEffect = memo(() => {
           rx="4"
           fill="none"
           stroke="#3b82f6"
-          strokeWidth="1.5"
+          strokeWidth="2"
           filter="url(#lightning-jagged)"
-          className="opacity-40"
+          style={{ opacity: 0.2, mixBlendMode: "screen" }}
         />
 
         {/* Primary Bolt - Yellow/Blue Gradient */}
@@ -78,11 +82,12 @@ export const LightningEffect = memo(() => {
           rx="4"
           fill="none"
           stroke="url(#electric-gradient)"
-          strokeWidth="1"
+          strokeWidth="1.2"
           filter="url(#lightning-jagged)"
-          className="opacity-80"
           style={{
-            animation: "bolt-flicker 0.15s infinite alternate",
+            opacity: 0.6,
+            mixBlendMode: "screen",
+            animation: "bolt-flicker 0.2s infinite alternate",
           }}
         />
 
@@ -97,22 +102,22 @@ export const LightningEffect = memo(() => {
           stroke="#fff"
           strokeWidth="0.5"
           filter="url(#lightning-jagged)"
-          className="opacity-90"
+          style={{ opacity: 0.4, mixBlendMode: "screen" }}
         />
       </svg>
 
       {/* Outer Border Glow Overlay */}
-      <div className="absolute inset-[10px] border border-yellow-400/20 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3),inset_0_0_15px_rgba(250,204,21,0.2)] animate-pulse-slow" />
+      <div className="absolute inset-[10px] border border-yellow-400/10 rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.15),inset_0_0_10px_rgba(250,204,21,0.1)] animate-pulse-slow" />
 
       <style jsx>{`
         @keyframes bolt-flicker {
           0%,
           100% {
-            opacity: 0.8;
+            opacity: 0.5;
             stroke-width: 1;
           }
           50% {
-            opacity: 1;
+            opacity: 0.7;
             stroke-width: 1.3;
           }
         }
@@ -122,11 +127,11 @@ export const LightningEffect = memo(() => {
         @keyframes pulse-slow {
           0%,
           100% {
-            opacity: 0.4;
+            opacity: 0.3;
             transform: scale(1);
           }
           50% {
-            opacity: 0.7;
+            opacity: 0.5;
             transform: scale(1.005);
           }
         }
