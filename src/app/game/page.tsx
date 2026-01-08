@@ -22,6 +22,7 @@ import {
 
 import { useTranslation, useSettingsStore } from "../../store/useSettingsStore";
 import { Card } from "../../types/game";
+import { FullScreenLightning } from "../../components/effects/FullScreenLightning";
 
 // Mock Cards
 const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
@@ -370,6 +371,10 @@ export default function GamePage() {
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none overflow-hidden">
         {particlesComponent}
       </div>
+
+      {/* Full-Screen Effects */}
+      {mechanic.type === "random_elemental" &&
+        mechanic.activeElement === "lightning" && <FullScreenLightning />}
 
       {/* Board Intro Animation */}
       {showBoardIntro && (
