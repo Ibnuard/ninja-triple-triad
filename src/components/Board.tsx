@@ -172,6 +172,7 @@ export const Board = () => {
         <BoardEffects
           mechanicType={mechanic.type}
           activeElement={mechanic.activeElement}
+          lastMove={lastMove}
         />
         <div className="grid grid-cols-3 gap-1 lg:gap-4 relative z-10">
           {board.map((row, rIndex) =>

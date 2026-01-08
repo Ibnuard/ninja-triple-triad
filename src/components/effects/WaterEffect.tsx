@@ -1,11 +1,38 @@
-import { memo } from "react";
-import { motion } from "framer-motion";
+import { memo, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-export const WaterEffect = memo(() => {
+interface WaterEffectProps {
+  lastMove: { row: number; col: number; playerId: string } | null;
+}
+
+type Ripple = {
+  id: number;
+  x: number;
+  y: number;
+};
+
+export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
+  const [ripples, setRipples] = useState<Ripple[]>([]);
+
+  useEffect(() => {
+    if (lastMove) {
+      const newRipple: Ripple = {
+        id: Date.now(),
+        x: ((lastMove.col + 0.5) / 3) * 100,
+        y: ((lastMove.row + 0.5) / 3) * 100,
+      };
+
+      setRipples((prev) => [...prev, newRipple]);
+      setTimeout(() => {
+        setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
+      }, 1500);
+    }
+  }, [lastMove]);
+
   return (
-    <div className="absolute inset-[-12px] pointer-events-none z-0 rounded-2xl overflow-hidden">
+    <div className="absolute inset-[-24px] pointer-events-none z-0 rounded-2xl overflow-hidden">
       {/* DEEP BLUE BASE GLOW */}
-      <div className="absolute inset-0 bg-blue-600/5 blur-xl animate-pulse-slow" />
+      <div className="absolute inset-0 bg-blue-900/5 blur-xl animate-pulse-slow" />
 
       {/* REACTIVE WATER SURFACE - SVG FILTER */}
       <svg
@@ -18,27 +45,26 @@ export const WaterEffect = memo(() => {
           <filter id="water-turbulence">
             <feTurbulence
               type="fractalNoise"
-              baseFrequency="0.015 0.02"
-              numOctaves="3"
+              baseFrequency="0.01 0.015"
+              numOctaves="2"
             >
               <animate
                 attributeName="baseFrequency"
-                dur="15s"
-                values="0.015 0.02;0.02 0.015;0.015 0.02"
+                dur="20s"
+                values="0.01 0.015;0.015 0.01;0.01 0.015"
                 repeatCount="indefinite"
               />
             </feTurbulence>
-            <feDisplacementMap in="SourceGraphic" scale="10" />
+            <feDisplacementMap in="SourceGraphic" scale="15" />
           </filter>
 
           <linearGradient id="water-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.1" />
-            <stop offset="50%" stopColor="#60a5fa" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.1" />
+            <stop offset="0%" stopColor="#1e40af" stopOpacity="0.05" />
+            <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#1e40af" stopOpacity="0.05" />
           </linearGradient>
         </defs>
 
-        {/* Shimmering Surface */}
         <rect
           x="0"
           y="0"
@@ -49,73 +75,104 @@ export const WaterEffect = memo(() => {
           className="opacity-40"
         />
 
-        {/* Caustics / Light Refractions */}
         <rect
           x="0"
           y="0"
           width="100"
           height="100"
           fill="none"
-          stroke="white"
-          strokeWidth="0.2"
-          strokeDasharray="1 2"
+          stroke="rgba(255,255,255,0.05)"
+          strokeWidth="0.1"
           filter="url(#water-turbulence)"
-          className="opacity-10"
         />
       </svg>
 
-      {/* BUBBLES */}
+      {/* BUBBLES - CSS ANIMATION FOR PERFORMANCE */}
       <div className="absolute inset-0">
-        {[...Array(10)].map((_, i) => (
-          <motion.div
+        {[...Array(6)].map((_, i) => (
+          <div
             key={i}
-            initial={{
-              bottom: "-5%",
-              left: Math.random() * 100 + "%",
-              scale: 0,
-              opacity: 0,
-            }}
-            animate={{
-              bottom: "105%",
-              scale: [0, 1, 1, 0],
-              opacity: [0, 0.4, 0.4, 0],
-              x: [0, (Math.random() - 0.5) * 40, (Math.random() - 0.5) * 40],
-            }}
-            transition={{
-              duration: 6 + Math.random() * 4,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-              ease: "linear",
-            }}
-            className="absolute w-2 h-2 border border-blue-300/30 rounded-full"
+            className="bubble absolute rounded-full border border-white/20"
             style={{
-              background:
-                "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent)",
+              left: `${Math.random() * 100}%`,
+              bottom: "-10px",
+              width: `${4 + Math.random() * 4}px`,
+              height: `${4 + Math.random() * 4}px`,
+              animation: `float ${6 + Math.random() * 4}s linear infinite`,
+              animationDelay: `${Math.random() * 5}s`,
+              background: "rgba(255, 255, 255, 0.1)",
             }}
           />
         ))}
       </div>
 
-      {/* CAUSTIC OVERLAY */}
-      <div
-        className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 to-white/5 mix-blend-overlay animate-pulse-slow"
-        style={{ animationDuration: "8s" }}
-      />
+      {/* PLACEMENT RIPPLES */}
+      <AnimatePresence>
+        {ripples.map((ripple) => (
+          <div
+            key={ripple.id}
+            className="absolute pointer-events-none"
+            style={{
+              left: `${ripple.x}%`,
+              top: `${ripple.y}%`,
+              transform: "translate(-50%, -50%)",
+            }}
+          >
+            {[...Array(2)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ scale: 0, opacity: 0.7 }}
+                animate={{ scale: 5.0, opacity: 0 }}
+                transition={{
+                  duration: 1.4,
+                  delay: i * 0.2,
+                  ease: "easeOut",
+                }}
+                className="absolute border-2 border-blue-100/40 rounded-full"
+                style={{
+                  width: "50px",
+                  height: "50px",
+                  left: "-25px",
+                  top: "-25px",
+                }}
+              />
+            ))}
+          </div>
+        ))}
+      </AnimatePresence>
+
+      <div className="absolute inset-0 bg-blue-500/5 mix-blend-overlay pointer-events-none" />
 
       {/* BORDER GLOW */}
-      <div className="absolute inset-[8px] border border-blue-400/20 rounded-xl shadow-[inset_0_0_20px_rgba(59,130,246,0.1)]" />
+      <div className="absolute inset-[8px] border border-blue-400/10 rounded-xl" />
 
       <style jsx>{`
         .animate-pulse-slow {
-          animation: pulse-slow 5s ease-in-out infinite;
+          animation: pulse-slow 8s ease-in-out infinite;
         }
         @keyframes pulse-slow {
           0%,
           100% {
-            opacity: 0.3;
+            opacity: 0.2;
           }
           50% {
-            opacity: 0.7;
+            opacity: 0.5;
+          }
+        }
+        @keyframes float {
+          0% {
+            transform: translateY(0) translateX(0);
+            opacity: 0;
+          }
+          20% {
+            opacity: 0.4;
+          }
+          80% {
+            opacity: 0.4;
+          }
+          100% {
+            transform: translateY(-400px) translateX(20px);
+            opacity: 0;
           }
         }
       `}</style>

@@ -9,11 +9,13 @@ import { WaterEffect } from "./effects/WaterEffect";
 interface BoardEffectsProps {
   mechanicType: string;
   activeElement?: string;
+  lastMove: { row: number; col: number; playerId: string } | null;
 }
 
 export const BoardEffects = ({
   mechanicType,
   activeElement,
+  lastMove,
 }: BoardEffectsProps) => {
   // Determine which effect to show
   const getEffectKey = () => {
@@ -32,7 +34,7 @@ export const BoardEffects = ({
       {effectKey === "fire" && <FireEffect />}
 
       {/* Water Effect */}
-      {effectKey === "water" && <WaterEffect />}
+      {effectKey === "water" && <WaterEffect lastMove={lastMove} />}
 
       {/* Poison Effect */}
       {effectKey === "poison" && (
