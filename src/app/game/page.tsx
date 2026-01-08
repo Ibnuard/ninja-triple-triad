@@ -206,97 +206,44 @@ export default function GamePage() {
   useComputerAI({ isPaused: showBoardIntro });
 
   const particlesOptions = useMemo(() => {
-    const defaultColor = ["#ffffff"];
-    let color = defaultColor;
-    let direction: any = "top";
-    let speed = { min: 1, max: 3 };
-    let shape: any = "circle";
-    let size: any = { min: 1, max: 3 };
-    let particleCount = 40;
-    let opacity: any = { min: 0.1, max: 0.4 };
-
-    if (mechanic.type === "random_elemental") {
-      switch (mechanic.activeElement) {
-        case "fire":
-          // Fire: Rising embers with varying sizes
-          color = ["#ff3b00", "#ff7a00", "##ffd000", "#ff4500"];
-          direction = "top";
-          speed = { min: 2, max: 5 };
-          shape = "circle";
-          size = { min: 2, max: 6 };
-          particleCount = 50;
-          opacity = { min: 0.3, max: 0.8 };
-          break;
-        case "water":
-          // Water: Falling droplets
-          color = ["#3b82f6", "#60a5fa", "#93c5fd", "#0ea5e9"];
-          direction = "bottom";
-          speed = { min: 1, max: 4 };
-          shape = "circle";
-          size = { min: 1, max: 4 };
-          particleCount = 60;
-          opacity = { min: 0.2, max: 0.6 };
-          break;
-        case "earth":
-          // Earth: Slow-moving rocks/crystals
-          color = ["#d97706", "#b45309", "#92400e", "#78350f"];
-          direction = "bottom-left";
-          speed = { min: 0.5, max: 2 };
-          shape = "square";
-          size = { min: 2, max: 5 };
-          particleCount = 30;
-          opacity = { min: 0.3, max: 0.7 };
-          break;
-        case "wind":
-          // Wind: Fast horizontal streaks
-          color = ["#10b981", "#34d399", "#6ee7b7", "#059669"];
-          direction = "right";
-          speed = { min: 8, max: 15 };
-          shape = "edge";
-          size = { min: 3, max: 8 };
-          particleCount = 35;
-          opacity = { min: 0.1, max: 0.4 };
-          break;
-        case "lightning":
-          // Lightning: Erratic stars/sparks
-          color = ["#eab308", "#facc15", "#fef08a", "#fbbf24"];
-          direction = "none";
-          speed = { min: 3, max: 8 };
-          shape = "star";
-          size = { min: 2, max: 5 };
-          particleCount = 45;
-          opacity = { min: 0.4, max: 0.9 };
-          break;
-      }
-    } else if (mechanic.type === "poison") {
-      color = ["#a855f7", "#c084fc", "#d8b4fe", "#9333ea"];
-      direction = "top";
-      shape = "circle";
-      size = { min: 1, max: 4 };
-      opacity = { min: 0.2, max: 0.5 };
-    } else if (mechanic.type === "foggy") {
-      color = ["#9ca3af", "#d1d5db", "#f3f4f6", "#6b7280"];
-      direction = "none";
-      shape = "circle";
-      size = { min: 10, max: 30 };
-      particleCount = 20;
-      opacity = { min: 0.05, max: 0.2 };
-      speed = { min: 0.3, max: 1 };
-    } else if (mechanic.type === "joker") {
-      color = ["#ec4899", "#a855f7", "#3b82f6", "#f59e0b"];
-      direction = "top";
-      shape = "triangle";
-      size = { min: 2, max: 5 };
-      opacity = { min: 0.3, max: 0.7 };
-    }
+    const direction: any = "bottom-right";
+    const speed = { min: 3, max: 7 };
+    const shape: any = "image";
+    const size: any = { min: 8, max: 15 };
+    const particleCount = 20;
+    const opacity: any = { min: 0.4, max: 0.8 };
 
     return {
       fullScreen: { enable: false },
       fpsLimit: 120,
       particles: {
-        number: { value: particleCount, density: { enable: true, area: 800 } },
-        color: { value: color },
-        shape: { type: shape },
+        number: { value: particleCount, density: { enable: true, area: 1000 } },
+        color: { value: ["#22c55e", "#16a34a", "#78350f"] }, // Greens and brownish for leaves
+        shape: {
+          type: shape,
+          options: {
+            image: [
+              {
+                // Green Leaf
+                src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2322c55e' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
+                width: 100,
+                height: 100,
+              },
+              {
+                // Dark Green Leaf
+                src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2316a34a' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
+                width: 100,
+                height: 100,
+              },
+              {
+                // Brownish-Dry Leaf
+                src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2378350f' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
+                width: 100,
+                height: 100,
+              },
+            ],
+          },
+        },
         opacity: {
           value: opacity,
           animation: {
@@ -320,8 +267,25 @@ export default function GamePage() {
           speed: speed,
           direction: direction,
           random: true,
-          straight: shape === "edge", // Wind moves more straight
+          straight: false,
           outModes: { default: "out" },
+          attract: {
+            enable: true,
+            rotateX: 600,
+            rotateY: 1200,
+          },
+        },
+        wobble: {
+          enable: true,
+          distance: 10,
+          speed: 10,
+        },
+        rotate: {
+          value: { min: 0, max: 360 },
+          animation: {
+            enable: true,
+            speed: 5,
+          },
         },
       },
       detectRetina: true,
