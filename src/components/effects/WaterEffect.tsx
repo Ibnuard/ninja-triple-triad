@@ -1,181 +1,234 @@
-import { memo, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, memo } from "react";
+import * as PIXI from "pixi.js";
 
 interface WaterEffectProps {
   lastMove: { row: number; col: number; playerId: string } | null;
 }
 
-type Ripple = {
-  id: number;
+interface BubbleData {
+  graphics: PIXI.Graphics;
+  speed: number;
+  jitter: number;
   x: number;
   y: number;
-};
+}
+
+interface RippleData {
+  graphics: PIXI.Graphics;
+  life: number;
+  maxLife: number;
+}
 
 export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
-  const [ripples, setRipples] = useState<Ripple[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rippleQueue = useRef<{ x: number; y: number }[]>([]);
 
+  // Queue ripples when lastMove changes
   useEffect(() => {
     if (lastMove) {
-      const newRipple: Ripple = {
-        id: Date.now(),
-        x: ((lastMove.col + 0.5) / 3) * 100,
-        y: ((lastMove.row + 0.5) / 3) * 100,
-      };
-
-      setRipples((prev) => [...prev, newRipple]);
-      setTimeout(() => {
-        setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-      }, 1500);
+      rippleQueue.current.push({
+        x: (lastMove.col + 0.5) / 3,
+        y: (lastMove.row + 0.5) / 3,
+      });
     }
   }, [lastMove]);
 
+  useEffect(() => {
+    let app: PIXI.Application | null = null;
+    let isDisposed = false;
+
+    const init = async () => {
+      if (!containerRef.current) return;
+
+      const newApp = new PIXI.Application();
+      try {
+        await newApp.init({
+          resizeTo: containerRef.current,
+          backgroundAlpha: 0,
+          antialias: true,
+          resolution: window.devicePixelRatio || 1,
+          autoDensity: true,
+        });
+
+        if (isDisposed) {
+          newApp.destroy(true, { children: true, texture: true });
+          return;
+        }
+
+        app = newApp;
+        containerRef.current.appendChild(app.canvas);
+
+        const { width, height } = app.screen;
+
+        // 1. Water Surface with Displacement
+        // We'll use a generated noise texture for displacement
+        const noiseSize = 512;
+        const noiseCanvas = document.createElement("canvas");
+        noiseCanvas.width = noiseSize;
+        noiseCanvas.height = noiseSize;
+        const ctx = noiseCanvas.getContext("2d");
+        if (ctx) {
+          const imageData = ctx.createImageData(noiseSize, noiseSize);
+          for (let i = 0; i < imageData.data.length; i += 4) {
+            const val = Math.random() * 255;
+            imageData.data[i] = val; // R
+            imageData.data[i + 1] = val; // G
+            imageData.data[i + 2] = val; // B
+            imageData.data[i + 3] = 255; // A
+          }
+          ctx.putImageData(imageData, 0, 0);
+        }
+
+        const noiseTexture = PIXI.Texture.from(noiseCanvas);
+        const displacementSprite = new PIXI.Sprite(noiseTexture);
+        displacementSprite.texture.baseTexture.wrapMode = "repeat";
+        displacementSprite.scale.set(2);
+
+        const displacementFilter = new PIXI.DisplacementFilter(
+          displacementSprite
+        );
+        displacementFilter.scale.set(20);
+
+        const surfaceContainer = new PIXI.Container();
+        surfaceContainer.filters = [displacementFilter];
+        app.stage.addChild(displacementSprite);
+        app.stage.addChild(surfaceContainer);
+
+        // Add a blue tint background sprite to be displaced
+        const bg = new PIXI.Graphics();
+        bg.rect(0, 0, width, height);
+        bg.fill({ color: 0x1e40af, alpha: 0.2 });
+        surfaceContainer.addChild(bg);
+
+        // 2. Bubbles System
+        const bubbles: BubbleData[] = [];
+        const bubbleContainer = new PIXI.Container();
+        app.stage.addChild(bubbleContainer);
+
+        const createBubble = () => {
+          const g = new PIXI.Graphics();
+          const size = 2 + Math.random() * 4;
+          g.circle(0, 0, size);
+          g.stroke({ width: 1, color: 0xffffff, alpha: 0.3 });
+          g.fill({ color: 0xffffff, alpha: 0.1 });
+
+          const b: BubbleData = {
+            graphics: g,
+            speed: 1 + Math.random() * 2,
+            jitter: (Math.random() - 0.5) * 0.5,
+            x: Math.random() * width,
+            y: height + 10,
+          };
+
+          bubbleContainer.addChild(g);
+          bubbles.push(b);
+        };
+
+        for (let i = 0; i < 15; i++) createBubble();
+
+        // 3. Ripples System
+        const ripples: RippleData[] = [];
+        const rippleLayer = new PIXI.Container();
+        app.stage.addChild(rippleLayer);
+
+        const createRipple = (x: number, y: number) => {
+          const g = new PIXI.Graphics();
+          rippleLayer.addChild(g);
+          ripples.push({
+            graphics: g,
+            life: 0,
+            maxLife: 1.5,
+          });
+          // Initial position
+          g.x = x * width;
+          g.y = y * height;
+        };
+
+        // Animation Loop
+        app.ticker.add((ticker) => {
+          if (isDisposed || !app) return;
+          const deltaInSeconds = ticker.deltaTime / 60;
+
+          // Animate displacement noise
+          displacementSprite.x += 1;
+          displacementSprite.y += 0.8;
+
+          // Update Bubbles
+          bubbles.forEach((b) => {
+            b.y -= b.speed;
+            b.x += Math.sin(b.y / 20) * b.jitter;
+
+            if (b.y < -20) {
+              b.y = height + 20;
+              b.x = Math.random() * width;
+            }
+
+            b.graphics.x = b.x;
+            b.graphics.y = b.y;
+            b.graphics.alpha = Math.min(1, (b.y / height) * 2);
+          });
+
+          // Handle queued ripples
+          while (rippleQueue.current.length > 0) {
+            const r = rippleQueue.current.shift();
+            if (r) createRipple(r.x, r.y);
+          }
+
+          // Update Ripples
+          for (let i = ripples.length - 1; i >= 0; i--) {
+            const r = ripples[i];
+            r.life += deltaInSeconds;
+
+            if (r.life >= r.maxLife) {
+              rippleLayer.removeChild(r.graphics);
+              r.graphics.destroy();
+              ripples.splice(i, 1);
+              continue;
+            }
+
+            const progress = r.life / r.maxLife;
+            r.graphics.clear();
+
+            // Multiple rings
+            for (let ring = 0; ring < 2; ring++) {
+              const ringProgress = Math.max(0, progress - ring * 0.2);
+              if (ringProgress <= 0) continue;
+
+              const radius = ringProgress * 80;
+              const alpha = (1 - ringProgress) * 0.5;
+
+              r.graphics.circle(0, 0, radius);
+              r.graphics.stroke({ width: 2, color: 0x93c5fd, alpha });
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Failed to initialize PixiJS WaterEffect:", error);
+      }
+    };
+
+    init();
+
+    return () => {
+      isDisposed = true;
+      if (app) {
+        app.destroy(true, { children: true, texture: true });
+        app = null;
+      }
+    };
+  }, []);
+
   return (
     <div className="absolute inset-[-24px] pointer-events-none z-0 rounded-2xl overflow-hidden">
-      {/* DEEP BLUE BASE GLOW - No blur, use opacity/gradient instead */}
-      <div className="absolute inset-0 bg-blue-900/10 animate-pulse-slow" />
+      {/* BASE TINT */}
+      <div className="absolute inset-0 bg-blue-900/10" />
 
-      {/* REACTIVE WATER SURFACE - SVG FILTER */}
-      <svg
-        className="absolute inset-0 w-full h-full"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <filter id="water-turbulence">
-            <feTurbulence
-              type="fractalNoise"
-              baseFrequency="0.01 0.015"
-              numOctaves="2"
-            >
-              <animate
-                attributeName="baseFrequency"
-                dur="20s"
-                values="0.01 0.015;0.015 0.01;0.01 0.015"
-                repeatCount="indefinite"
-              />
-            </feTurbulence>
-            <feDisplacementMap in="SourceGraphic" scale="15" />
-          </filter>
+      {/* PIXI CANVAS */}
+      <div ref={containerRef} className="absolute inset-0" />
 
-          <linearGradient id="water-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#1e40af" stopOpacity="0.05" />
-            <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="#1e40af" stopOpacity="0.05" />
-          </linearGradient>
-        </defs>
-
-        <rect
-          x="0"
-          y="0"
-          width="100"
-          height="100"
-          fill="url(#water-gradient)"
-          filter="url(#water-turbulence)"
-          className="opacity-40"
-        />
-
-        <rect
-          x="0"
-          y="0"
-          width="100"
-          height="100"
-          fill="none"
-          stroke="rgba(255,255,255,0.05)"
-          strokeWidth="0.1"
-          filter="url(#water-turbulence)"
-        />
-      </svg>
-
-      {/* BUBBLES - CSS ANIMATION FOR PERFORMANCE */}
-      <div className="absolute inset-0">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="bubble absolute rounded-full border border-white/20"
-            style={{
-              left: `${Math.random() * 100}%`,
-              bottom: "-10px",
-              width: `${4 + Math.random() * 4}px`,
-              height: `${4 + Math.random() * 4}px`,
-              animation: `float ${6 + Math.random() * 4}s linear infinite`,
-              animationDelay: `${Math.random() * 5}s`,
-              background: "rgba(255, 255, 255, 0.1)",
-            }}
-          />
-        ))}
-      </div>
-
-      {/* PLACEMENT RIPPLES */}
-      <AnimatePresence>
-        {ripples.map((ripple) => (
-          <div
-            key={ripple.id}
-            className="absolute pointer-events-none"
-            style={{
-              left: `${ripple.x}%`,
-              top: `${ripple.y}%`,
-              transform: "translate(-50%, -50%)",
-            }}
-          >
-            {[...Array(2)].map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ scale: 0, opacity: 0.7 }}
-                animate={{ scale: 5.0, opacity: 0 }}
-                transition={{
-                  duration: 1.4,
-                  delay: i * 0.2,
-                  ease: "easeOut",
-                }}
-                className="absolute border-2 border-blue-100/40 rounded-full"
-                style={{
-                  width: "50px",
-                  height: "50px",
-                  left: "-25px",
-                  top: "-25px",
-                }}
-              />
-            ))}
-          </div>
-        ))}
-      </AnimatePresence>
-
+      {/* STATIC OVERLAYS */}
       <div className="absolute inset-0 bg-blue-500/5 mix-blend-overlay pointer-events-none" />
-
-      {/* BORDER GLOW */}
       <div className="absolute inset-[8px] border border-blue-400/10 rounded-xl" />
-
-      <style jsx>{`
-        .animate-pulse-slow {
-          animation: pulse-slow 8s ease-in-out infinite;
-        }
-        @keyframes pulse-slow {
-          0%,
-          100% {
-            opacity: 0.2;
-          }
-          50% {
-            opacity: 0.5;
-          }
-        }
-        @keyframes float {
-          0% {
-            transform: translateY(0) translateX(0);
-            opacity: 0;
-          }
-          20% {
-            opacity: 0.4;
-          }
-          80% {
-            opacity: 0.4;
-          }
-          100% {
-            transform: translateY(-400px) translateX(20px);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 });

@@ -23,6 +23,7 @@ import {
 import { useTranslation, useSettingsStore } from "../../store/useSettingsStore";
 import { Card } from "../../types/game";
 import { FullScreenLightning } from "../../components/effects/FullScreenLightning";
+import { FPSCounter } from "../../components/FPSCounter";
 
 // Mock Cards
 const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
@@ -775,6 +776,7 @@ export default function GamePage() {
           </div>
         </div>
       </div>
+      <FPSCounter />
     </div>
   );
 }
