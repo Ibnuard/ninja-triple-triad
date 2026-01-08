@@ -15,7 +15,10 @@ import { BoardMechanicModal } from "../../components/BoardMechanicModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
-import { useGauntletStore, RANK_MULTIPLIERS } from "../../store/useGauntletStore";
+import {
+  useGauntletStore,
+  RANK_MULTIPLIERS,
+} from "../../store/useGauntletStore";
 
 import { useTranslation, useSettingsStore } from "../../store/useSettingsStore";
 import { Card } from "../../types/game";
@@ -63,7 +66,7 @@ export default function GamePage() {
   const [showInfo, setShowInfo] = useState(false);
   const [showMechanicModal, setShowMechanicModal] = useState(false);
   const [showBoardIntro, setShowBoardIntro] = useState(true);
-  
+
   // Use selective subscriptions to prevent re-renders on drag state changes
   const initGame = useGameStore((state) => state.initGame);
   const player1 = useGameStore((state) => state.player1);
@@ -98,17 +101,21 @@ export default function GamePage() {
       } as Card;
     });
   };
-  
+
   // Gauntlet Store
   const gauntletRank = useGauntletStore((state) => state.rank);
   const gauntletScore = useGauntletStore((state) => state.score);
   const gauntletDeck = useGauntletStore((state) => state.deck);
-  const processMatchResult = useGauntletStore((state) => state.processMatchResult);
-  const getOpponentConfig = useGauntletStore((state) => state.getOpponentConfig);
+  const processMatchResult = useGauntletStore(
+    (state) => state.processMatchResult
+  );
+  const getOpponentConfig = useGauntletStore(
+    (state) => state.getOpponentConfig
+  );
   const isGauntletActive = useGauntletStore((state) => state.isActive);
 
-  const isGauntletMode = 
-    typeof window !== "undefined" && 
+  const isGauntletMode =
+    typeof window !== "undefined" &&
     window.location.search.includes("mode=gauntlet");
 
   // ... existing code
@@ -117,42 +124,52 @@ export default function GamePage() {
     const isCustom =
       typeof window !== "undefined" &&
       window.location.search.includes("mode=custom");
-    
-    const isGauntlet = 
+
+    const isGauntlet =
       typeof window !== "undefined" &&
       window.location.search.includes("mode=gauntlet");
 
     // Parse mechanic from URL
     const urlParams = new URLSearchParams(window.location.search);
     const mechanicParam = urlParams.get("mechanic");
-    const initialMechanic = mechanicParam as any; // Cast to BoardMechanicType
+    const elementParam = urlParams.get("element");
+    const initialMechanic = mechanicParam as any;
+    const activeElement = elementParam as any;
 
     if (isGauntlet) {
-       // Gauntlet Initialization
-       const config = getOpponentConfig();
-       initGame("gauntlet-room", true, config.mechanic);
-       
-       useGameStore.setState((state) => ({
-        mechanic: { 
-          type: config.mechanic, 
+      // Gauntlet Initialization
+      const config = getOpponentConfig();
+      initGame(
+        "gauntlet-room",
+        true,
+        config.mechanic,
+        config.activeElement as any
+      );
+
+      useGameStore.setState((state) => ({
+        mechanic: {
+          type: config.mechanic,
           activeElement: config.activeElement || "none",
-          jokerModifiers: { player1: 0, player2: 0 }
+          jokerModifiers: { player1: 0, player2: 0 },
         },
         player1: {
           ...state.player1,
-          hand: [...gauntletDeck].map(c => ({...c, id: c.id + Math.random()})), // Refresh IDs
-          totalFlips: 0
+          hand: [...gauntletDeck].map((c) => ({
+            ...c,
+            id: c.id + Math.random(),
+          })), // Refresh IDs
+          totalFlips: 0,
         },
         player2: {
           ...state.player2,
           hand: config.deck,
           name: `Enemy ${gauntletRank}`,
-          totalFlips: 0
+          totalFlips: 0,
         },
       }));
     } else {
       // Standard / Custom Initialization
-      initGame("test-room", !isCustom, initialMechanic); 
+      initGame("test-room", !isCustom, initialMechanic, activeElement);
 
       useGameStore.setState((state) => ({
         player1: {
@@ -160,7 +177,7 @@ export default function GamePage() {
           hand: isCustom
             ? generateDiverseHand("p1")
             : [...MOCK_CARDS].sort(() => Math.random() - 0.5),
-          totalFlips: 0
+          totalFlips: 0,
         },
         player2: {
           ...state.player2,
@@ -168,7 +185,7 @@ export default function GamePage() {
             ? generateDiverseHand("p2")
             : [...OPPONENT_CARDS].sort(() => Math.random() - 0.5),
           name: isCustom ? "Player 2" : "Computer",
-          totalFlips: 0
+          totalFlips: 0,
         },
       }));
     }
@@ -281,11 +298,21 @@ export default function GamePage() {
         shape: { type: shape },
         opacity: {
           value: opacity,
-          animation: { enable: true, speed: 1, minimumValue: opacity.min, sync: false },
+          animation: {
+            enable: true,
+            speed: 1,
+            minimumValue: opacity.min,
+            sync: false,
+          },
         },
         size: {
           value: size,
-          animation: { enable: true, speed: 2, minimumValue: size.min, sync: false },
+          animation: {
+            enable: true,
+            speed: 2,
+            minimumValue: size.min,
+            sync: false,
+          },
         },
         move: {
           enable: true,
@@ -493,8 +520,6 @@ export default function GamePage() {
           >
             <LogOut className="w-4 h-4" />
           </button>
-
-
         </div>
       )}
 
@@ -540,9 +565,6 @@ export default function GamePage() {
 
         {/* CENTER (Board) */}
         <div className="order-2 w-full h-full flex flex-col items-center justify-center relative min-h-0 min-w-0 gap-2 lg:gap-6">
-          
-
-
           <div className="relative w-full h-full max-h-[50vh] sm:max-h-[55vh] lg:max-h-[75vh] aspect-square flex items-center justify-center">
             <div className="scale-85 sm:scale-75 lg:scale-95 transition-transform duration-500">
               <Board />
@@ -565,25 +587,37 @@ export default function GamePage() {
                 {isGauntletMode ? (
                   <div className="mb-6 w-full">
                     <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2 uppercase">
-                      {winner === "player1" ? t.gauntlet.roundCleared : t.gauntlet.gauntletOver}
+                      {winner === "player1"
+                        ? t.gauntlet.roundCleared
+                        : t.gauntlet.gauntletOver}
                     </h2>
-                    
-                    <h1 className={cn(
-                      "text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-2xl mb-4",
-                      winner === "player1" ? "text-green-400" : "text-red-500"
-                    )}>
+
+                    <h1
+                      className={cn(
+                        "text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-2xl mb-4",
+                        winner === "player1" ? "text-green-400" : "text-red-500"
+                      )}
+                    >
                       {winner === "player1" ? t.victory : t.defeat}
                     </h1>
 
                     {/* Score Summary */}
                     <div className="bg-black/40 rounded-xl p-4 border border-white/5 mb-6">
                       <div className="flex justify-between items-center mb-2">
-                         <span className="text-gray-400 text-xs uppercase tracking-wider">{t.gauntlet.rank}</span>
-                         <span className="text-yellow-400 font-black">{gauntletRank}</span>
+                        <span className="text-gray-400 text-xs uppercase tracking-wider">
+                          {t.gauntlet.rank}
+                        </span>
+                        <span className="text-yellow-400 font-black">
+                          {gauntletRank}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center mb-2">
-                         <span className="text-gray-400 text-xs uppercase tracking-wider">{t.gauntlet.totalScore}</span>
-                         <span className="text-white font-black text-xl">{gauntletScore}</span>
+                        <span className="text-gray-400 text-xs uppercase tracking-wider">
+                          {t.gauntlet.totalScore}
+                        </span>
+                        <span className="text-white font-black text-xl">
+                          {gauntletScore}
+                        </span>
                       </div>
                       {winner === "player1" && (
                         <div className="text-xs text-green-400 font-bold mt-2 border-t border-white/10 pt-2">
@@ -597,27 +631,33 @@ export default function GamePage() {
                         <button
                           onClick={() => {
                             // Process result and start next round
-                            processMatchResult("player1", player1.totalFlips || 0);
+                            processMatchResult(
+                              "player1",
+                              player1.totalFlips || 0
+                            );
                             const config = getOpponentConfig();
-                            
+
                             // Re-init game with new config
                             initGame("gauntlet-room", true, config.mechanic);
                             useGameStore.setState((state) => ({
-                              mechanic: { 
-                                type: config.mechanic, 
+                              mechanic: {
+                                type: config.mechanic,
                                 activeElement: config.activeElement || "none",
-                                jokerModifiers: { player1: 0, player2: 0 }
+                                jokerModifiers: { player1: 0, player2: 0 },
                               },
                               player1: {
                                 ...state.player1,
-                                hand: [...gauntletDeck].map(c => ({...c, id: c.id + Math.random()})), // Refresh IDs
-                                totalFlips: 0
+                                hand: [...gauntletDeck].map((c) => ({
+                                  ...c,
+                                  id: c.id + Math.random(),
+                                })), // Refresh IDs
+                                totalFlips: 0,
                               },
                               player2: {
                                 ...state.player2,
                                 hand: config.deck,
                                 name: `Enemy ${gauntletRank}`,
-                                totalFlips: 0
+                                totalFlips: 0,
                               },
                             }));
                             setShowResult(false);
@@ -630,7 +670,10 @@ export default function GamePage() {
                       ) : (
                         <button
                           onClick={() => {
-                            processMatchResult(winner || "draw", player1.totalFlips || 0); // This ends the run
+                            processMatchResult(
+                              winner || "draw",
+                              player1.totalFlips || 0
+                            ); // This ends the run
                             resetGame();
                             router.push("/single-player");
                           }}

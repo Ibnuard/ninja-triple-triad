@@ -78,38 +78,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   initGame: (roomId, vsComputer, initialMechanic, activeElement) => {
-    set({
-      roomId,
-      board: createEmptyBoard(),
-      player1: {
-        ...INITIAL_PLAYER_STATE,
-        id: "p1",
-        name: "Player 1",
-        color: "blue",
-        hand: [], // Should be populated with selected cards
-      },
-      player2: {
-        ...INITIAL_PLAYER_STATE,
-        id: "p2",
-        name: vsComputer ? "Computer" : "Player 2",
-        color: "red",
-        isComputer: vsComputer,
-        hand: [],
-      },
-      currentPlayerId:
-        Math.floor(Math.random() * 10) < 5 ? "player1" : "player2",
-      phase: "playing",
-      winner: null,
-      lastMove: null,
-      selectedCardId: null,
-      draggingCardId: null,
-      draggingCard: null,
-      hoveredCell: null,
-    });
-
-    // Initialize Mechanics
+    // 1. Determine Mechanic & Element
     let selectedMechanic = initialMechanic;
-
     if (!selectedMechanic || selectedMechanic === "none") {
       const mechanics: BoardMechanicType[] = [
         "random_elemental",
@@ -146,10 +116,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
           elements[Math.floor(Math.random() * elements.length)];
       }
     } else if (selectedMechanic === "joker") {
-      // +0-2 or -0-2.
       const getMod = () => {
         const isPositive = Math.random() > 0.5;
-        const val = Math.floor(Math.random() * 3); // 0, 1, 2
+        const val = Math.floor(Math.random() * 3);
         return isPositive ? val : -val;
       };
       mechanicState.jokerModifiers = {
@@ -158,7 +127,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
       };
     }
 
-    set({ mechanic: mechanicState });
+    // 2. Set Initial State
+    set({
+      roomId,
+      board: createEmptyBoard(),
+      player1: {
+        ...INITIAL_PLAYER_STATE,
+        id: "p1",
+        name: "Player 1",
+        color: "blue",
+        hand: [],
+      },
+      player2: {
+        ...INITIAL_PLAYER_STATE,
+        id: "p2",
+        name: vsComputer ? "Computer" : "Player 2",
+        color: "red",
+        isComputer: vsComputer,
+        hand: [],
+      },
+      currentPlayerId:
+        Math.floor(Math.random() * 10) < 5 ? "player1" : "player2",
+      phase: "playing",
+      winner: null,
+      lastMove: null,
+      selectedCardId: null,
+      draggingCardId: null,
+      draggingCard: null,
+      hoveredCell: null,
+      mechanic: mechanicState,
+    });
   },
 
   selectCard: (cardId) => {

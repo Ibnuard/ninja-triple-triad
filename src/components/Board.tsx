@@ -139,30 +139,32 @@ export const Board = () => {
 
   return (
     <div className="relative p-1 lg:p-4 bg-gray-900/50 rounded-xl backdrop-blur-sm border border-white/10 shadow-2xl">
-      <BoardEffects
-        mechanicType={mechanic.type}
-        activeElement={mechanic.activeElement}
-      />
-      <div className="grid grid-cols-3 gap-1 lg:gap-4 relative z-10">
-        {board.map((row, rIndex) =>
-          row.map((cell, cIndex) => {
-            const isLastMove =
-              lastMove?.row === rIndex && lastMove?.col === cIndex;
+      <div className="relative inline-block">
+        <BoardEffects
+          mechanicType={mechanic.type}
+          activeElement={mechanic.activeElement}
+        />
+        <div className="grid grid-cols-3 gap-1 lg:gap-4 relative z-10">
+          {board.map((row, rIndex) =>
+            row.map((cell, cIndex) => {
+              const isLastMove =
+                lastMove?.row === rIndex && lastMove?.col === cIndex;
 
-            return (
-              <BoardCell
-                key={`${rIndex}-${cIndex}`}
-                rIndex={rIndex}
-                cIndex={cIndex}
-                cell={cell}
-                isLastMove={isLastMove}
-                isFirstTwoTurns={isFirstTwoTurns}
-                mechanic={mechanic}
-                placeCard={placeCard}
-              />
-            );
-          })
-        )}
+              return (
+                <BoardCell
+                  key={`${rIndex}-${cIndex}`}
+                  rIndex={rIndex}
+                  cIndex={cIndex}
+                  cell={cell}
+                  isLastMove={isLastMove}
+                  isFirstTwoTurns={isFirstTwoTurns}
+                  mechanic={mechanic}
+                  placeCard={placeCard}
+                />
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

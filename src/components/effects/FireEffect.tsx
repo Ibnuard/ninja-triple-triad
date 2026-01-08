@@ -1,165 +1,158 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
+
+type Side = "top" | "right" | "bottom" | "left";
+
+type Particle = {
+  side: Side;
+  pos: number;
+  size: number;
+  delay: number;
+  duration: number;
+  hue: number;
+};
 
 export const FireEffect = () => {
-  const [baseParticles, setBaseParticles] = useState<
-    Array<{
-      width: number;
-      left: number;
-      delay: number;
-      duration: number;
-      side: "top" | "right" | "bottom" | "left";
-      color: string;
-    }>
-  >([]);
+  const particles = useMemo<Particle[]>(() => {
+    const result: Particle[] = [];
+    const sides: Side[] = ["top", "right", "bottom", "left"];
 
-  const [sparkParticles, setSparkParticles] = useState<
-    Array<{
-      width: number;
-      left: number;
-      delay: number;
-      duration: number;
-      side: "top" | "right" | "bottom" | "left";
-    }>
-  >([]);
+    const PER_SIDE = 80; // cukup padat, tapi kecil
 
-  useEffect(() => {
-    // 1. CARTOON BASE FIRE
-    // Large, dense particles that merge into a "solid" shape via contrast filter
-    const baseCount = 200;
-    const newBase = [];
-    // Using bold, flat colors for cartoon look
-    const colors = ["#ef4444", "#f97316", "#fbbf24"]; // Red-500, Orange-500, Amber-400
+    sides.forEach((side) => {
+      for (let i = 0; i < PER_SIDE; i++) {
+        result.push({
+          side,
+          pos: (i / PER_SIDE) * 100 + (Math.random() - 0.5) * 4,
+          size: 5 + Math.random() * 6, // kecil → menyatu
+          delay: Math.random() * 2,
+          duration: 1.2 + Math.random() * 1.2,
+          hue: 15 + Math.random() * 45, // merah → kuning
+        });
+      }
+    });
 
-    for (let i = 0; i < baseCount; i++) {
-      const sideIdx = Math.floor(Math.random() * 4);
-      const sides: ("top" | "right" | "bottom" | "left")[] = [
-        "top",
-        "right",
-        "bottom",
-        "left",
-      ];
-      newBase.push({
-        width: 15 + Math.random() * 10, // BIG particles to form a solid line
-        left: Math.random() * 100,
-        delay: Math.random() * 2,
-        duration: 0.5 + Math.random() * 0.5,
-        side: sides[sideIdx],
-        color: colors[Math.floor(Math.random() * colors.length)],
-      });
-    }
-    setBaseParticles(newBase);
-
-    // 2. SPARKS (Cartoon debris)
-    // Fewer, but distinct
-    const sparkCount = 40;
-    const newSparks = [];
-    for (let i = 0; i < sparkCount; i++) {
-      const sideIdx = Math.floor(Math.random() * 4);
-      const sides: ("top" | "right" | "bottom" | "left")[] = [
-        "top",
-        "right",
-        "bottom",
-        "left",
-      ];
-      newSparks.push({
-        width: 3 + Math.random() * 3, // slightly chunkier sparks
-        left: Math.random() * 100,
-        delay: Math.random() * 2,
-        duration: 0.8 + Math.random() * 1,
-        side: sides[sideIdx],
-      });
-    }
-    setSparkParticles(newSparks);
+    return result;
   }, []);
 
-  const getPositionStyle = (p: any, type: "base" | "spark") => {
-    let style: React.CSSProperties = {
-      width: `${p.width}px`,
-      height: `${p.width}px`,
+  const getStyle = (p: Particle): React.CSSProperties => {
+    const style: React.CSSProperties = {
       position: "absolute",
+      width: p.size,
+      height: p.size,
       borderRadius: "50%",
+      background: `hsl(${p.hue}, 100%, 60%)`,
+      opacity: 0.6,
+      animation: `fire-${p.side} ${p.duration}s linear ${p.delay}s infinite`,
+      willChange: "transform, opacity",
     };
 
-    if (type === "base") {
-      style.backgroundColor = p.color;
-      style.opacity = 1; // Full opacity for cartoon look (filter handles edging)
-      style.animation = `fire-cartoon ${p.duration}s ease-in-out ${p.delay}s infinite alternate`;
-    } else {
-      style.backgroundColor = "#fbbf24"; // Amber-400
-      style.opacity = 0;
-      style.animation = `ember-fly ${p.duration}s linear ${p.delay}s infinite`;
-    }
-
-    // Tighter offset to ensure it overlaps the board border
-    const offset = "-10px";
+    const offset = "-6px";
+    const jitter = (Math.random() - 0.5) * 6;
 
     if (p.side === "top") {
       style.top = offset;
-      style.left = `${p.left}%`;
-    } else if (p.side === "bottom") {
+      style.left = `calc(${p.pos}% + ${jitter}px)`;
+    }
+
+    if (p.side === "bottom") {
       style.bottom = offset;
-      style.left = `${p.left}%`; // Inside? To burn UP?
-      // If we want it to look "attached", it should span the edge.
-      // Let's keep it consistent.
-    } else if (p.side === "left") {
+      style.left = `calc(${p.pos}% + ${jitter}px)`;
+    }
+
+    if (p.side === "left") {
       style.left = offset;
-      style.top = `${p.left}%`;
-    } else if (p.side === "right") {
+      style.top = `calc(${p.pos}% + ${jitter}px)`;
+    }
+
+    if (p.side === "right") {
       style.right = offset;
-      style.top = `${p.left}%`;
+      style.top = `calc(${p.pos}% + ${jitter}px)`;
     }
 
     return style;
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-0 overflow-visible rounded-2xl">
-      {/* CARTOON FILTER CONTAINER */}
-      {/* High contrast + Blur = Sharp edges (Metaball effect) */}
+    <div className="absolute inset-[-10px] pointer-events-none rounded-xl">
+      {/* CORE FIRE */}
       <div
-        className="absolute inset-x-[-15px] inset-y-[-15px]"
-        style={{ filter: "blur(5px) contrast(10)" }}
+        className="absolute inset-0"
+        style={{
+          filter: "blur(6px) contrast(4)",
+        }}
       >
-        {/* Background additive layer for "hot" core */}
-        <div className="absolute inset-0 bg-red-600/20 blur-xl" />
-
-        {baseParticles.map((p, i) => (
-          <div key={`base-${i}`} style={getPositionStyle(p, "base")} />
+        {particles.map((p, i) => (
+          <div key={i} style={getStyle(p)} />
         ))}
       </div>
 
-      {/* SPARKS LAYER (No Filter) */}
-      <div className="absolute inset-0">
-        {sparkParticles.map((p, i) => (
-          <div key={`spark-${i}`} style={getPositionStyle(p, "spark")} />
+      {/* SOFT GLOW */}
+      <div
+        className="absolute inset-0"
+        style={{
+          filter: "blur(14px)",
+          opacity: 0.35,
+        }}
+      >
+        {particles.map((p, i) => (
+          <div key={`glow-${i}`} style={getStyle(p)} />
         ))}
       </div>
 
       <style jsx>{`
-        @keyframes fire-cartoon {
+        @keyframes fire-top {
           0% {
-            transform: scale(0.9) translate(0, 0);
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          30% {
+            opacity: 1;
           }
           100% {
-            transform: scale(1.1) translate(0, -8px);
-          } /* Simply move UP */
+            opacity: 0;
+            transform: translateY(-22px);
+          }
         }
 
-        /* Rotate side fires? For now simple UP movement works for "burning" 
-               but for sides it effectively shears. */
-
-        @keyframes ember-fly {
+        @keyframes fire-bottom {
           0% {
             opacity: 0;
-            transform: scale(0.5);
+            transform: translateY(-6px);
           }
-          20% {
+          30% {
             opacity: 1;
-            transform: translateY(-5px) scale(1);
           }
           100% {
             opacity: 0;
-            transform: translateY(-30px) scale(0);
+            transform: translateY(22px);
+          }
+        }
+
+        @keyframes fire-left {
+          0% {
+            opacity: 0;
+            transform: translateX(6px);
+          }
+          30% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(-22px);
+          }
+        }
+
+        @keyframes fire-right {
+          0% {
+            opacity: 0;
+            transform: translateX(-6px);
+          }
+          30% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(22px);
           }
         }
       `}</style>
