@@ -206,44 +206,100 @@ export default function GamePage() {
   useComputerAI({ isPaused: showBoardIntro });
 
   const particlesOptions = useMemo(() => {
-    const direction: any = "bottom-right";
-    const speed = { min: 3, max: 7 };
-    const shape: any = "image";
-    const size: any = { min: 8, max: 15 };
-    const particleCount = 20;
-    const opacity: any = { min: 0.4, max: 0.8 };
+    let color = ["#ffffff"];
+    let direction: any = "bottom";
+    let speed = { min: 1, max: 3 };
+    let shape: any = "circle";
+    let size: any = { min: 1, max: 3 };
+    let particleCount = 40;
+    let opacity: any = { min: 0.1, max: 0.4 };
+    let moveOptions: any = {};
+    let shapeOptions: any = {};
+    let wobble: any = { enable: false };
+    let rotate: any = { value: 0 };
+
+    const type = mechanic.type;
+    const el = mechanic.activeElement;
+
+    // CATEGORY 1: RISING CIRCLES (Fire, Earth, Poison)
+    if (
+      (type === "random_elemental" && (el === "fire" || el === "earth")) ||
+      type === "poison"
+    ) {
+      direction = "top";
+      speed = { min: 1, max: 4 };
+      shape = "circle";
+      size = { min: 2, max: 5 };
+      particleCount = 50;
+      opacity = { min: 0.3, max: 0.7 };
+      if (el === "fire") color = ["#ff3b00", "#ff7a00", "#ffd000"];
+      else if (el === "earth") color = ["#d97706", "#b45309", "#78350f"];
+      else color = ["#a855f7", "#c084fc", "#9333ea"]; // Poison
+    }
+    // CATEGORY 2: RAIN (Lightning, Water, Foggy)
+    else if (
+      (type === "random_elemental" && (el === "lightning" || el === "water")) ||
+      type === "foggy"
+    ) {
+      direction = "bottom";
+      speed = { min: 15, max: 25 }; // Faster for rain feel
+      shape = "circle";
+      size = { min: 1, max: 3 };
+      particleCount = 100; // More particles for heavy rain
+      opacity = { min: 0.3, max: 0.6 };
+      if (el === "lightning") color = ["#60a5fa", "#facc15", "#ffffff"];
+      else if (el === "water") color = ["#3b82f6", "#0ea5e9", "#93c5fd"];
+      else color = ["#9ca3af", "#d1d5db", "#ffffff"]; // Foggy/Rainy
+
+      moveOptions = { straight: true, random: false };
+    }
+    // CATEGORY 3: LEAVES (Wind)
+    else if (type === "random_elemental" && el === "wind") {
+      direction = "bottom-right";
+      speed = { min: 3, max: 7 };
+      shape = "image";
+      size = { min: 8, max: 15 };
+      particleCount = 20;
+      opacity = { min: 0.4, max: 0.8 };
+      shapeOptions = {
+        image: [
+          {
+            src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2322c55e' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
+            width: 100,
+            height: 100,
+          },
+          {
+            src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2316a34a' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
+            width: 100,
+            height: 100,
+          },
+          {
+            src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2378350f' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
+            width: 100,
+            height: 100,
+          },
+        ],
+      };
+      wobble = { enable: true, distance: 10, speed: 10 };
+      rotate = {
+        value: { min: 0, max: 360 },
+        animation: { enable: true, speed: 5 },
+      };
+    }
+    // DEFAULT / JOKER
+    else {
+      color = ["#ec4899", "#a855f7", "#3b82f6"];
+      direction = "none";
+      particleCount = 30;
+    }
 
     return {
       fullScreen: { enable: false },
       fpsLimit: 120,
       particles: {
         number: { value: particleCount, density: { enable: true, area: 1000 } },
-        color: { value: ["#22c55e", "#16a34a", "#78350f"] }, // Greens and brownish for leaves
-        shape: {
-          type: shape,
-          options: {
-            image: [
-              {
-                // Green Leaf
-                src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2322c55e' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
-                width: 100,
-                height: 100,
-              },
-              {
-                // Dark Green Leaf
-                src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2316a34a' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
-                width: 100,
-                height: 100,
-              },
-              {
-                // Brownish-Dry Leaf
-                src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2378350f' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
-                width: 100,
-                height: 100,
-              },
-            ],
-          },
-        },
+        color: { value: color },
+        shape: { type: shape, options: shapeOptions },
         opacity: {
           value: opacity,
           animation: {
@@ -267,26 +323,11 @@ export default function GamePage() {
           speed: speed,
           direction: direction,
           random: true,
-          straight: false,
           outModes: { default: "out" },
-          attract: {
-            enable: true,
-            rotateX: 600,
-            rotateY: 1200,
-          },
+          ...moveOptions,
         },
-        wobble: {
-          enable: true,
-          distance: 10,
-          speed: 10,
-        },
-        rotate: {
-          value: { min: 0, max: 360 },
-          animation: {
-            enable: true,
-            speed: 5,
-          },
-        },
+        wobble,
+        rotate,
       },
       detectRetina: true,
     };
