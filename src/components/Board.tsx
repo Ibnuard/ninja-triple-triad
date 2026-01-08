@@ -137,8 +137,37 @@ export const Board = () => {
     }
   };
 
+  const getBoardBg = () => {
+    if (mechanic.type === "random_elemental") {
+      switch (mechanic.activeElement) {
+        case "fire":
+          return "bg-red-950/40 border-red-500/20";
+        case "water":
+          return "bg-blue-950/40 border-blue-500/20";
+        case "earth":
+          return "bg-amber-950/40 border-amber-500/20";
+        case "wind":
+          return "bg-emerald-950/40 border-emerald-500/20";
+        case "lightning":
+          return "bg-amber-950/40 border-yellow-500/20";
+        default:
+          return "bg-gray-900/50 border-white/10";
+      }
+    }
+    if (mechanic.type === "poison")
+      return "bg-purple-950/40 border-purple-500/20";
+    if (mechanic.type === "foggy") return "bg-slate-900/80 border-white/5";
+    if (mechanic.type === "joker") return "bg-pink-950/30 border-pink-500/20";
+    return "bg-gray-900/50 border-white/10";
+  };
+
   return (
-    <div className="relative p-1 lg:p-4 bg-gray-900/50 rounded-xl backdrop-blur-sm border border-white/10 shadow-2xl">
+    <div
+      className={cn(
+        "relative p-1 lg:p-4 rounded-xl backdrop-blur-sm border shadow-2xl transition-colors duration-1000",
+        getBoardBg()
+      )}
+    >
       <div className="relative inline-block">
         <BoardEffects
           mechanicType={mechanic.type}

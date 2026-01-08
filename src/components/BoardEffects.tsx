@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { cn } from "../lib/utils";
 import { FireEffect } from "./effects/FireEffect";
+import { LightningEffect } from "./effects/LightningEffect";
 
 interface BoardEffectsProps {
   mechanicType: string;
@@ -24,45 +25,7 @@ export const BoardEffects = ({
   return (
     <div className="absolute -inset-1 lg:-inset-4 pointer-events-none z-0 rounded-2xl">
       {/* Lightning Effect */}
-      {effectKey === "lightning" && (
-        <div className="absolute inset-0">
-          <motion.div
-            animate={{
-              opacity: [0.2, 0.5, 0.2, 0.8, 0.3],
-              boxShadow: [
-                "inset 0 0 20px rgba(234, 179, 8, 0.2)",
-                "inset 0 0 50px rgba(234, 179, 8, 0.4)",
-                "inset 0 0 30px rgba(234, 179, 8, 0.1)",
-              ],
-            }}
-            transition={{ duration: 0.5, repeat: Infinity }}
-            className="absolute inset-0 border-2 border-yellow-500/30 rounded-2xl"
-          />
-          {/* Animated Sparks */}
-          <div className="absolute inset-0 overflow-hidden">
-            {[...Array(6)].map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{
-                  x: Math.random() * 100 + "%",
-                  y: Math.random() * 100 + "%",
-                  opacity: 0,
-                }}
-                animate={{
-                  opacity: [0, 1, 0],
-                  scale: [0.5, 1.5, 0.5],
-                }}
-                transition={{
-                  duration: 0.2 + Math.random() * 0.3,
-                  repeat: Infinity,
-                  repeatDelay: Math.random() * 2,
-                }}
-                className="absolute w-1 h-1 bg-yellow-400 rounded-full blur-[1px] shadow-[0_0_8px_#fbbf24]"
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {effectKey === "lightning" && <LightningEffect />}
 
       {/* Fire Effect */}
       {effectKey === "fire" && <FireEffect />}
