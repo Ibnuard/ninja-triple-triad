@@ -3,7 +3,17 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BoardMechanicType, ElementType } from "../types/game";
-import { Flame, Droplet, Mountain, Wind, Zap, Skull, Cloud, Smile, Swords } from "lucide-react";
+import {
+  Flame,
+  Droplet,
+  Mountain,
+  Wind,
+  Zap,
+  Skull,
+  Cloud,
+  Smile,
+  Swords,
+} from "lucide-react";
 import { useTranslation } from "../store/useSettingsStore";
 
 interface BoardIntroAnimationProps {
@@ -58,22 +68,31 @@ const BOARD_CONFIG = {
   },
 };
 
-export function BoardIntroAnimation({ mechanicType, activeElement, onComplete }: BoardIntroAnimationProps) {
+export function BoardIntroAnimation({
+  mechanicType,
+  activeElement,
+  onComplete,
+}: BoardIntroAnimationProps) {
   const [show, setShow] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const t = useTranslation().game.mechanics;
-  
+
   const config = BOARD_CONFIG[mechanicType];
   const Icon = config.icon;
 
   // Get title from translations
   const getTitle = () => {
     switch (mechanicType) {
-      case "random_elemental": return t.randomElemental.title;
-      case "poison": return t.poison.title;
-      case "foggy": return t.foggy.title;
-      case "joker": return t.joker.title;
-      default: return "STANDARD MATCH";
+      case "random_elemental":
+        return t.randomElemental.title;
+      case "poison":
+        return t.poison.title;
+      case "foggy":
+        return t.foggy.title;
+      case "joker":
+        return t.joker.title;
+      default:
+        return "STANDARD MATCH";
     }
   };
 
@@ -81,7 +100,8 @@ export function BoardIntroAnimation({ mechanicType, activeElement, onComplete }:
     // Determine sound file
     let soundFile = config.sound;
     if (mechanicType === "random_elemental" && activeElement) {
-      soundFile = ELEMENTAL_SOUNDS[activeElement] || "/sounds/lightning-effect.mp3";
+      soundFile =
+        ELEMENTAL_SOUNDS[activeElement] || "/sounds/lightning-effect.mp3";
     }
 
     // Play sound effect
@@ -114,7 +134,7 @@ export function BoardIntroAnimation({ mechanicType, activeElement, onComplete }:
       {show && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none overflow-hidden">
           {/* Cinematic Backdrop */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -123,11 +143,11 @@ export function BoardIntroAnimation({ mechanicType, activeElement, onComplete }:
 
           {/* Dynamic Slash Background */}
           <motion.div
-            initial={{ x: "100%", skewX: -12 }}
-            animate={{ x: "-25%", skewX: -12 }}
-            exit={{ x: "-200%", skewX: -12 }}
+            initial={{ x: "150%", skewX: -15 }}
+            animate={{ x: "-50%", skewX: -15 }}
+            exit={{ x: "-250%", skewX: -15 }}
             transition={{ type: "spring", damping: 25, stiffness: 120 }}
-            className={`absolute inset-y-0 w-[200%] bg-gradient-to-r ${config.color} border-y-4 ${config.borderColor} shadow-[0_0_100px_rgba(0,0,0,0.5)]`}
+            className={`absolute inset-y-0 w-[400%] left-0 bg-gradient-to-r ${config.color} border-y-4 ${config.borderColor} shadow-[0_0_100px_rgba(0,0,0,0.5)]`}
           />
 
           {/* Content Container */}
@@ -136,29 +156,36 @@ export function BoardIntroAnimation({ mechanicType, activeElement, onComplete }:
             initial={{ scale: 2, opacity: 0, filter: "blur(10px)" }}
             animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
             exit={{ scale: 0.8, opacity: 0, filter: "blur(10px)" }}
-            transition={{ type: "spring", damping: 20, stiffness: 100, delay: 0.1 }}
+            transition={{
+              type: "spring",
+              damping: 20,
+              stiffness: 100,
+              delay: 0.1,
+            }}
           >
             {/* Icon with Glitch/Pulse Effect */}
             <div className="relative">
               <motion.div
-                animate={{ 
+                animate={{
                   scale: [1, 1.2, 1],
                   rotate: [0, 5, -5, 0],
-                  filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"]
+                  filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"],
                 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className={`w-32 h-32 flex items-center justify-center rounded-full border-4 ${config.borderColor} bg-black/50 backdrop-blur-md ${config.shadow}`}
               >
                 <Icon className="w-16 h-16 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
               </motion.div>
-              
+
               {/* Particle Effects (Simple CSS) */}
-              <div className={`absolute inset-0 rounded-full animate-ping opacity-20 bg-white`} />
+              <div
+                className={`absolute inset-0 rounded-full animate-ping opacity-20 bg-white`}
+              />
             </div>
 
             {/* Title Text - Big & Bold */}
             <div className="flex flex-col items-center text-center px-4">
-              <motion.h1 
+              <motion.h1
                 className="text-4xl sm:text-6xl md:text-8xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] tracking-tighter leading-none mb-2"
                 initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -175,7 +202,9 @@ export function BoardIntroAnimation({ mechanicType, activeElement, onComplete }:
                   transition={{ delay: 0.4 }}
                   className="overflow-hidden whitespace-nowrap max-w-full"
                 >
-                  <span className={`text-sm sm:text-2xl md:text-4xl font-bold uppercase tracking-[0.2em] sm:tracking-[0.5em] text-white ${config.shadow} px-2 sm:px-4 py-1 border-x-2 border-white/50 bg-black/30 block`}>
+                  <span
+                    className={`text-sm sm:text-2xl md:text-4xl font-bold uppercase tracking-[0.2em] sm:tracking-[0.5em] text-white ${config.shadow} px-2 sm:px-4 py-1 border-2 border-white/50 bg-black/30 block`}
+                  >
                     {activeElement} ACTIVE
                   </span>
                 </motion.div>
