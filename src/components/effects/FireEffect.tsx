@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo, memo } from "react";
 
 type Side = "top" | "right" | "bottom" | "left";
 
@@ -9,9 +9,10 @@ type Particle = {
   delay: number;
   duration: number;
   hue: number;
+  jitter: number;
 };
 
-export const FireEffect = () => {
+export const FireEffect = memo(() => {
   const particles = useMemo<Particle[]>(() => {
     const result: Particle[] = [];
     const sides: Side[] = ["top", "right", "bottom", "left"];
@@ -27,6 +28,7 @@ export const FireEffect = () => {
           delay: Math.random() * 2,
           duration: 1.2 + Math.random() * 1.2,
           hue: Math.random() * 35, // 0-35: Red to Orange-Yellow
+          jitter: (Math.random() - 0.5) * 6,
         });
       }
     });
@@ -47,33 +49,26 @@ export const FireEffect = () => {
     };
 
     const offset = "-6px";
-    const jitter = (Math.random() - 0.5) * 6;
 
     if (p.side === "top") {
       style.top = offset;
-      style.left = `calc(${p.pos}% + ${jitter}px)`;
-    }
-
-    if (p.side === "bottom") {
+      style.left = `calc(${p.pos}% + ${p.jitter}px)`;
+    } else if (p.side === "bottom") {
       style.bottom = offset;
-      style.left = `calc(${p.pos}% + ${jitter}px)`;
-    }
-
-    if (p.side === "left") {
+      style.left = `calc(${p.pos}% + ${p.jitter}px)`;
+    } else if (p.side === "left") {
       style.left = offset;
-      style.top = `calc(${p.pos}% + ${jitter}px)`;
-    }
-
-    if (p.side === "right") {
+      style.top = `calc(${p.pos}% + ${p.jitter}px)`;
+    } else if (p.side === "right") {
       style.right = offset;
-      style.top = `calc(${p.pos}% + ${jitter}px)`;
+      style.top = `calc(${p.pos}% + ${p.jitter}px)`;
     }
 
     return style;
   };
 
   return (
-    <div className="absolute inset-[-10px] pointer-events-none rounded-xl">
+    <div className="absolute inset-[-10px] pointer-events-none rounded-xl overflow-visible">
       {/* HEATED BOARD TINT */}
       <div
         className="absolute inset-[10px] rounded-xl bg-orange-600/10 animate-pulse-slow"
@@ -178,4 +173,6 @@ export const FireEffect = () => {
       `}</style>
     </div>
   );
-};
+});
+
+FireEffect.displayName = "FireEffect";
