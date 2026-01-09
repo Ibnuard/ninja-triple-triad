@@ -8,6 +8,7 @@ import { WaterEffect } from "./effects/WaterEffect";
 import { EarthEffect } from "./effects/EarthEffect";
 import { WindEffect } from "./effects/WindEffect";
 import { PoisonEffect } from "./effects/PoisonEffect";
+import { FoggyEffect } from "./effects/FoggyEffect";
 
 interface BoardEffectsProps {
   mechanicType: string;
@@ -53,18 +54,7 @@ export const BoardEffects = ({
       {effectKey === "poison" && <PoisonEffect lastMove={lastMove} />}
 
       {/* Foggy Effect */}
-      {effectKey === "foggy" && (
-        <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px] rounded-2xl border border-white/5">
-          <motion.div
-            animate={{
-              opacity: [0.3, 0.6, 0.3],
-              x: [-10, 10, -10],
-            }}
-            transition={{ duration: 10, repeat: Infinity }}
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
-          />
-        </div>
-      )}
+      {effectKey === "foggy" && <FoggyEffect lastMove={lastMove} />}
 
       {/* Joker Effect */}
       {effectKey === "joker" && (
