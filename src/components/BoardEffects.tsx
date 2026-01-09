@@ -36,7 +36,7 @@ export const BoardEffects = ({
       {effectKey === "lightning" && <LightningEffect />}
 
       {/* Fire Effect */}
-      {effectKey === "fire" && <FireEffect />}
+      {effectKey === "fire" && <FireEffect lastMove={lastMove} />}
 
       {/* Water Effect */}
       {effectKey === "water" && <WaterEffect lastMove={lastMove} />}
