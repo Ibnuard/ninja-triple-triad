@@ -164,6 +164,7 @@ export const JokerEffect = memo(({ lastMove }: JokerEffectProps) => {
               blur: 2,
               distance: 2,
               angle: Math.PI / 6,
+              alpha: 0.5,
             },
           });
           t.anchor.set(0.5);

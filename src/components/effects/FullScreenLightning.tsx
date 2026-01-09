@@ -1,133 +1,190 @@
-import { useState, useEffect, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, memo } from "react";
+import * as PIXI from "pixi.js";
 
 export const FullScreenLightning = memo(() => {
-  const [bolt, setBolt] = useState<{
-    id: number;
-    path: string;
-    x: number;
-    scale: number;
-    brightness: number;
-  } | null>(null);
-  const [flash, setFlash] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let app: PIXI.Application | null = null;
+    let isDisposed = false;
+    let animationId: number | null = null;
+    let lastTime = 0;
     let timeoutId: NodeJS.Timeout;
 
-    const triggerStorm = () => {
-      // Occasional: 4 to 10 seconds between "storm events"
-      const delay = 3000 + Math.random() * 7000;
+    const init = async () => {
+      if (!containerRef.current) return;
 
-      timeoutId = setTimeout(() => {
-        const id = Date.now();
+      const newApp = new PIXI.Application();
+      try {
+        await newApp.init({
+          resizeTo: window,
+          backgroundAlpha: 0,
+          antialias: true,
+          resolution: Math.min(1.5, window.devicePixelRatio || 1),
+          autoDensity: true,
+          powerPreference: "high-performance",
+        });
 
-        // Sometimes just a flash, sometimes a bolt + flash
-        const hasBolt = Math.random() > 0.4;
-
-        if (hasBolt) {
-          // Generate a random jagged path for a full-height bolt
-          const x = Math.random() * 100;
-          const scale = 0.5 + Math.random() * 1.5;
-          const brightness = 0.8 + Math.random() * 0.2;
-
-          let path = "M 0 0 ";
-          let currentY = 0;
-          let currentX = 0;
-          const segments = 8;
-          for (let i = 0; i < segments; i++) {
-            currentY += 100 / segments + (Math.random() - 0.5) * 5;
-            currentX += (Math.random() - 0.5) * 40;
-            path += `L ${currentX} ${currentY} `;
-          }
-          setBolt({ id, path, x, scale, brightness });
+        if (isDisposed) {
+          newApp.destroy(true, { children: true, texture: true });
+          return;
         }
 
-        // Trigger screen flash
-        setFlash(true);
+        app = newApp;
+        containerRef.current.appendChild(app.canvas);
 
-        // Quick flicker effect for the flash
-        setTimeout(() => setFlash(false), 50);
-        setTimeout(() => {
-          if (Math.random() > 0.5) setFlash(true);
-          setTimeout(() => setFlash(false), 40);
-        }, 100);
+        const { width, height } = app.screen;
+        const stage = app.stage;
 
-        // Clear bolt after animation
-        setTimeout(() => setBolt(null), 300);
+        // Layers
+        const boltContainer = new PIXI.Container();
+        const flashGraphics = new PIXI.Graphics();
+        stage.addChild(boltContainer);
+        stage.addChild(flashGraphics);
 
+        // State for animations
+        let flashAlpha = 0;
+        let activeBolts: {
+          graphics: PIXI.Graphics;
+          life: number;
+          maxLife: number;
+        }[] = [];
+
+        const triggerStorm = () => {
+          if (isDisposed) return;
+
+          // Queue next storm
+          const delay = 3000 + Math.random() * 7000;
+          timeoutId = setTimeout(triggerStorm, delay);
+
+          // Chance for bolt
+          const hasBolt = Math.random() > 0.4;
+          if (hasBolt) {
+            const x = Math.random() * width;
+            const scale = 0.5 + Math.random() * 1.5;
+
+            const g = new PIXI.Graphics();
+            boltContainer.addChild(g);
+
+            // Draw Bolt
+            g.clear();
+            // Outer Glow
+            g.moveTo(x, 0);
+
+            const segments = 12;
+            let currentX = x;
+            let currentY = 0;
+            const segHeight = height / segments;
+
+            const path: { x: number; y: number }[] = [{ x, y: 0 }];
+
+            for (let i = 0; i < segments; i++) {
+              currentY += segHeight + (Math.random() - 0.5) * 20;
+              currentX += (Math.random() - 0.5) * 80;
+              path.push({ x: currentX, y: currentY });
+            }
+
+            // Render bold twice: glow and core
+            // Glow
+            g.moveTo(path[0].x, path[0].y);
+            path.forEach((p) => g.lineTo(p.x, p.y));
+            g.stroke({
+              width: 8 * scale,
+              color: 0x60a5fa,
+              alpha: 0.5,
+              cap: "round",
+              join: "round",
+            });
+
+            // Core
+            g.moveTo(path[0].x, path[0].y);
+            path.forEach((p) => g.lineTo(p.x, p.y));
+            g.stroke({
+              width: 3 * scale,
+              color: 0xffffff,
+              alpha: 1,
+              cap: "round",
+              join: "round",
+            });
+
+            // Add to active with life
+            activeBolts.push({
+              graphics: g,
+              life: 0.3, // seconds
+              maxLife: 0.3,
+            });
+          }
+
+          // Trigger Flash
+          flashAlpha = 0.6 + Math.random() * 0.4;
+        };
+
+        // Start Loop
         triggerStorm();
-      }, delay);
+
+        // Animation Loop
+        const animate = (time: number) => {
+          if (isDisposed || !app) return;
+          const delta = lastTime ? (time - lastTime) / 1000 : 0.016;
+          lastTime = time;
+
+          // 1. Update Flash
+          if (flashAlpha > 0) {
+            // Flicker down
+            flashAlpha -= delta * 3; // Fade speed
+            if (flashAlpha < 0) flashAlpha = 0;
+
+            flashGraphics.clear();
+            flashGraphics
+              .rect(0, 0, width, height)
+              .fill({ color: 0xffffff, alpha: flashAlpha * 0.5 });
+          } else {
+            flashGraphics.clear();
+          }
+
+          // 2. Update Bolts
+          for (let i = activeBolts.length - 1; i >= 0; i--) {
+            const b = activeBolts[i];
+            b.life -= delta;
+
+            // Flicker opacity
+            b.graphics.alpha = b.life > 0.15 ? 1 : Math.random();
+
+            if (b.life <= 0) {
+              b.graphics.destroy();
+              activeBolts.splice(i, 1);
+            }
+          }
+
+          animationId = requestAnimationFrame(animate);
+        };
+        animationId = requestAnimationFrame(animate);
+
+        const handleResize = () => {
+          if (!app || isDisposed) return;
+          app.renderer.resize(window.innerWidth, window.innerHeight);
+        };
+        window.addEventListener("resize", handleResize);
+      } catch (err) {
+        console.error("Lightning Pixi Error:", err);
+      }
     };
 
-    triggerStorm();
-    return () => clearTimeout(timeoutId);
+    init();
+
+    return () => {
+      isDisposed = true;
+      clearTimeout(timeoutId);
+      if (animationId) cancelAnimationFrame(animationId);
+      if (app) app.destroy(true, { children: true, texture: true });
+    };
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[100] pointer-events-none overflow-hidden">
-      {/* SCREEN FLASH */}
-      <AnimatePresence>
-        {flash && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.4, 0.1, 0.3, 0] }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-white"
-          />
-        )}
-      </AnimatePresence>
-
-      {/* LIGHTNING BOLT */}
-      <AnimatePresence>
-        {bolt && (
-          <motion.div
-            key={bolt.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 1, 0.5, 1, 0] }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-0 h-full flex justify-center"
-            style={{ left: `${bolt.x}%` }}
-          >
-            <svg
-              width="300"
-              height="100%"
-              viewBox="-150 0 300 100"
-              preserveAspectRatio="none"
-              className="overflow-visible h-full"
-            >
-              <filter id="bolt-glow">
-                <feGaussianBlur stdDeviation="3" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-
-              {/* Outer Glow (Blueish) */}
-              <path
-                d={bolt.path}
-                fill="none"
-                stroke="#60a5fa"
-                strokeWidth={4 * bolt.scale}
-                strokeLinecap="round"
-                opacity="0.5"
-                filter="url(#bolt-glow)"
-              />
-              {/* Core Bolt (White) */}
-              <path
-                d={bolt.path}
-                fill="none"
-                stroke="#fff"
-                strokeWidth={1.5 * bolt.scale}
-                strokeLinecap="round"
-              />
-            </svg>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <div
+      ref={containerRef}
+      className="fixed inset-0 z-[100] pointer-events-none overflow-hidden"
+    />
   );
 });
 
