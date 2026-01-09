@@ -7,6 +7,7 @@ import { LightningEffect } from "./effects/LightningEffect";
 import { WaterEffect } from "./effects/WaterEffect";
 import { EarthEffect } from "./effects/EarthEffect";
 import { WindEffect } from "./effects/WindEffect";
+import { PoisonEffect } from "./effects/PoisonEffect";
 
 interface BoardEffectsProps {
   mechanicType: string;
@@ -49,45 +50,7 @@ export const BoardEffects = ({
       {effectKey === "wind" && <WindEffect lastMove={lastMove} />}
 
       {/* Poison Effect */}
-      {effectKey === "poison" && (
-        <div className="absolute inset-0">
-          <motion.div
-            animate={{
-              boxShadow: [
-                "inset 0 0 30px rgba(168, 85, 247, 0.2)",
-                "inset 0 0 60px rgba(168, 85, 247, 0.4)",
-                "inset 0 0 30px rgba(168, 85, 247, 0.2)",
-              ],
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="absolute inset-0 border-2 border-purple-500/20 rounded-2xl"
-          />
-          {/* Bubbles */}
-          <div className="absolute inset-0">
-            {[...Array(8)].map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{
-                  bottom: "0%",
-                  left: Math.random() * 100 + "%",
-                  scale: 0,
-                }}
-                animate={{
-                  bottom: "100%",
-                  scale: [0, 1, 0.5, 0],
-                  opacity: [0, 0.5, 0],
-                }}
-                transition={{
-                  duration: 4 + Math.random() * 3,
-                  repeat: Infinity,
-                  delay: Math.random() * 4,
-                }}
-                className="absolute w-3 h-3 border border-purple-400/30 rounded-full"
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {effectKey === "poison" && <PoisonEffect lastMove={lastMove} />}
 
       {/* Foggy Effect */}
       {effectKey === "foggy" && (
