@@ -6,6 +6,7 @@ import { FireEffect } from "./effects/FireEffect";
 import { LightningEffect } from "./effects/LightningEffect";
 import { WaterEffect } from "./effects/WaterEffect";
 import { EarthEffect } from "./effects/EarthEffect";
+import { WindEffect } from "./effects/WindEffect";
 
 interface BoardEffectsProps {
   mechanicType: string;
@@ -43,6 +44,9 @@ export const BoardEffects = ({
 
       {/* Earth Effect */}
       {effectKey === "earth" && <EarthEffect lastMove={lastMove} />}
+
+      {/* Wind Effect */}
+      {effectKey === "wind" && <WindEffect lastMove={lastMove} />}
 
       {/* Poison Effect */}
       {effectKey === "poison" && (
