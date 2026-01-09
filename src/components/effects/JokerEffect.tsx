@@ -37,10 +37,13 @@ export const JokerEffect = memo(({ lastMove }: JokerEffectProps) => {
     let animationId: number | null = null;
     let lastTime = 0;
 
+    let handleResize: (() => void) | null = null;
+
     const init = async () => {
       if (!containerRef.current) return;
 
       const newApp = new PIXI.Application();
+
       try {
         await newApp.init({
           resizeTo: containerRef.current,
@@ -149,22 +152,25 @@ export const JokerEffect = memo(({ lastMove }: JokerEffectProps) => {
 
         for (let i = 0; i < 20; i++) {
           const char = suits[Math.floor(Math.random() * suits.length)];
-          const t = new PIXI.Text(char, {
-            fontFamily: "Arial",
-            fontSize: 24 + Math.random() * 24,
-            fill:
-              Math.random() > 0.5
-                ? colors.green
-                : Math.random() > 0.5
-                ? colors.pink
-                : 0xffffff,
-            fontWeight: "bold",
-            dropShadow: {
-              color: "#000000",
-              blur: 2,
-              distance: 2,
-              angle: Math.PI / 6,
-              alpha: 0.5,
+          const t = new PIXI.Text({
+            text: char,
+            style: {
+              fontFamily: "Arial",
+              fontSize: 24 + Math.random() * 24,
+              fill:
+                Math.random() > 0.5
+                  ? colors.green
+                  : Math.random() > 0.5
+                  ? colors.pink
+                  : 0xffffff,
+              fontWeight: "bold",
+              dropShadow: {
+                color: "#000000",
+                blur: 2,
+                distance: 2,
+                angle: Math.PI / 6,
+                alpha: 0.5,
+              },
             },
           });
           t.anchor.set(0.5);
@@ -238,10 +244,11 @@ export const JokerEffect = memo(({ lastMove }: JokerEffectProps) => {
           const t = time * 0.001;
 
           // 1. Background Spin & Zoom
-          bgSprite.rotation += 0.005;
-          const scaleOsc = 1.5 + Math.sin(t * 0.5) * 0.2;
-          bgSprite.scale.set(scaleOsc);
-          // Color shift tint? Maybe later.
+          if (bgSprite && !bgSprite.destroyed) {
+            bgSprite.rotation += 0.005;
+            const scaleOsc = 1.5 + Math.sin(t * 0.5) * 0.2;
+            bgSprite.scale.set(scaleOsc);
+          }
 
           // 2. Glitch Grid
           gridG.clear();
@@ -300,13 +307,11 @@ export const JokerEffect = memo(({ lastMove }: JokerEffectProps) => {
 
           // 4. Border
           borderG.clear();
-          const hue = (time * 0.1) % 360;
+          // const hue = (time * 0.1) % 360;
           // Rainbow border rect
           borderG
             .rect(0, 0, width, height)
             .stroke({ width: 6, color: 0xffffff, alpha: 0.5 }); // base
-          // We can't do easy rainbow stroke in pure graphics without texture, just oscillate color
-          // We'll use the "Particle" border style or just a simple colored stroke that changes
           const borderCol = [colors.purple, colors.pink, colors.green][
             Math.floor((time / 500) % 3)
           ];
@@ -343,15 +348,17 @@ export const JokerEffect = memo(({ lastMove }: JokerEffectProps) => {
         };
         animationId = requestAnimationFrame(animate);
 
-        const handleResize = () => {
+        handleResize = () => {
           if (!app || isDisposed) return;
           const b = containerRef.current?.getBoundingClientRect();
-          if (b) {
+          if (b && app.renderer) {
             app.renderer.resize(b.width, b.height);
-            bgSprite.width = b.width * 1.5;
-            bgSprite.height = b.height * 1.5;
-            bgSprite.x = b.width / 2;
-            bgSprite.y = b.height / 2;
+            if (bgSprite && !bgSprite.destroyed) {
+              bgSprite.width = b.width * 1.5;
+              bgSprite.height = b.height * 1.5;
+              bgSprite.x = b.width / 2;
+              bgSprite.y = b.height / 2;
+            }
           }
         };
         window.addEventListener("resize", handleResize);
@@ -363,8 +370,18 @@ export const JokerEffect = memo(({ lastMove }: JokerEffectProps) => {
     init();
     return () => {
       isDisposed = true;
+      if (handleResize) {
+        window.removeEventListener("resize", handleResize);
+      }
       if (animationId) cancelAnimationFrame(animationId);
-      if (app) app.destroy(true, { children: true, texture: true });
+      if (app && app.renderer) {
+        try {
+          app.destroy(true, { children: true, texture: true });
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+      app = null;
       setIsReady(false);
     };
   }, []);

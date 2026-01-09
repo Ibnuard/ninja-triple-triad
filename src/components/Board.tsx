@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { BoardEffects } from "./BoardEffects";
+import gameConfig from "../gameConfig.json";
 
 const BoardCell = ({
   rIndex,
@@ -175,12 +176,14 @@ export const Board = () => {
       )}
     >
       <div className="relative inline-block">
-        <BoardEffects
-          mechanicType={mechanic.type}
-          activeElement={mechanic.activeElement}
-          lastMove={lastMove}
-          phase={phase}
-        />
+        {gameConfig.showBoardEffect && (
+          <BoardEffects
+            mechanicType={mechanic.type}
+            activeElement={mechanic.activeElement}
+            lastMove={lastMove}
+            phase={phase}
+          />
+        )}
         <div className="grid grid-cols-3 gap-1 lg:gap-4 relative z-10">
           {board.map((row, rIndex) =>
             row.map((cell, cIndex) => {

@@ -69,6 +69,7 @@ export const EarthEffect = memo(
       let isDisposed = false;
       let animationId: number | null = null;
       let lastTime = 0;
+      let handleResize: (() => void) | null = null;
 
       const init = async () => {
         if (!containerRef.current) return;
@@ -409,10 +410,10 @@ export const EarthEffect = memo(
           };
           animationId = requestAnimationFrame(animate);
 
-          const handleResize = () => {
+          handleResize = () => {
             if (!app || isDisposed) return;
             const b = containerRef.current?.getBoundingClientRect();
-            if (b) app.renderer.resize(b.width, b.height);
+            if (b && app.renderer) app.renderer.resize(b.width, b.height);
           };
           window.addEventListener("resize", handleResize);
         } catch (err) {
@@ -423,8 +424,14 @@ export const EarthEffect = memo(
       init();
       return () => {
         isDisposed = true;
+        if (handleResize) window.removeEventListener("resize", handleResize);
         if (animationId) cancelAnimationFrame(animationId);
-        if (app) app.destroy(true, { children: true, texture: true });
+        if (app && app.renderer) {
+          try {
+            app.destroy(true, { children: true, texture: true });
+          } catch (e) {}
+        }
+        app = null;
         setIsReady(false);
       };
     }, [theme]);

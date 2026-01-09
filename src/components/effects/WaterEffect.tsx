@@ -49,6 +49,7 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
     let animationId: number | null = null;
     let lastTime = 0;
     let rainTimer = 0;
+    let handleResize: (() => void) | null = null;
 
     const init = async () => {
       if (!containerRef.current) return;
@@ -296,6 +297,7 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
               width: 4 + p * 3,
               color: 0x93c5fd,
               alpha: 0.08 + p * 0.08,
+              alignment: 0,
             });
           });
 
@@ -311,10 +313,10 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
         };
         animationId = requestAnimationFrame(animate);
 
-        const handleResize = () => {
+        handleResize = () => {
           if (!app || isDisposed) return;
           const b = containerRef.current?.getBoundingClientRect();
-          if (b) app.renderer.resize(b.width, b.height);
+          if (b && app.renderer) app.renderer.resize(b.width, b.height);
         };
         window.addEventListener("resize", handleResize);
       } catch (err) {
@@ -325,8 +327,14 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
     init();
     return () => {
       isDisposed = true;
+      if (handleResize) window.removeEventListener("resize", handleResize);
       if (animationId) cancelAnimationFrame(animationId);
-      if (app) app.destroy(true, { children: true, texture: true });
+      if (app && app.renderer) {
+        try {
+          app.destroy(true, { children: true, texture: true });
+        } catch (e) {}
+      }
+      app = null;
       setIsReady(false);
     };
   }, []);

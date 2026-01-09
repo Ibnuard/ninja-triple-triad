@@ -1,29 +1,27 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
-import { LogOut, Info, Trophy, Star } from "lucide-react";
-import { motion } from "framer-motion";
-import { BoardIntroAnimation } from "../../components/BoardIntroAnimation";
-import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { type Engine } from "@tsparticles/engine";
+import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
+import { motion } from "framer-motion";
+import { Info, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { Board } from "../../components/Board";
+import { BoardIntroAnimation } from "../../components/BoardIntroAnimation";
+import { BoardMechanicModal } from "../../components/BoardMechanicModal";
 import { Hand } from "../../components/Hand";
 import { PassiveInfoModal } from "../../components/PassiveInfoModal";
-import { BoardMechanicModal } from "../../components/BoardMechanicModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
-import {
-  useGauntletStore,
-  RANK_MULTIPLIERS,
-} from "../../store/useGauntletStore";
+import { useGauntletStore } from "../../store/useGauntletStore";
 
-import { useTranslation, useSettingsStore } from "../../store/useSettingsStore";
-import { Card } from "../../types/game";
-import { FullScreenLightning } from "../../components/effects/FullScreenLightning";
+import { FullScreenEffects } from "@/components/effects/FullScreenEffects";
 import { FPSCounter } from "../../components/FPSCounter";
+import { useSettingsStore, useTranslation } from "../../store/useSettingsStore";
+import { Card } from "../../types/game";
+import gameConfig from "../../gameConfig.json";
 
 // Mock Cards
 const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
@@ -203,6 +201,13 @@ export default function GamePage() {
     });
   }, []);
 
+  // Auto-skip intro if animation disabled
+  useEffect(() => {
+    if (!gameConfig.showAnimation && showBoardIntro) {
+      setShowBoardIntro(false);
+    }
+  }, [showBoardIntro]);
+
   // Use AI Hook with Pause
   useComputerAI({ isPaused: showBoardIntro });
 
@@ -336,7 +341,7 @@ export default function GamePage() {
 
   // Memoize the Particles component to prevent remounting
   const particlesComponent = useMemo(() => {
-    if (!pInit) return null;
+    if (!pInit || !gameConfig.showTsParticle) return null;
     return (
       <Particles
         id="tsparticles"
@@ -379,20 +384,28 @@ export default function GamePage() {
       </div>
 
       {/* Board Intro Animation */}
-      {showBoardIntro && (
+      {showBoardIntro && gameConfig.showAnimation && (
         <BoardIntroAnimation
           mechanicType={mechanic.type}
           activeElement={mechanic.activeElement}
           onComplete={() => setShowBoardIntro(false)}
         />
       )}
+      {/* If animation is disabled, we need to make sure we don't get stuck. 
+          Actually if showAnimation is false, we might want to just skip the intro entirely or immediately call onComplete.
+          Better approach: Effect to auto-complete if disabled.
+      */}
 
-      {/* Main Game UI - Only render after Intro */}
-      {!showBoardIntro && (
+      {/* Main Game UI - Only render after Intro OR if animation is disabled/skipped */}
+      {(!showBoardIntro || !gameConfig.showAnimation) && (
         <>
           {/* Full-Screen Effects */}
-          {mechanic.type === "random_elemental" &&
-            mechanic.activeElement === "lightning" && <FullScreenLightning />}
+          {gameConfig.showFullScreenEffect && (
+            <FullScreenEffects
+              mechanicType={mechanic.type}
+              activeElement={mechanic.activeElement}
+            />
+          )}
 
           {/* Header / Status Bar */}
           <div className="absolute top-1.5 left-0 right-0 z-50 flex items-center justify-center p-2 lg:p-4 pointer-events-none">

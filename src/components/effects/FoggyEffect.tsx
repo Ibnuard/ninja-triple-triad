@@ -30,6 +30,7 @@ export const FoggyEffect = memo(({ lastMove }: FoggyEffectProps) => {
     let isDisposed = false;
     let animationId: number | null = null;
     let lastTime = 0;
+    let handleResize: (() => void) | null = null;
 
     const init = async () => {
       if (!containerRef.current) return;
@@ -449,10 +450,10 @@ export const FoggyEffect = memo(({ lastMove }: FoggyEffectProps) => {
         };
         animationId = requestAnimationFrame(animate);
 
-        const handleResize = () => {
+        handleResize = () => {
           if (!app || isDisposed) return;
           const b = containerRef.current?.getBoundingClientRect();
-          if (b) {
+          if (b && app.renderer) {
             app.renderer.resize(b.width, b.height);
             fogLayers.forEach((l) => {
               l.sprite.width = b.width;
@@ -469,8 +470,14 @@ export const FoggyEffect = memo(({ lastMove }: FoggyEffectProps) => {
     init();
     return () => {
       isDisposed = true;
+      if (handleResize) window.removeEventListener("resize", handleResize);
       if (animationId) cancelAnimationFrame(animationId);
-      if (app) app.destroy(true, { children: true, texture: true });
+      if (app && app.renderer) {
+        try {
+          app.destroy(true, { children: true, texture: true });
+        } catch (e) {}
+      }
+      app = null;
       setIsReady(false);
     };
   }, []);
