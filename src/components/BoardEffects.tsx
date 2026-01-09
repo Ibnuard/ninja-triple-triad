@@ -9,6 +9,7 @@ import { EarthEffect } from "./effects/EarthEffect";
 import { WindEffect } from "./effects/WindEffect";
 import { PoisonEffect } from "./effects/PoisonEffect";
 import { FoggyEffect } from "./effects/FoggyEffect";
+import { JokerEffect } from "./effects/JokerEffect";
 
 interface BoardEffectsProps {
   mechanicType: string;
@@ -57,25 +58,7 @@ export const BoardEffects = ({
       {effectKey === "foggy" && <FoggyEffect lastMove={lastMove} />}
 
       {/* Joker Effect */}
-      {effectKey === "joker" && (
-        <motion.div
-          animate={{
-            borderColor: [
-              "rgba(236, 72, 153, 0.2)",
-              "rgba(168, 85, 247, 0.2)",
-              "rgba(59, 130, 246, 0.2)",
-              "rgba(236, 72, 153, 0.2)",
-            ],
-            boxShadow: [
-              "inset 0 0 30px rgba(236, 72, 153, 0.2)",
-              "inset 0 0 30px rgba(59, 130, 246, 0.2)",
-              "inset 0 0 30px rgba(236, 72, 153, 0.2)",
-            ],
-          }}
-          transition={{ duration: 5, repeat: Infinity }}
-          className="absolute inset-0 border-2 rounded-2xl"
-        />
-      )}
+      {effectKey === "joker" && <JokerEffect lastMove={lastMove} />}
     </div>
   );
 };
