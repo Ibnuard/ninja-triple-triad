@@ -1,323 +1,638 @@
-import { useEffect, useRef, memo } from "react";
+import { useEffect, useRef, memo, useState } from "react";
 import * as PIXI from "pixi.js";
 
 interface WaterEffectProps {
   lastMove: { row: number; col: number; playerId: string } | null;
+  waveIntensity?: number;
+  rainFrequency?: number; // Kontrol frekuensi raindrop
 }
 
-interface BubbleData {
-  graphics: PIXI.Graphics;
+interface WavePoint {
+  x: number;
+  baseY: number;
+  offset: number;
   speed: number;
-  jitter: number;
+  amplitude: number;
+  phase: number;
+}
+
+interface SideWave {
+  points: WavePoint[];
+  graphics: PIXI.Graphics;
+  side: "top" | "right" | "bottom" | "left";
+}
+
+interface RaindropData {
+  graphics: PIXI.Graphics;
   x: number;
   y: number;
-}
-
-interface RippleData {
-  graphics: PIXI.Graphics;
+  speed: number;
   life: number;
   maxLife: number;
-  isRain?: boolean;
+  size: number;
+  hasSpawnedRipple?: boolean;
 }
 
-interface FishData {
-  container: PIXI.Container;
-  body: PIXI.Graphics;
-  fins: PIXI.Graphics;
-  tail: PIXI.Graphics;
-  speed: number;
-  turnSpeed: number;
-  angle: number;
-  targetAngle: number;
-  x: number;
-  y: number;
-  color: number;
-}
+export const WaterEffect = memo(
+  ({
+    lastMove,
+    waveIntensity = 0.5,
+    rainFrequency = 0.5, // Default: medium frequency
+  }: WaterEffectProps) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const rippleQueue = useRef<{ x: number; y: number }[]>([]);
+    const rainTimerRef = useRef<number>(0);
+    const [isReady, setIsReady] = useState(false);
 
-export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const rippleQueue = useRef<{ x: number; y: number }[]>([]);
-
-  useEffect(() => {
-    if (lastMove) {
-      rippleQueue.current.push({
-        x: (lastMove.col + 0.5) / 3,
-        y: (lastMove.row + 0.5) / 3,
-      });
-    }
-  }, [lastMove]);
-
-  useEffect(() => {
-    let app: PIXI.Application | null = null;
-    let isDisposed = false;
-
-    const init = async () => {
-      if (!containerRef.current) return;
-
-      const newApp = new PIXI.Application();
-      try {
-        await newApp.init({
-          resizeTo: containerRef.current,
-          backgroundAlpha: 0,
-          antialias: true,
-          resolution: window.devicePixelRatio || 1,
-          autoDensity: true,
+    useEffect(() => {
+      if (lastMove) {
+        rippleQueue.current.push({
+          x: (lastMove.col + 0.5) / 3,
+          y: (lastMove.row + 0.5) / 3,
         });
+      }
+    }, [lastMove]);
 
-        if (isDisposed) {
-          newApp.destroy(true, { children: true, texture: true });
-          return;
-        }
+    useEffect(() => {
+      let app: PIXI.Application | null = null;
+      let isDisposed = false;
+      let sideWaves: SideWave[] = [];
+      let waveUpdateId: number | null = null;
+      let lastTime = 0;
 
-        app = newApp;
-        containerRef.current.appendChild(app.canvas);
+      const init = async () => {
+        if (!containerRef.current) return;
 
-        const { width, height } = app.screen;
-
-        // 1. Uniform Water Surface & Displacement
-        const noiseSize = 256;
-        const noiseCanvas = document.createElement("canvas");
-        noiseCanvas.width = noiseSize;
-        noiseCanvas.height = noiseSize;
-        const ctx = noiseCanvas.getContext("2d");
-        if (ctx) {
-          const imageData = ctx.createImageData(noiseSize, noiseSize);
-          for (let i = 0; i < imageData.data.length; i += 4) {
-            const px = (i / 4) % noiseSize;
-            const py = Math.floor(i / 4 / noiseSize);
-            const val = 127 + Math.sin(px / 20) * 60 + Math.cos(py / 20) * 60;
-            imageData.data[i] = val;
-            imageData.data[i + 1] = val;
-            imageData.data[i + 2] = val;
-            imageData.data[i + 3] = 255;
-          }
-          ctx.putImageData(imageData, 0, 0);
-        }
-        const noiseTexture = PIXI.Texture.from(noiseCanvas);
-        noiseTexture.source.addressMode = "repeat";
-        const displacementSprite = new PIXI.Sprite(noiseTexture);
-        displacementSprite.scale.set(4);
-        displacementSprite.position.set(-100, -100);
-
-        const displacementFilter = new PIXI.DisplacementFilter(
-          displacementSprite
-        );
-        displacementFilter.scale.set(20);
-
-        const surfaceContainer = new PIXI.Container();
-        surfaceContainer.filters = [displacementFilter];
-        app.stage.addChild(displacementSprite);
-        app.stage.addChild(surfaceContainer);
-
-        const bg = new PIXI.Graphics();
-        bg.rect(-50, -50, width + 100, height + 100);
-        bg.fill({ color: 0x1e40af, alpha: 0.25 });
-        surfaceContainer.addChild(bg);
-
-        // 2. High-Quality Fish (Koi)
-        const fishes: FishData[] = [];
-        const fishLayer = new PIXI.Container();
-        surfaceContainer.addChild(fishLayer);
-
-        const createFish = () => {
-          const container = new PIXI.Container();
-          const body = new PIXI.Graphics();
-          const fins = new PIXI.Graphics();
-          const tail = new PIXI.Graphics();
-
-          const color = Math.random() > 0.4 ? 0xfb923c : 0xffffff;
-
-          // Body
-          body.moveTo(0, 0);
-          body.bezierCurveTo(8, -4, 8, 4, 0, 0);
-          body.bezierCurveTo(-10, 3, -10, -3, 0, 0);
-          body.fill({ color: color, alpha: 0.85 });
-
-          // Eyes
-          body.circle(6, -1.5, 0.8);
-          body.fill(0x000000);
-          body.circle(6, 1.5, 0.8);
-          body.fill(0x000000);
-
-          // Fins
-          fins.moveTo(2, -2);
-          fins.quadraticCurveTo(4, -6, 0, -5);
-          fins.fill({ color: color, alpha: 0.6 });
-          fins.moveTo(2, 2);
-          fins.quadraticCurveTo(4, 6, 0, 5);
-          fins.fill({ color: color, alpha: 0.6 });
-
-          // Tail
-          tail.moveTo(0, 0);
-          tail.bezierCurveTo(-4, -6, -8, -4, -6, 0);
-          tail.bezierCurveTo(-8, 4, -4, 6, 0, 0);
-          tail.fill({ color: color, alpha: 0.7 });
-          tail.x = -8;
-
-          container.addChild(fins);
-          container.addChild(tail);
-          container.addChild(body);
-          fishLayer.addChild(container);
-
-          fishes.push({
-            container,
-            body,
-            fins,
-            tail,
-            speed: 0.3 + Math.random() * 0.5,
-            turnSpeed: 0.012,
-            angle: Math.random() * Math.PI * 2,
-            targetAngle: Math.random() * Math.PI * 2,
-            x: Math.random() * width,
-            y: Math.random() * height,
-            color,
+        const newApp = new PIXI.Application();
+        try {
+          await newApp.init({
+            resizeTo: containerRef.current,
+            backgroundAlpha: 0,
+            antialias: false,
+            resolution: Math.min(1.5, window.devicePixelRatio || 1),
+            autoDensity: true,
+            powerPreference: "low-power",
           });
-        };
-        for (let i = 0; i < 5; i++) createFish();
 
-        // 3. Ambient Raindrops & Ripples
-        const ripples: RippleData[] = [];
-        const rippleLayer = new PIXI.Container();
-        app.stage.addChild(rippleLayer);
-
-        const createRipple = (x: number, y: number, isRain = false) => {
-          const g = new PIXI.Graphics();
-          rippleLayer.addChild(g);
-          ripples.push({
-            graphics: g,
-            life: 0,
-            maxLife: isRain ? 0.7 : 1.4,
-            isRain,
-          });
-          g.x = x * width;
-          g.y = y * height;
-        };
-
-        // 4. Shimmer/Reflections
-        const shimmerLayer = new PIXI.Container();
-        shimmerLayer.alpha = 0.25;
-        surfaceContainer.addChild(shimmerLayer);
-        const shimmers: PIXI.Graphics[] = [];
-        for (let i = 0; i < 10; i++) {
-          const s = new PIXI.Graphics();
-          s.ellipse(0, 0, 30 + Math.random() * 30, 2 + Math.random() * 3);
-          s.fill({ color: 0xffffff, alpha: 0.3 });
-          s.x = Math.random() * width;
-          s.y = Math.random() * height;
-          shimmerLayer.addChild(s);
-          shimmers.push(s);
-        }
-
-        let totalTime = 0;
-        let rainTimer = 0;
-
-        app.ticker.add((ticker) => {
-          if (isDisposed || !app) return;
-          const deltaInSeconds = ticker.deltaTime / 60;
-          totalTime += deltaInSeconds;
-
-          // Smooth Liquid Movement
-          displacementSprite.x += 0.5;
-          displacementSprite.y += 0.3;
-          if (displacementSprite.x > 0) displacementSprite.x = -100;
-          if (displacementSprite.y > 0) displacementSprite.y = -100;
-
-          // Rain
-          rainTimer += deltaInSeconds;
-          if (rainTimer > 0.5 + Math.random() * 1.0) {
-            createRipple(Math.random(), Math.random(), true);
-            rainTimer = 0;
+          if (isDisposed) {
+            newApp.destroy(true, { children: true, texture: true });
+            return;
           }
 
-          // Liquid Fish Logic
-          fishes.forEach((f) => {
-            if (Math.random() < 0.01)
-              f.targetAngle += (Math.random() - 0.5) * 3;
-            let dAngle = f.targetAngle - f.angle;
-            while (dAngle > Math.PI) dAngle -= Math.PI * 2;
-            while (dAngle < -Math.PI) dAngle += Math.PI * 2;
-            f.angle += dAngle * f.turnSpeed;
+          app = newApp;
+          containerRef.current.appendChild(app.canvas);
+          setIsReady(true);
 
-            f.x += Math.cos(f.angle) * f.speed;
-            f.y += Math.sin(f.angle) * f.speed;
+          const { width, height } = app.screen;
+          const waveLayer = new PIXI.Container();
+          app.stage.addChild(waveLayer);
 
-            if (f.x < -10) f.x = width + 10;
-            if (f.x > width + 10) f.x = -10;
-            if (f.y < -10) f.y = height + 10;
-            if (f.y > height + 10) f.y = -10;
+          // 1. CREATE SIDE WAVES
+          const createSideWave = (
+            side: "top" | "right" | "bottom" | "left",
+            segments: number = 40
+          ): SideWave => {
+            const points: WavePoint[] = [];
+            const graphics = new PIXI.Graphics();
+            waveLayer.addChild(graphics);
 
-            f.container.x = f.x;
-            f.container.y = f.y;
-            f.container.rotation = f.angle;
-            f.tail.rotation = Math.sin(totalTime * 8) * 0.35;
-            f.fins.scale.y = 0.9 + Math.sin(totalTime * 4) * 0.1;
-          });
+            for (let i = 0; i <= segments; i++) {
+              const t = i / segments;
+              const amplitude = 10 + Math.random() * 15;
+              const speed = 0.5 + Math.random() * 0.7;
+              const phase = Math.random() * Math.PI * 2;
 
-          // Shimmer animation
-          shimmers.forEach((s, i) => {
-            s.x += Math.cos(totalTime * 0.4 + i) * 0.3;
-            s.alpha = 0.2 + Math.sin(totalTime + i) * 0.15;
-          });
+              let baseX = 0,
+                baseY = 0;
 
-          // Handle Placement Ripples
-          while (rippleQueue.current.length > 0) {
-            const r = rippleQueue.current.shift();
-            if (r) createRipple(r.x, r.y);
-          }
+              switch (side) {
+                case "top":
+                  baseX = t * width;
+                  baseY = 0;
+                  break;
+                case "right":
+                  baseX = width;
+                  baseY = t * height;
+                  break;
+                case "bottom":
+                  baseX = width - t * width;
+                  baseY = height;
+                  break;
+                case "left":
+                  baseX = 0;
+                  baseY = height - t * height;
+                  break;
+              }
 
-          // Ripples update
-          for (let i = ripples.length - 1; i >= 0; i--) {
-            const r = ripples[i];
-            r.life += deltaInSeconds;
-            if (r.life >= r.maxLife) {
-              r.graphics.destroy();
-              ripples.splice(i, 1);
-              continue;
-            }
-            const prog = r.life / r.maxLife;
-            r.graphics.clear();
-            const count = r.isRain ? 1 : 2;
-            for (let ring = 0; ring < count; ring++) {
-              const ringProg = Math.max(0, prog - ring * 0.15);
-              if (ringProg <= 0) continue;
-              const radius = ringProg * (r.isRain ? 25 : 120);
-              r.graphics.circle(0, 0, radius);
-              r.graphics.stroke({
-                width: 1.5,
-                color: 0x93c5fd,
-                alpha: (1 - ringProg) * (r.isRain ? 0.4 : 0.6),
+              points.push({
+                x: baseX,
+                baseY: baseY,
+                offset: 0,
+                speed,
+                amplitude,
+                phase,
               });
             }
-          }
-        });
-      } catch (err) {
-        console.error("PixiJS Water Error:", err);
-      }
-    };
 
-    init();
-    return () => {
-      isDisposed = true;
-      if (app) {
-        app.destroy(true, { children: true, texture: true });
-        app = null;
-      }
-    };
-  }, []);
+            return { points, graphics, side };
+          };
 
-  return (
-    <div className="absolute inset-[-12px] pointer-events-none z-0 rounded-xl overflow-hidden shadow-[inset_0_0_30px_rgba(30,64,175,0.4)]">
-      {/* DEEP BASE */}
-      <div className="absolute inset-0 bg-blue-900/15" />
+          // Initialize all 4 sides
+          sideWaves = [
+            createSideWave("top", 30),
+            createSideWave("right", 20),
+            createSideWave("bottom", 30),
+            createSideWave("left", 20),
+          ];
 
-      {/* CANVAS */}
-      <div ref={containerRef} className="absolute inset-0" />
+          // 2. UNIFORM WATER SURFACE
+          const waterContainer = new PIXI.Container();
+          app.stage.addChild(waterContainer);
 
-      {/* LIQUID BORDER HIGHLIGHT */}
-      <div className="absolute inset-0 border-[3px] border-blue-400/10 rounded-xl mix-blend-screen" />
-      <div className="absolute inset-2 border border-white/5 rounded-lg pointer-events-none" />
-    </div>
-  );
-});
+          const bg = new PIXI.Graphics();
+          bg.rect(0, 0, width, height);
+          bg.fill({ color: 0x1e40af, alpha: 0.12 });
+          waterContainer.addChild(bg);
+
+          // Create subtle noise for water surface
+          const createNoiseTexture = (): PIXI.Texture => {
+            const size = 64;
+            const canvas = document.createElement("canvas");
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext("2d");
+
+            if (ctx) {
+              const imageData = ctx.createImageData(size, size);
+              for (let i = 0; i < imageData.data.length; i += 4) {
+                const val = Math.random() * 255;
+                imageData.data[i] = val;
+                imageData.data[i + 1] = val;
+                imageData.data[i + 2] = val;
+                imageData.data[i + 3] = 255;
+              }
+              ctx.putImageData(imageData, 0, 0);
+            }
+
+            return PIXI.Texture.from(canvas);
+          };
+
+          const noiseTexture = createNoiseTexture();
+          const noiseSprite = new PIXI.TilingSprite({
+            texture: noiseTexture,
+            width,
+            height,
+          });
+          noiseSprite.alpha = 0.04;
+          waterContainer.addChild(noiseSprite);
+
+          // 3. RAINDROP SYSTEM - OPTIMIZED
+          const raindrops: RaindropData[] = [];
+
+          const raindropLayer = new PIXI.Container();
+          waterContainer.addChild(raindropLayer);
+
+          const createRaindrop = (): RaindropData => {
+            // Biarkan lebih banyak jatuh di tengah, bukan hanya di tepi
+            const distribution = Math.random();
+            let x, y;
+
+            if (distribution < 0.7) {
+              // 70% jatuh di area tengah (lebih natural)
+              x = Math.random() * width;
+              y = -10; // Mulai dari atas layar
+            } else {
+              // 30% jatuh di tepi (untuk variasi)
+              const edge = Math.random();
+              if (edge < 0.25) {
+                // Top edge
+                x = Math.random() * width;
+                y = -5;
+              } else if (edge < 0.5) {
+                // Right edge
+                x = width + 5;
+                y = Math.random() * height;
+              } else if (edge < 0.75) {
+                // Bottom edge (dari bawah)
+                x = Math.random() * width;
+                y = height + 5;
+              } else {
+                // Left edge
+                x = -5;
+                y = Math.random() * height;
+              }
+            }
+
+            const size = 2.5 + Math.random() * 2.5; // Ukuran lebih besar (2.5-5px)
+            const g = new PIXI.Graphics();
+            raindropLayer.addChild(g);
+
+            // Gambar raindrop dengan bentuk lebih jelas
+            // Bulat dengan sedikit ekor
+            g.circle(0, 0, size);
+            g.fill({ color: 0x93c5fd, alpha: 0.9 });
+
+            // Tambahkan highlight kecil
+            g.circle(-size * 0.3, -size * 0.3, size * 0.3);
+            g.fill({ color: 0xffffff, alpha: 0.6 });
+
+            g.x = x;
+            g.y = y;
+
+            const dropData: RaindropData = {
+              graphics: g,
+              x,
+              y,
+              speed: 0.8 + Math.random() * 1.2, // Lebih lambat
+              life: 0,
+              maxLife: 2 + Math.random() * 1.5, // Hidup lebih lama
+              size,
+              hasSpawnedRipple: false,
+            };
+
+            raindrops.push(dropData);
+
+            // Cleanup jika terlalu banyak
+            if (raindrops.length > 40) {
+              // Kurangi limit
+              const oldDrop = raindrops.shift();
+              if (oldDrop) oldDrop.graphics.destroy();
+            }
+
+            return dropData;
+          };
+
+          // 4. RIPPLE SYSTEM (Raindrop + Click)
+          const ripples: Array<{
+            graphics: PIXI.Graphics;
+            life: number;
+            maxLife: number;
+            isRaindrop?: boolean;
+            x: number;
+            y: number;
+          }> = [];
+
+          const rippleLayer = new PIXI.Container();
+          app.stage.addChild(rippleLayer);
+
+          const createRipple = (x: number, y: number, isRaindrop = false) => {
+            const g = new PIXI.Graphics();
+            rippleLayer.addChild(g);
+
+            const ripple = {
+              graphics: g,
+              life: 0,
+              maxLife: isRaindrop ? 0.8 : 1.4,
+              isRaindrop,
+              x,
+              y,
+            };
+
+            ripples.push(ripple);
+            g.x = x;
+            g.y = y;
+
+            return ripple;
+          };
+
+          // 5. BUBBLES (Performance Optimized)
+          const bubbles: PIXI.Graphics[] = [];
+          const bubbleLayer = new PIXI.Container();
+          waterContainer.addChild(bubbleLayer);
+
+          const createBubble = (x: number, y: number) => {
+            const bubble = new PIXI.Graphics();
+            const size = 1 + Math.random() * 3;
+            bubble.circle(0, 0, size);
+            bubble.fill({ color: 0x93c5fd, alpha: 0.2 + Math.random() * 0.2 });
+            bubble.x = x;
+            bubble.y = y;
+            bubbleLayer.addChild(bubble);
+            bubbles.push(bubble);
+
+            // Remove if too many
+            if (bubbles.length > 60) {
+              const oldBubble = bubbles.shift();
+              if (oldBubble) oldBubble.destroy();
+            }
+          };
+
+          // 6. ANIMATION LOOP
+          const updateWaves = (currentTime: number) => {
+            if (!app || isDisposed) return;
+
+            const deltaTime = lastTime
+              ? (currentTime - lastTime) / 1000
+              : 0.016;
+            lastTime = currentTime;
+
+            // Update noise position
+            noiseSprite.tilePosition.x += 0.2 * deltaTime * 60;
+            noiseSprite.tilePosition.y += 0.1 * deltaTime * 60;
+
+            // RAINDROP SPAWN LOGIC
+            rainTimerRef.current += deltaTime;
+            const rainSpawnRate = 0.3 + (1 - rainFrequency) * 0.7; // Inverse frequency
+
+            if (rainTimerRef.current > rainSpawnRate) {
+              createRaindrop();
+              rainTimerRef.current = 0;
+
+              // Kadang spawn 2-3 sekaligus untuk efek gerimis
+              if (Math.random() < 0.3) {
+                setTimeout(() => {
+                  if (!isDisposed) createRaindrop();
+                }, 100);
+              }
+            }
+
+            // UPDATE RAINDROPS
+            // UPDATE RAINDROPS
+            for (let i = raindrops.length - 1; i >= 0; i--) {
+              const drop = raindrops[i];
+              drop.life += deltaTime;
+
+              // Animate falling dengan percepatan gravitasi
+              const gravity = 0.1;
+              drop.speed += gravity * deltaTime * 60; // Tambah kecepatan seiring waktu
+              drop.y += drop.speed;
+
+              // Tambahkan sedikit gerakan horizontal acak
+              drop.x += Math.sin(drop.life * 3) * 0.3;
+
+              drop.graphics.y = drop.y;
+              drop.graphics.x = drop.x;
+
+              // Fade out sebelum hilang
+              const fadeStart = drop.maxLife * 0.7;
+              if (drop.life > fadeStart) {
+                const fadeProgress =
+                  (drop.life - fadeStart) / (drop.maxLife - fadeStart);
+                drop.graphics.alpha = 1 - fadeProgress;
+              }
+
+              // Jika raindrop mencapai water surface, buat ripple
+              // Cek berdasarkan posisi Y atau life
+              const shouldCreateRipple =
+                (drop.y > height * 0.8 || drop.life >= drop.maxLife * 0.4) &&
+                !drop.hasSpawnedRipple;
+
+              if (shouldCreateRipple) {
+                createRipple(drop.x, drop.y, true);
+                drop.hasSpawnedRipple = true;
+
+                // Tambahkan efek splash kecil
+                createBubble(drop.x, drop.y - 5);
+              }
+
+              // Cleanup jika keluar layar atau habis lifetime
+              const isOutOfBounds =
+                drop.y > height + 50 ||
+                drop.y < -50 ||
+                drop.x < -50 ||
+                drop.x > width + 50;
+
+              if (drop.life >= drop.maxLife || isOutOfBounds) {
+                drop.graphics.destroy();
+                raindrops.splice(i, 1);
+              }
+            }
+
+            // UPDATE SIDE WAVES
+            sideWaves.forEach((sideWave) => {
+              const { points, graphics, side } = sideWave;
+
+              graphics.clear();
+
+              // Draw wave with gradient
+              graphics.moveTo(points[0].x, points[0].baseY + points[0].offset);
+
+              for (let i = 1; i < points.length; i++) {
+                const point = points[i];
+
+                // Update wave offset dengan time-based animation
+                point.offset =
+                  Math.sin(currentTime * 0.001 * point.speed + point.phase) *
+                  point.amplitude *
+                  waveIntensity;
+
+                // Adjust based on side
+                let x = point.x;
+                let y = point.baseY;
+
+                if (side === "top" || side === "bottom") {
+                  y += point.offset;
+                } else {
+                  x += point.offset;
+                }
+
+                graphics.lineTo(x, y);
+              }
+
+              // Complete the path back to start for fill
+              if (points.length > 0) {
+                const first = points[0];
+                let firstX = first.x;
+                let firstY = first.baseY;
+
+                if (side === "top" || side === "bottom") {
+                  firstY += first.offset;
+                } else {
+                  firstX += first.offset;
+                }
+                graphics.lineTo(firstX, firstY);
+              }
+
+              // Fill dengan gradient effect
+              graphics.fill({
+                color: 0x3b82f6,
+                alpha: 0.07,
+              });
+
+              // Add wave line
+              graphics.stroke({
+                width: 1.2,
+                color: 0x60a5fa,
+                alpha: 0.15,
+              });
+            });
+
+            // SPAWN BUBBLES NEAR WAVES
+            if (Math.random() < 0.02) {
+              const waveSide = Math.floor(Math.random() * 4);
+              let x = 0,
+                y = 0;
+
+              switch (waveSide) {
+                case 0: // top wave
+                  x = Math.random() * width;
+                  y = 8 + Math.sin(currentTime * 0.002 + x * 0.01) * 5;
+                  break;
+                case 1: // right wave
+                  y = Math.random() * height;
+                  x = width - 8 + Math.sin(currentTime * 0.002 + y * 0.01) * 5;
+                  break;
+                case 2: // bottom wave
+                  x = Math.random() * width;
+                  y = height - 8 + Math.sin(currentTime * 0.002 + x * 0.01) * 5;
+                  break;
+                case 3: // left wave
+                  y = Math.random() * height;
+                  x = 8 + Math.sin(currentTime * 0.002 + y * 0.01) * 5;
+                  break;
+              }
+
+              createBubble(x, y);
+            }
+
+            // UPDATE BUBBLES
+            bubbles.forEach((bubble, index) => {
+              bubble.y -= 0.4;
+              bubble.x += Math.sin(currentTime * 0.001 + index) * 0.1;
+              bubble.alpha *= 0.99;
+
+              if (bubble.alpha < 0.05) {
+                bubble.destroy();
+                bubbles.splice(index, 1);
+              }
+            });
+
+            // HANDLE CLICK RIPPLE QUEUE
+            while (rippleQueue.current.length > 0) {
+              const r = rippleQueue.current.shift();
+              if (r) {
+                createRipple(r.x * width, r.y * height, false);
+              }
+            }
+
+            // UPDATE RIPPLE ANIMATIONS
+            for (let i = ripples.length - 1; i >= 0; i--) {
+              const ripple = ripples[i];
+              ripple.life += deltaTime;
+
+              if (ripple.life >= ripple.maxLife) {
+                ripple.graphics.destroy();
+                ripples.splice(i, 1);
+                continue;
+              }
+
+              const progress = ripple.life / ripple.maxLife;
+              ripple.graphics.clear();
+
+              // Draw ripple rings
+              const ringCount = ripple.isRaindrop ? 2 : 3;
+
+              for (let ring = 0; ring < ringCount; ring++) {
+                const ringProgress = Math.max(0, progress - ring * 0.2);
+                if (ringProgress <= 0) continue;
+
+                const radius = ringProgress * (ripple.isRaindrop ? 20 : 100);
+                const alpha =
+                  (1 - ringProgress) * (ripple.isRaindrop ? 0.6 : 0.8);
+
+                ripple.graphics.circle(0, 0, radius);
+                ripple.graphics.stroke({
+                  width: ripple.isRaindrop ? 1 : 1.5,
+                  color: ripple.isRaindrop ? 0xbfdbfe : 0x93c5fd,
+                  alpha: alpha,
+                });
+              }
+            }
+
+            waveUpdateId = requestAnimationFrame(updateWaves);
+          };
+
+          // Start animation
+          waveUpdateId = requestAnimationFrame(updateWaves);
+
+          // Handle resize
+          const handleResize = () => {
+            if (!app || !containerRef.current) return;
+
+            const bounds = containerRef.current.getBoundingClientRect();
+            app.renderer.resize(bounds.width, bounds.height);
+
+            // Update wave points for new dimensions
+            sideWaves.forEach((sideWave) => {
+              const { width, height } = app!.screen;
+              const segments = sideWave.points.length - 1;
+
+              sideWave.points.forEach((point, i) => {
+                const t = i / segments;
+
+                switch (sideWave.side) {
+                  case "top":
+                    point.x = t * width;
+                    point.baseY = 0;
+                    break;
+                  case "right":
+                    point.x = width;
+                    point.baseY = t * height;
+                    break;
+                  case "bottom":
+                    point.x = width - t * width;
+                    point.baseY = height;
+                    break;
+                  case "left":
+                    point.x = 0;
+                    point.baseY = height - t * height;
+                    break;
+                }
+              });
+            });
+
+            // Update tiling sprite size
+            if (noiseSprite) {
+              noiseSprite.width = bounds.width;
+              noiseSprite.height = bounds.height;
+            }
+          };
+
+          window.addEventListener("resize", handleResize);
+
+          // Cleanup function
+          return () => {
+            window.removeEventListener("resize", handleResize);
+          };
+        } catch (err) {
+          console.error("PixiJS Water Error:", err);
+        }
+      };
+
+      init();
+      return () => {
+        isDisposed = true;
+        if (waveUpdateId) cancelAnimationFrame(waveUpdateId);
+        if (app) {
+          app.destroy(true, { children: true, texture: true });
+          app = null;
+        }
+        setIsReady(false);
+      };
+    }, [waveIntensity, rainFrequency]);
+
+    return (
+      <div className="absolute inset-[-8px] pointer-events-none z-0 rounded-xl overflow-hidden">
+        {/* CANVAS CONTAINER */}
+        <div ref={containerRef} className="absolute inset-0" />
+
+        {/* LOADING STATE */}
+        {!isReady && (
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/10 animate-pulse" />
+        )}
+
+        {/* GLOW EFFECT */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5" />
+
+        {/* BORDER HIGHLIGHTS */}
+        <div className="absolute inset-0 border-2 border-blue-400/10 rounded-xl" />
+        <div className="absolute inset-1 border border-white/5 rounded-lg" />
+
+        {/* SUBTLE REFLECTION */}
+        <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white/10 to-transparent opacity-30" />
+      </div>
+    );
+  }
+);
 
 WaterEffect.displayName = "WaterEffect";

@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer utilities {
+  @keyframes borderGlow {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  .animate-border-glow {
+    animation: borderGlow 3s ease-in-out infinite;
+  }
+}
