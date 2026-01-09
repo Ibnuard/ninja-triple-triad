@@ -33,7 +33,7 @@ export const BoardEffects = ({
   return (
     <div className="absolute -inset-1 lg:-inset-4 pointer-events-none z-0 rounded-2xl">
       {/* Lightning Effect */}
-      {effectKey === "lightning" && <LightningEffect />}
+      {effectKey === "lightning" && <LightningEffect lastMove={lastMove} />}
 
       {/* Fire Effect */}
       {effectKey === "fire" && <FireEffect lastMove={lastMove} />}
