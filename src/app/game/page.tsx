@@ -13,7 +13,8 @@ import { SettingsModal } from "../../components/SettingsModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
-import { useGauntletStore, RANK_MULTIPLIERS, GauntletRank } from "../../store/useGauntletStore";
+import { useGauntletStore, RANK_THRESHOLDS, GauntletRank } from "../../store/useGauntletStore";
+import { animate } from "framer-motion";
 
 import { FullScreenEffects } from "@/components/effects/FullScreenEffects";
 import { FPSCounter } from "../../components/FPSCounter";
@@ -506,14 +507,22 @@ export default function GamePage() {
                       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black"
                     >
                       <motion.div
-                        initial={{ y: 50, opacity: 0, scale: 0.9 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        transition={{
-                          type: "spring",
-                          damping: 25,
-                          stiffness: 200,
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                          hidden: { opacity: 0, scale: 0.8 },
+                          visible: { 
+                            opacity: 1, 
+                            scale: 1,
+                            transition: { 
+                              type: "spring",
+                              duration: 0.6,
+                              bounce: 0.4,
+                              staggerChildren: 0.15
+                            }
+                          }
                         }}
-                        className="bg-gray-900 border-2 border-white/10 p-8 lg:p-12 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,1)] flex flex-col items-center max-w-[95vw] w-[450px] text-center relative overflow-hidden"
+                        className="bg-gray-900 border-2 border-white/10 p-6 md:p-8 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,1)] flex flex-col items-center max-w-[95vw] w-[400px] text-center relative overflow-hidden"
                       >
                         {/* Background Glow Decoration */}
                         <div
@@ -528,15 +537,17 @@ export default function GamePage() {
                         />
 
                         {/* Title Section (Top) */}
-                        <div className="mb-8 relative z-10">
-                          <h2 className="text-gray-500 text-[10px] lg:text-xs font-black tracking-[0.4em] mb-2 uppercase italic">
+                        <motion.div variants={{ hidden: { opacity: 0, y: -20 }, visible: { opacity: 1, y: 0 } }} className="mb-6 relative z-10">
+                          <h2 className="text-gray-500 text-[10px] font-black tracking-[0.4em] mb-2 uppercase italic">
                             {isGauntletMode
                               ? t.gauntlet.roundCleared
                               : t.matchFinished}
                           </h2>
-                          <h1
+                          <motion.h1
+                            animate={{ scale: [1, 1.1, 1] }}
+                            transition={{ duration: 0.5, repeat: 0, delay: 0.5 }}
                             className={cn(
-                              "text-6xl lg:text-7xl font-black tracking-tighter drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] italic",
+                              "text-5xl md:text-6xl font-black tracking-tighter drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] italic",
                               winner === "player1"
                                 ? "text-blue-400"
                                 : winner === "player2"
@@ -549,26 +560,26 @@ export default function GamePage() {
                               : winner === "player1"
                               ? t.victory
                               : t.defeat}
-                          </h1>
-                        </div>
+                          </motion.h1>
+                        </motion.div>
 
                         {/* Stats Section (Middle) */}
-                        <div className="flex items-center justify-between w-full gap-4 mb-10 relative z-10">
+                        <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1 } }} className="flex items-center justify-between w-full gap-4 mb-8 relative z-10">
                           {/* Player Stat */}
                           <div className="flex flex-col items-center flex-1">
-                            <div className="relative mb-3">
-                              <div className="w-16 h-20 lg:w-20 lg:h-24 rounded-xl border-2 border-blue-500/50 p-1 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.1)] flex items-center justify-center overflow-hidden">
+                            <div className="relative mb-2">
+                              <div className="w-14 h-16 rounded-xl border-2 border-blue-500/50 p-1 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.1)] flex items-center justify-center overflow-hidden">
                                 <div className="w-full h-full rounded-lg bg-gradient-to-br from-blue-500/20 to-transparent flex items-center justify-center">
-                                  <div className="w-8 h-8 rounded-full border-2 border-blue-500/30 flex items-center justify-center">
-                                    <div className="w-4 h-4 bg-blue-500/40 rounded-full" />
+                                  <div className="w-6 h-6 rounded-full border-2 border-blue-500/30 flex items-center justify-center">
+                                    <div className="w-3 h-3 bg-blue-500/40 rounded-full" />
                                   </div>
                                 </div>
                               </div>
-                              <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md border border-white/20 shadow-lg">
+                              <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white text-[8px] font-black px-2 py-0.5 rounded-md border border-white/20 shadow-lg">
                                 {t.you}
                               </div>
                             </div>
-                            <div className="text-4xl lg:text-5xl font-black text-white drop-shadow-md">
+                            <div className="text-3xl font-black text-white drop-shadow-md">
                               {(() => {
                                 const board = useGameStore.getState().board;
                                 let count = 0;
@@ -584,28 +595,26 @@ export default function GamePage() {
 
                           {/* VS Divider */}
                           <div className="flex flex-col items-center">
-                            <div className="h-10 w-[2px] bg-gradient-to-b from-transparent via-white/10 to-transparent mb-2" />
-                            <div className="text-lg font-black text-gray-700 italic">
+                            <div className="text-sm font-black text-gray-700 italic">
                               {t.vs}
                             </div>
-                            <div className="h-10 w-[2px] bg-gradient-to-t from-transparent via-white/10 to-transparent mt-2" />
                           </div>
 
                           {/* Opponent Stat */}
                           <div className="flex flex-col items-center flex-1">
-                            <div className="relative mb-3">
-                              <div className="w-16 h-20 lg:w-20 lg:h-24 rounded-xl border-2 border-red-500/50 p-1 bg-red-500/10 shadow-[0_0_20px_rgba(239,68,68,0.1)] flex items-center justify-center overflow-hidden">
+                            <div className="relative mb-2">
+                              <div className="w-14 h-16 rounded-xl border-2 border-red-500/50 p-1 bg-red-500/10 shadow-[0_0_20px_rgba(239,68,68,0.1)] flex items-center justify-center overflow-hidden">
                                 <div className="w-full h-full rounded-lg bg-gradient-to-br from-red-500/20 to-transparent flex items-center justify-center">
-                                  <div className="w-8 h-8 rounded-full border-2 border-red-500/30 flex items-center justify-center">
-                                    <div className="w-4 h-4 bg-red-500/40 rounded-full" />
+                                  <div className="w-6 h-6 rounded-full border-2 border-red-500/30 flex items-center justify-center">
+                                    <div className="w-3 h-3 bg-red-500/40 rounded-full" />
                                   </div>
                                 </div>
                               </div>
-                              <div className="absolute -bottom-2 -left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md border border-white/20 shadow-lg">
+                              <div className="absolute -bottom-2 -left-2 bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-md border border-white/20 shadow-lg">
                                 {isGauntletMode ? t.boss : t.cpu}
                               </div>
                             </div>
-                            <div className="text-4xl lg:text-5xl font-black text-white drop-shadow-md">
+                            <div className="text-3xl font-black text-white drop-shadow-md">
                               {(() => {
                                 const board = useGameStore.getState().board;
                                 let count = 0;
@@ -618,63 +627,202 @@ export default function GamePage() {
                               })()}
                             </div>
                           </div>
-                        </div>
+                        </motion.div>
 
                         {/* Gauntlet Specific Info */}
                         {isGauntletMode && (
-                          <div className="w-full bg-black/40 rounded-2xl p-4 border border-white/5 mb-8 relative z-10 flex flex-col gap-2">
-                            <div className="flex justify-between items-center">
-                                <div className="text-left">
-                                <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">
+                          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="w-full bg-black/40 rounded-2xl p-4 border border-white/5 mb-6 relative z-10 flex flex-col gap-3">
+                            <div className="flex justify-between items-end border-b border-white/5 pb-3">
+                                <div className="text-left relative">
+                                <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">
                                     {t.gauntlet.rank}
                                 </div>
-                                <div className="text-yellow-400 font-black text-lg">
-                                    {gauntletRank}
+                                <div className="text-yellow-400 font-black text-base relative h-6 w-24">
+                                    {/* Rank Text Animation */}
+                                    {(() => {
+                                        const ranks: GauntletRank[] = ["Genin", "Chunin", "Jounin", "Anbu", "Kage", "Rikudo"];
+                                        const currentRankIndex = ranks.indexOf(gauntletRank as GauntletRank);
+                                        
+                                        // Calculate if rank up happened
+                                        let nextRank = gauntletRank;
+                                        if (winner === "player1") {
+                                            const baseWin = 20;
+                                            const board = useGameStore.getState().board;
+                                            let boardCardCount = 0;
+                                            board.forEach((row) =>
+                                              row.forEach((cell) => {
+                                                if (cell.owner === "player1") boardCardCount++;
+                                              })
+                                            );
+                                            const boardBonus = boardCardCount * 2;
+                                            const currentTotalScore = gauntletScore + baseWin + boardBonus;
+                                            
+                                            if (currentTotalScore >= RANK_THRESHOLDS.Rikudo) nextRank = "Rikudo";
+                                            else if (currentTotalScore >= RANK_THRESHOLDS.Kage) nextRank = "Kage";
+                                            else if (currentTotalScore >= RANK_THRESHOLDS.Anbu) nextRank = "Anbu";
+                                            else if (currentTotalScore >= RANK_THRESHOLDS.Jounin) nextRank = "Jounin";
+                                            else if (currentTotalScore >= RANK_THRESHOLDS.Chunin) nextRank = "Chunin";
+                                        }
+
+                                        if (nextRank !== gauntletRank) {
+                                            return (
+                                                <>
+                                                    <motion.div
+                                                        initial={{ opacity: 1, y: 0 }}
+                                                        animate={{ opacity: 0, y: -10 }}
+                                                        transition={{ delay: 1, duration: 0.5 }}
+                                                        className="absolute top-0 left-0"
+                                                    >
+                                                        {gauntletRank}
+                                                    </motion.div>
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 10, scale: 0.5 }}
+                                                        animate={{ opacity: 1, y: 0, scale: 1.2 }}
+                                                        transition={{ delay: 1.5, type: "spring" }}
+                                                        className="absolute top-0 left-0 text-yellow-300"
+                                                    >
+                                                        {nextRank}
+                                                    </motion.div>
+                                                </>
+                                            );
+                                        }
+                                        return <div className="absolute top-0 left-0">{gauntletRank}</div>;
+                                    })()}
                                 </div>
                                 </div>
                                 <div className="text-right">
-                                <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">
+                                <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">
                                     {t.gauntlet.totalScore}
                                 </div>
-                                <div className="text-white font-black text-2xl">
+                                <motion.div 
+                                    className="text-white font-black text-xl"
+                                >
                                     {(() => {
-                                        if (winner === "player1") {
-                                            const baseWin = 20;
-                                            const flipBonus = (player1.totalFlips || 0) * 5;
-                                            const multiplier = RANK_MULTIPLIERS[gauntletRank as GauntletRank] || 1;
-                                            const scoreAdded = Math.floor((baseWin + flipBonus) * multiplier);
-                                            return gauntletScore + scoreAdded;
-                                        }
-                                        return gauntletScore;
+                                        const baseWin = 20;
+                                        const board = useGameStore.getState().board;
+                                        let boardCardCount = 0;
+                                        board.forEach((row) =>
+                                          row.forEach((cell) => {
+                                            if (cell.owner === "player1") boardCardCount++;
+                                          })
+                                        );
+                                        const boardBonus = boardCardCount * 2;
+                                        const finalScore = winner === "player1" ? gauntletScore + baseWin + boardBonus : gauntletScore;
+
+                                        return (
+                                            <motion.span
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                ref={(node) => {
+                                                    if (node) {
+                                                        animate(gauntletScore, finalScore, {
+                                                            duration: 1.5,
+                                                            delay: 0.5,
+                                                            onUpdate: (latest) => {
+                                                                node.textContent = Math.round(latest).toString();
+                                                            }
+                                                        });
+                                                    }
+                                                }}
+                                            />
+                                        );
                                     })()}
-                                </div>
+                                </motion.div>
                                 </div>
                             </div>
                             
                             {winner === "player1" && (
-                                <div className="w-full pt-2 border-t border-white/10 flex justify-between items-center">
-                                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Score Earned</span>
-                                    <span className="text-green-400 font-black text-sm">
-                                        +{(() => {
-                                            const baseWin = 20;
-                                            const flipBonus = (player1.totalFlips || 0) * 5;
-                                            const multiplier = RANK_MULTIPLIERS[gauntletRank as GauntletRank] || 1;
-                                            return Math.floor((baseWin + flipBonus) * multiplier);
-                                        })()}
-                                    </span>
-                                </div>
+                                <>
+                                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1">
+                                        <div className="flex flex-col text-left">
+                                            <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">Win Points</span>
+                                            <span className="text-white font-black">+20</span>
+                                        </div>
+                                        <div className="flex flex-col text-right">
+                                            <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">{t.gauntlet.boardBonus}</span>
+                                            <span className="text-green-400 font-black">
+                                                +{(() => {
+                                                    const board = useGameStore.getState().board;
+                                                    let boardCardCount = 0;
+                                                    board.forEach((row) =>
+                                                      row.forEach((cell) => {
+                                                        if (cell.owner === "player1") boardCardCount++;
+                                                      })
+                                                    );
+                                                    return boardCardCount * 2;
+                                                })()}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Rank Progress Bar */}
+                                    <div className="w-full mt-1">
+                                        <div className="flex justify-between text-[8px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+                                            <span>{t.gauntlet.progress}</span>
+                                            <span>
+                                                {(() => {
+                                                    const ranks: GauntletRank[] = ["Genin", "Chunin", "Jounin", "Anbu", "Kage", "Rikudo"];
+                                                    const currentRankIndex = ranks.indexOf(gauntletRank as GauntletRank);
+                                                    if (currentRankIndex === ranks.length - 1) return "MAX";
+                                                    return ranks[currentRankIndex + 1];
+                                                })()}
+                                            </span>
+                                        </div>
+                                        <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden relative">
+                                            <motion.div 
+                                                initial={{ width: "0%" }}
+                                                animate={{ 
+                                                    width: (() => {
+                                                        const ranks: GauntletRank[] = ["Genin", "Chunin", "Jounin", "Anbu", "Kage", "Rikudo"];
+                                                        const currentRankIndex = ranks.indexOf(gauntletRank as GauntletRank);
+                                                        
+                                                        if (currentRankIndex === ranks.length - 1) return "100%"; // Max rank
+                                                        
+                                                        const currentThreshold = RANK_THRESHOLDS[gauntletRank as GauntletRank];
+                                                        const nextThreshold = RANK_THRESHOLDS[ranks[currentRankIndex + 1]];
+                                                        
+                                                        // Calculate potential new score
+                                                        const baseWin = 20;
+                                                        const board = useGameStore.getState().board;
+                                                        let boardCardCount = 0;
+                                                        board.forEach((row) =>
+                                                          row.forEach((cell) => {
+                                                            if (cell.owner === "player1") boardCardCount++;
+                                                          })
+                                                        );
+                                                        const boardBonus = boardCardCount * 2;
+                                                        const currentTotalScore = gauntletScore + baseWin + boardBonus;
+
+                                                        const progress = Math.min(100, Math.max(0, ((currentTotalScore - currentThreshold) / (nextThreshold - currentThreshold)) * 100));
+                                                        return `${progress}%`;
+                                                    })() 
+                                                }}
+                                                transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
+                                                className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400"
+                                            />
+                                        </div>
+                                    </div>
+                                </>
                             )}
-                          </div>
+                          </motion.div>
                         )}
 
                         {/* Buttons Section (Bottom) */}
-                        <div className="flex flex-col gap-3 w-full relative z-10">
+                        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="flex flex-col gap-2 w-full relative z-10">
                           {isGauntletMode && winner === "player1" ? (
                             <button
                               onClick={() => {
+                                const board = useGameStore.getState().board;
+                                let boardCardCount = 0;
+                                board.forEach((row) =>
+                                  row.forEach((cell) => {
+                                    if (cell.owner === "player1") boardCardCount++;
+                                  })
+                                );
                                 processMatchResult(
                                   "player1",
-                                  player1.totalFlips || 0
+                                  player1.totalFlips || 0,
+                                  boardCardCount
                                 );
                                 const config = getOpponentConfig();
                                 initGame("gauntlet-room", true, config.mechanic);
@@ -703,14 +851,14 @@ export default function GamePage() {
                                 setShowResult(false);
                                 setShowBoardIntro(true);
                               }}
-                              className="w-full py-4 bg-blue-500 text-white font-black text-sm tracking-[0.2em] hover:bg-blue-400 transition-all rounded-2xl shadow-[0_4px_0_rgb(30,64,175)] active:translate-y-1 active:shadow-none uppercase italic"
+                              className="w-full py-3 bg-blue-500 text-white font-black text-xs tracking-[0.2em] hover:bg-blue-400 transition-all rounded-xl shadow-[0_4px_0_rgb(30,64,175)] active:translate-y-1 active:shadow-none uppercase italic"
                             >
                               {t.gauntlet.nextBattle}
                             </button>
                           ) : (
                             <button
                               onClick={() => startGame(true)}
-                              className="w-full py-4 bg-white text-black font-black text-sm tracking-[0.2em] hover:bg-gray-200 transition-all rounded-2xl shadow-[0_4px_0_rgb(156,163,175)] active:translate-y-1 active:shadow-none uppercase italic"
+                              className="w-full py-3 bg-white text-black font-black text-xs tracking-[0.2em] hover:bg-gray-200 transition-all rounded-xl shadow-[0_4px_0_rgb(156,163,175)] active:translate-y-1 active:shadow-none uppercase italic"
                             >
                               {t.playAgain}
                             </button>
@@ -719,9 +867,17 @@ export default function GamePage() {
                           <button
                             onClick={async () => {
                               if (isGauntletMode) {
+                                const board = useGameStore.getState().board;
+                                let boardCardCount = 0;
+                                board.forEach((row) =>
+                                  row.forEach((cell) => {
+                                    if (cell.owner === "player1") boardCardCount++;
+                                  })
+                                );
                                 processMatchResult(
                                   winner || "draw",
-                                  player1.totalFlips || 0
+                                  player1.totalFlips || 0,
+                                  boardCardCount
                                 );
                                 useGauntletStore.getState().endRun();
                               }
@@ -732,11 +888,11 @@ export default function GamePage() {
                               resetGame();
                               router.push("/");
                             }}
-                            className="w-full py-4 bg-gray-800 text-gray-400 font-black text-sm tracking-[0.2em] hover:bg-gray-700 hover:text-white transition-all rounded-2xl uppercase italic"
+                            className="w-full py-3 bg-gray-800 text-gray-400 font-black text-xs tracking-[0.2em] hover:bg-gray-700 hover:text-white transition-all rounded-xl uppercase italic"
                           >
                             {t.exit}
                           </button>
-                        </div>
+                        </motion.div>
                       </motion.div>
                     </motion.div>
                   )}

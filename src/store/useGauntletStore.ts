@@ -15,26 +15,17 @@ interface GauntletState {
     // Actions
     startRun: (deck: Card[]) => void;
     endRun: () => void;
-    processMatchResult: (winner: "player1" | "player2" | "draw", flips: number) => { scoreAdded: number; newRank: GauntletRank | null };
+    processMatchResult: (winner: "player1" | "player2" | "draw", flips: number, boardCardCount?: number) => { scoreAdded: number; newRank: GauntletRank | null };
     getOpponentConfig: () => { deck: Card[]; mechanic: BoardMechanicType; activeElement?: ElementType };
 }
 
-const RANK_THRESHOLDS: Record<GauntletRank, number> = {
+export const RANK_THRESHOLDS: Record<GauntletRank, number> = {
     Genin: 0,
     Chunin: 200,
     Jounin: 500,
     Anbu: 1000,
     Kage: 2000,
     Rikudo: 5000,
-};
-
-export const RANK_MULTIPLIERS: Record<GauntletRank, number> = {
-    Genin: 1,
-    Chunin: 1.2,
-    Jounin: 1.5,
-    Anbu: 2,
-    Kage: 3,
-    Rikudo: 5,
 };
 
 const OPPONENT_NAMES: Record<GauntletRank, string[]> = {
@@ -75,7 +66,7 @@ export const useGauntletStore = create<GauntletState>()(
                 set({ isActive: false });
             },
 
-            processMatchResult: (winner, flips) => {
+            processMatchResult: (winner, flips, boardCardCount = 0) => {
                 const { score, rank, round } = get();
 
                 if (winner !== "player1") {
@@ -85,11 +76,10 @@ export const useGauntletStore = create<GauntletState>()(
 
                 // Scoring Logic
                 const baseWin = 20;
-                const flipBonus = flips * 5;
-                const multiplier = RANK_MULTIPLIERS[rank];
+                // Bonus: 2 points per card on board
+                const boardBonus = boardCardCount * 2;
 
-                const rawScore = baseWin + flipBonus;
-                const scoreAdded = Math.floor(rawScore * multiplier);
+                const scoreAdded = baseWin + boardBonus;
                 const newScore = score + scoreAdded;
 
                 // Rank Progression

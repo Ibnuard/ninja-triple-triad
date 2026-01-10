@@ -63,6 +63,9 @@ export const TRANSLATIONS = {
         totalScore: "Total Score",
         multiplier: "Multiplier",
         flipsBonus: "Flips Bonus",
+        boardBonus: "Board Bonus",
+        nextRank: "Next Rank",
+        progress: "Progress",
       },
       settings: {
         title: "Game Settings",
@@ -295,6 +298,9 @@ export const TRANSLATIONS = {
         totalScore: "Total Skor",
         multiplier: "Pengali",
         flipsBonus: "Bonus Balik",
+        boardBonus: "Bonus Papan",
+        nextRank: "Peringkat Selanjutnya",
+        progress: "Progres",
       },
       settings: {
         title: "Pengaturan Game",
