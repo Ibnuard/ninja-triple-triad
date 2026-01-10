@@ -71,6 +71,9 @@ export const TRANSLATIONS = {
         rankUpFailed: "Rank Up Failed",
         thresholdReached: "Rank Threshold Reached",
         scoreReduction: "Score Reduction",
+        highRank: "Highest Rank",
+        highScore: "Highest Score",
+        lastJourney: "Last Journey",
         bosses: {
           zabuza: "Zabuza Momochi",
           sasori: "Sasori",
@@ -318,6 +321,9 @@ export const TRANSLATIONS = {
         rankUpFailed: "Gagal Naik Peringkat",
         thresholdReached: "Batas Peringkat Tercapai",
         scoreReduction: "Pengurangan Skor",
+        highRank: "Peringkat Tertinggi",
+        highScore: "Skor Tertinggi",
+        lastJourney: "Perjalanan Terakhir",
         bosses: {
           zabuza: "Zabuza Momochi",
           sasori: "Sasori",

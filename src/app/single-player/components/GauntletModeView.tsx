@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { Swords, BookOpen, ChevronLeft, Layers, Trophy, Skull, X } from "lucide-react";
+import { useTranslation } from "../../../store/useSettingsStore";
+import { RANK_THRESHOLDS } from "../../../store/useGauntletStore";
 import { cn } from "../../../lib/utils";
 import { Card } from "../../../components/Card";
 import { Card as CardType } from "../../../types/game";
@@ -38,57 +40,70 @@ export function GauntletModeView({
   onCancelSelection,
 }: GauntletModeViewProps) {
   // Reusable Stats Component
-  const StatsCard = ({ className = "" }: { className?: string }) => (
-    <div className={cn("relative w-full bg-black/40 rounded-3xl border border-white/5 p-4 md:p-6 flex flex-col gap-4 md:gap-6", className)}>
-      <div className="flex items-center justify-between border-b border-white/10 pb-4">
-        <h3 className="text-lg md:text-xl font-black italic uppercase text-white/50">{t.gauntletSub.lastRun}</h3>
-        <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] md:text-xs font-bold text-gray-400">
-          {new Date().toLocaleDateString()}
-        </div>
-      </div>
+  const StatsCard = ({ className = "" }: { className?: string }) => {
+    const gauntletT = useTranslation().game.gauntlet;
+    
+    // Calculate rank name based on score
+    const getRankName = (score: number) => {
+      if (score >= RANK_THRESHOLDS.Rikudo) return "Rikudo";
+      if (score >= RANK_THRESHOLDS.Kage) return "Kage";
+      if (score >= RANK_THRESHOLDS.Anbu) return "Anbu";
+      if (score >= RANK_THRESHOLDS.Jounin) return "Jounin";
+      if (score >= RANK_THRESHOLDS.Chunin) return "Chunin";
+      return "Genin";
+    };
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4">
-        <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
-          <Trophy className="w-6 h-6 md:w-8 md:h-8 text-yellow-500" />
-          <div className="text-center">
-            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">{t.gauntletSub.score}</div>
-            <div className="text-xl md:text-2xl font-black text-white">{lastRunScore}</div>
-          </div>
-        </div>
-        <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
-          <Skull className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
-          <div className="text-center">
-            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">{t.gauntletSub.lastBoss}</div>
-            <div className="text-sm md:text-lg font-black text-white truncate max-w-[80px] md:max-w-[100px]">{lastBoss}</div>
-          </div>
-        </div>
-      </div>
+    const rankName = getRankName(lastRunScore);
 
-      <div className="mt-auto pt-4 border-t border-white/10">
-          <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 text-center">{t.gauntletSub.deckUsed}</div>
-          <div className="flex justify-center -space-x-3 md:-space-x-4">
-            {selectedDeck.length > 0 ? (
-              selectedDeck.map((card, i) => (
-                <div key={i} className="w-10 h-14 md:w-12 md:h-16 rounded-lg border-2 border-gray-900 relative overflow-hidden shadow-lg transform hover:-translate-y-2 transition-transform duration-300" style={{ zIndex: i }}>
-                    <div className={`absolute inset-0 bg-gradient-to-br ${
-                      card.element === 'fire' ? 'from-red-600' :
-                      card.element === 'water' ? 'from-blue-600' :
-                      card.element === 'earth' ? 'from-amber-600' :
-                      card.element === 'wind' ? 'from-emerald-600' :
-                      'from-yellow-600'
-                    } to-black`} />
-                    <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white/50">
-                      {card.stats.top}
-                    </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-sm text-gray-600 italic">{t.gauntletSub.noDeckData}</div>
-            )}
+    return (
+      <div className={cn("relative w-full bg-black/40 rounded-3xl border border-white/5 p-4 md:p-6 flex flex-col gap-4 md:gap-6", className)}>
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <h3 className="text-lg md:text-xl font-black italic uppercase text-white/50">{gauntletT.lastJourney}</h3>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
+          <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
+            <Trophy className="w-6 h-6 md:w-8 md:h-8 text-yellow-500" />
+            <div className="text-center">
+              <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">{gauntletT.highScore}</div>
+              <div className="text-xl md:text-2xl font-black text-white">{lastRunScore}</div>
+            </div>
           </div>
+          <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
+            <Skull className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
+            <div className="text-center">
+              <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">{gauntletT.rank}</div>
+              <div className="text-sm md:text-lg font-black text-white truncate max-w-[80px] md:max-w-[100px]">{rankName}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-auto pt-4 border-t border-white/10">
+            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 text-center">{t.gauntletSub.deckUsed}</div>
+            <div className="flex justify-center -space-x-3 md:-space-x-4">
+              {selectedDeck.length > 0 ? (
+                selectedDeck.map((card, i) => (
+                  <div key={i} className="w-10 h-14 md:w-12 md:h-16 rounded-lg border-2 border-gray-900 relative overflow-hidden shadow-lg transform hover:-translate-y-2 transition-transform duration-300" style={{ zIndex: i }}>
+                      <div className={`absolute inset-0 bg-gradient-to-br ${
+                        card.element === 'fire' ? 'from-red-600' :
+                        card.element === 'water' ? 'from-blue-600' :
+                        card.element === 'earth' ? 'from-amber-600' :
+                        card.element === 'wind' ? 'from-emerald-600' :
+                        'from-yellow-600'
+                      } to-black`} />
+                      <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white/50">
+                        {card.stats.top}
+                      </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-gray-600 italic">{t.gauntletSub.noDeckData}</div>
+              )}
+            </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <motion.div

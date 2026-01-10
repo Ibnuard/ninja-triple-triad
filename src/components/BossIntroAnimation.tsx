@@ -28,8 +28,8 @@ export function BossIntroAnimation({
     audioRef.current = audio;
     audio.play().catch((err) => console.log("Audio play failed:", err));
 
-    const timer = setTimeout(() => setShow(false), 3000);
-    const completeTimer = setTimeout(() => onComplete(), 3500);
+    const timer = setTimeout(() => setShow(false), 2500);
+    const completeTimer = setTimeout(() => onComplete(), 3000);
 
     return () => {
       clearTimeout(timer);
@@ -48,72 +48,78 @@ export function BossIntroAnimation({
           {/* Cinematic Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.8 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black"
+            className="absolute inset-0 bg-black/95"
           />
 
-          {/* Red Flash / Glitch Background */}
+          {/* Dynamic Slash Background (Matching BoardIntro style) */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.2, 0.1, 0.3, 0.1] }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-red-900/20 mix-blend-overlay"
+            initial={{ x: "150%", skewX: -15 }}
+            animate={{ x: "-50%", skewX: -15 }}
+            exit={{ x: "-250%", skewX: -15 }}
+            transition={{ type: "spring", damping: 25, stiffness: 120 }}
+            className="absolute inset-y-0 w-[400%] left-0 bg-gradient-to-r from-red-900 via-red-950 to-black border-y-4 border-red-600 shadow-[0_0_100px_rgba(220,38,38,0.5)]"
           />
 
-          {/* Boss Intro Container */}
-          <div className="relative flex flex-col items-center justify-center">
-             {/* Circular Avatar */}
-             <motion.div
-                initial={{ scale: 0, opacity: 0, rotate: -180 }}
-                animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                exit={{ scale: 1.5, opacity: 0 }}
-                transition={{ type: "spring", damping: 15, stiffness: 100 }}
-                className="relative z-10 w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-red-600 shadow-[0_0_50px_rgba(220,38,38,0.5)] overflow-hidden mb-6"
-             >
-                <motion.img 
-                    src={bossImage}
-                    alt={bossName}
-                    className="w-full h-full object-cover grayscale contrast-125 brightness-90"
-                    initial={{ scale: 1.2 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 3 }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-red-900/40 to-transparent" />
-             </motion.div>
+          {/* Content Container */}
+          <motion.div
+            className="relative z-10 flex flex-col items-center justify-center gap-6"
+            initial={{ scale: 2, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{
+              type: "spring",
+              damping: 20,
+              stiffness: 100,
+              delay: 0.1,
+            }}
+          >
+             {/* Circular Avatar (Integrated into slash) */}
+             <div className="relative">
+                <motion.div
+                    animate={{
+                        scale: [1, 1.1, 1],
+                        filter: ["brightness(1)", "brightness(1.3)", "brightness(1)"],
+                    }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-red-500 bg-black/80 shadow-[0_0_30px_rgba(220,38,38,0.6)] overflow-hidden"
+                >
+                    <motion.img 
+                        src={bossImage}
+                        alt={bossName}
+                        className="w-full h-full object-cover grayscale contrast-125 brightness-90"
+                        initial={{ scale: 1.2 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 3 }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-red-900/40 to-transparent" />
+                </motion.div>
+                
+                {/* Particle Ring */}
+                <div className="absolute inset-0 rounded-full animate-ping opacity-20 bg-red-500" />
+             </div>
 
              {/* Text Overlay */}
-             <div className="relative z-20 flex flex-col items-center justify-center">
-                <motion.div
+             <div className="flex flex-col items-center text-center px-4">
+                <motion.span
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -20, opacity: 0 }}
-                    transition={{ delay: 0.3, type: "spring" }}
-                    className="flex flex-col items-center"
+                    transition={{ delay: 0.3 }}
+                    className="text-red-500 font-black text-xs md:text-sm tracking-[0.5em] uppercase italic mb-2"
                 >
-                    <span className="text-red-600 font-black text-xs md:text-sm tracking-[0.4em] uppercase italic drop-shadow-[0_0_8px_rgba(220,38,38,0.6)] mb-1">
-                        {t.bossChallenge}
-                    </span>
-                    <h1 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-                        {bossName}
-                    </h1>
-                </motion.div>
-
-                {/* Decorative Slashes (Smaller) */}
-                <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: "150%" }}
-                    transition={{ delay: 0.5, duration: 0.4 }}
-                    className="absolute h-[1px] bg-red-600/50 rotate-[-10deg] shadow-[0_0_10px_rgba(220,38,38,0.5)]"
-                />
-                <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: "150%" }}
-                    transition={{ delay: 0.6, duration: 0.4 }}
-                    className="absolute h-[1px] bg-red-600/50 rotate-[10deg] shadow-[0_0_10px_rgba(220,38,38,0.5)]"
-                />
+                    {t.bossChallenge}
+                </motion.span>
+                <motion.h1
+                    className="text-4xl md:text-7xl font-black italic uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] tracking-tighter leading-none"
+                    initial={{ y: 50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.4, type: "spring" }}
+                >
+                    {bossName}
+                </motion.h1>
              </div>
-          </div>
+          </motion.div>
 
           {/* Scanning Line Effect */}
           <motion.div 
