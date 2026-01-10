@@ -23,6 +23,7 @@ import { useSettingsStore, useTranslation } from "../../store/useSettingsStore";
 import { Card } from "../../types/game";
 import gameConfig from "../../gameConfig.json";
 import { LoadingOverlay } from "../../components/LoadingOverlay";
+import { useGameConfigStore } from "../../store/useGameConfigStore";
 
 // Mock Cards
 const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
@@ -116,32 +117,25 @@ export default function GamePage() {
   );
   const isGauntletActive = useGauntletStore((state) => state.isActive);
 
-  const isGauntletMode =
-    typeof window !== "undefined" &&
-    window.location.search.includes("mode=gauntlet");
+  const {
+    mode: configMode,
+    mechanic: configMechanic,
+    element: configElement,
+  } = useGameConfigStore();
 
-  // ... existing code
+  const isGauntletMode = configMode === "gauntlet";
+  const isCustomMode = configMode === "custom";
 
   const startGame = async (isRestart = false) => {
     setLoadingMessage(isRestart ? t.cleaning : t.preparing);
-    
+
     // Artificial delay for cleanup/prep
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const isCustom =
-      typeof window !== "undefined" &&
-      window.location.search.includes("mode=custom");
-
-    const isGauntlet =
-      typeof window !== "undefined" &&
-      window.location.search.includes("mode=gauntlet");
-
-    // Parse mechanic from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const mechanicParam = urlParams.get("mechanic");
-    const elementParam = urlParams.get("element");
-    const initialMechanic = mechanicParam as any;
-    const activeElement = elementParam as any;
+    const isCustom = isCustomMode;
+    const isGauntlet = isGauntletMode;
+    const initialMechanic = configMechanic;
+    const activeElement = configElement;
 
     if (isGauntlet) {
       // Gauntlet Initialization
@@ -383,9 +377,6 @@ export default function GamePage() {
   }, []);
 
   const isMyTurn = currentPlayerId === "player1";
-  const isCustomMode =
-    typeof window !== "undefined" &&
-    window.location.search.includes("mode=custom");
 
   return (
     <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
@@ -835,7 +826,7 @@ export default function GamePage() {
                       isCurrentPlayer={currentPlayerId === "player2"}
                       orientation="horizontal"
                       compact
-                      minimal={true}
+                      minimal={isCustomMode ? false : true}
                       isHidden={isCustomMode ? false : true}
                       isCustom={isCustomMode}
                       name={player2.name}

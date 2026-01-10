@@ -13,6 +13,7 @@ import { ModeSelectionGrid } from "./components/ModeSelectionGrid";
 import { TrainingSubMenu } from "./components/TrainingSubMenu";
 import { GauntletModeView } from "./components/GauntletModeView";
 import { CustomModeView } from "./components/CustomModeView";
+import { useGameConfigStore } from "../../store/useGameConfigStore";
 
 export default function SinglePlayerModes() {
   const router = useRouter();
@@ -81,6 +82,8 @@ export default function SinglePlayerModes() {
     },
   ];
 
+  const setConfig = useGameConfigStore((state) => state.setConfig);
+
   const handleModeClick = (modeId: string) => {
     if (modeId === "training" || modeId === "gauntlet") {
       setSelectedMode(modeId);
@@ -88,6 +91,7 @@ export default function SinglePlayerModes() {
     } else if (modeId === "custom") {
       setSelectedMode("custom");
     } else {
+      setConfig({ mode: "training" });
       router.push("/game");
     }
   };
@@ -113,7 +117,8 @@ export default function SinglePlayerModes() {
   const handleStartGauntlet = () => {
     if (isDeckComplete()) {
       startGauntletRun(selectedDeck);
-      router.push("/game?mode=gauntlet");
+      setConfig({ mode: "gauntlet" });
+      router.push("/game");
     }
   };
 
@@ -155,7 +160,13 @@ export default function SinglePlayerModes() {
             {!selectedMode ? (
               <ModeSelectionGrid modes={modes} onModeClick={handleModeClick} />
             ) : selectedMode === "training" ? (
-              <TrainingSubMenu t={t} onNavigate={() => router.push("/game")} />
+              <TrainingSubMenu
+                t={t}
+                onNavigate={() => {
+                  setConfig({ mode: "training" });
+                  router.push("/game");
+                }}
+              />
             ) : selectedMode === "gauntlet" ? (
               <GauntletModeView
                 t={t}
@@ -180,14 +191,12 @@ export default function SinglePlayerModes() {
                 onMechanicChange={setCustomMechanic}
                 onActiveElementChange={setActiveElement}
                 onStartBattle={() => {
-                  let url = `/game?mode=custom&mechanic=${customMechanic}`;
-                  if (
-                    customMechanic === "random_elemental" &&
-                    activeElement !== "random"
-                  ) {
-                    url += `&element=${activeElement}`;
-                  }
-                  router.push(url);
+                  setConfig({
+                    mode: "custom",
+                    mechanic: customMechanic as any,
+                    element: activeElement as any,
+                  });
+                  router.push("/game");
                 }}
               />
             )}
