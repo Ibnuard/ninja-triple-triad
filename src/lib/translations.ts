@@ -108,11 +108,11 @@ export const TRANSLATIONS = {
       footer: "Ninja Arts: Elemental Mastery",
       fire: "If placed in a corner anywhere given +1 to all attributes.",
       water:
-        "If placed in the center given +1 to all attributes. If placed in the center-left given +1 ATK. If placed in the center-right given +1 Jutsu.",
-      earth: "If placed in the bottom row given +1 Chakra.",
-      wind: "If placed in the top row given +1 DEF.",
+        "If placed in the center given +1 to all attributes. If placed in the center-left given +1 Taijutsu. If placed in the center-right given +1 Ninjutsu.",
+      earth: "If placed in the bottom row given +1 Genjutsu.",
+      wind: "If placed in the top row given +1 Chakra.",
       lightning:
-        "If placed in the top given +0-2 DEF randomly. If placed in the middle given +0-1 ATK or Jutsu randomly. If placed in the bottom given +0-2 Chakra randomly.",
+        "If placed in the top given +0-2 Chakra randomly. If placed in the middle given +0-1 Taijutsu or Ninjutsu randomly. If placed in the bottom given +0-2 Genjutsu randomly.",
     },
     tutorial: {
       title: "How to Play",
@@ -126,10 +126,10 @@ export const TRANSLATIONS = {
         anatomy: {
           title: "Card Anatomy",
           desc: "Every card has 4 main attributes arranged in a diamond grid:",
-          cp: "Chakra (Top): Used for vertical defense.",
-          atk: "Attack (Right): Used for horizontal offense.",
-          jt: "Jutsu (Left): Used for horizontal defense.",
-          df: "Defense (Bottom): Used for bottom-up defense.",
+          cp: "Genjutsu (Top): Has points for attacking upwards.",
+          atk: "Taijutsu (Right): Has points for attacking to the right.",
+          jt: "Ninjutsu (Left): Has points for attacking to the left.",
+          df: "Chakra (Bottom): Has points for attacking downwards.",
           element:
             "Elemental Badge: Indicates the card's element (Fire, Water, etc.).",
           buff: "GREEN numbers represent currently buffed stats (+1 or more).",
@@ -286,11 +286,11 @@ export const TRANSLATIONS = {
       footer: "Ninja Arts: Elemental Mastery",
       fire: "Jika ditaruh di pojok (corner) manapun maka +1 semua atribut.",
       water:
-        "Jika ditaruh di tepat tengah maka +1 semua atribut. Jika ditaruh di tengah kiri maka +1 ATK. Jika ditaruh di tengah kanan maka +1 Jutsu.",
-      earth: "Jika ditaruh di baris paling bawah maka +1 Chakra.",
-      wind: "Jika ditaruh di baris paling atas maka +1 DEF.",
+        "Jika ditaruh di tepat tengah maka +1 semua atribut. Jika ditaruh di tengah kiri maka +1 Taijutsu. Jika ditaruh di tengah kanan maka +1 Ninjutsu.",
+      earth: "Jika ditaruh di baris paling bawah maka +1 Genjutsu.",
+      wind: "Jika ditaruh di baris paling atas maka +1 Chakra.",
       lightning:
-        "Jika ditaruh di bagian atas maka +0-2 DEF secara acak. Jika ditaruh di bagian tengah maka +0-1 ATK atau Jutsu secara acak. Jika ditaruh di bagian bawah maka +0-2 Chakra secara acak.",
+        "Jika ditaruh di bagian atas maka +0-2 Chakra secara acak. Jika ditaruh di bagian tengah maka +0-1 Taijutsu atau Ninjutsu secara acak. Jika ditaruh di bagian bawah maka +0-2 Genjutsu secara acak.",
     },
     tutorial: {
       title: "Cara Bermain",
@@ -304,10 +304,10 @@ export const TRANSLATIONS = {
         anatomy: {
           title: "Anatomi Kartu",
           desc: "Setiap kartu memiliki 4 atribut utama yang disusun dalam pola diamond:",
-          cp: "Chakra (Atas): Digunakan untuk pertahanan atas.",
-          atk: "Attack (Kanan): Digunakan untuk serangan samping.",
-          jt: "Jutsu (Kiri): Digunakan untuk pertahanan samping.",
-          df: "Defense (Bawah): Digunakan untuk pertahanan bawah.",
+          cp: "Genjutsu (Atas): Memiliki poin untuk menyerang ke arah atas.",
+          atk: "Taijutsu (Kanan): Memiliki poin untuk menyerang ke arah kanan.",
+          jt: "Ninjutsu (Kiri): Memiliki poin untuk menyerang ke arah kiri.",
+          df: "Chakra (Bawah): Memiliki poin untuk menyerang ke arah bawah.",
           element: "Badge Elemen: Menunjukkan elemen kartu (Api, Air, dll).",
           buff: "Angka HIJAU melambangkan status yang sedang diperkuat (+1 atau lebih).",
           debuff:

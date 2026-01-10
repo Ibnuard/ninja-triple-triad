@@ -7,10 +7,10 @@ export type ElementType =
   | "none";
 
 export interface CardStats {
-  top: number; // Chakra
-  right: number; // ATK
-  bottom: number; // DEF
-  left: number; // Jutsu
+  top: number; // Genjutsu
+  right: number; // Taijutsu
+  bottom: number; // Chakra
+  left: number; // Ninjutsu
 }
 
 export interface Card {

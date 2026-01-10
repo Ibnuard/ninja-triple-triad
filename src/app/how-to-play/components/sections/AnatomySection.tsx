@@ -47,19 +47,19 @@ export function AnatomySection({
           <div className="relative scale-[1.2] lg:scale-150">
             <Card card={mockTutorialCard as any} owner="player1" isColorful />
             {/* Callouts */}
-            {/* CHAKRA - TOP */}
+            {/* GENJUTSU - TOP */}
             <motion.div
               animate={{ y: [0, -5, 0] }}
               transition={{ repeat: Infinity, duration: 2 }}
               className="absolute -top-12 left-1/2 -translate-x-1/2 flex flex-col items-center"
             >
               <div className="bg-blue-500 text-black text-[8px] px-1.5 rounded font-black italic whitespace-nowrap">
-                CHAKRA
+                GENJUTSU
               </div>
               <div className="h-4 lg:h-6 w-0.5 bg-blue-500/50" />
             </motion.div>
-
-            {/* ATTACK - RIGHT */}
+ 
+            {/* TAIJUTSU - RIGHT */}
             <motion.div
               animate={{ x: [0, 5, 0] }}
               transition={{
@@ -71,11 +71,11 @@ export function AnatomySection({
             >
               <div className="w-4 lg:w-6 h-0.5 bg-red-500/50" />
               <div className="bg-red-500 text-black text-[8px] px-1.5 rounded font-black italic whitespace-nowrap">
-                ATTACK
+                TAIJUTSU
               </div>
             </motion.div>
-
-            {/* JUTSU - LEFT */}
+ 
+            {/* NINJUTSU - LEFT */}
             <motion.div
               animate={{ x: [0, -5, 0] }}
               transition={{
@@ -86,12 +86,12 @@ export function AnatomySection({
               className="absolute top-4 -left-12 lg:-left-16 flex items-center"
             >
               <div className="bg-yellow-500 text-black text-[8px] px-1.5 rounded font-black italic whitespace-nowrap">
-                JUTSU
+                NINJUTSU
               </div>
               <div className="w-4 lg:w-6 h-0.5 bg-yellow-500/50" />
             </motion.div>
-
-            {/* DEFENSE - BOTTOM */}
+ 
+            {/* CHAKRA - BOTTOM */}
             <motion.div
               animate={{ y: [0, 5, 0] }}
               transition={{
@@ -103,7 +103,7 @@ export function AnatomySection({
             >
               <div className="h-4 lg:h-6 w-0.5 bg-green-500/50" />
               <div className="bg-green-500 text-black text-[8px] px-1.5 rounded font-black italic whitespace-nowrap">
-                DEFENSE
+                CHAKRA
               </div>
             </motion.div>
           </div>
@@ -112,7 +112,7 @@ export function AnatomySection({
           <div className="flex items-start gap-4 p-4 rounded-xl lg:rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5">
             <Zap className="w-5 h-5 text-blue-400 shrink-0 mt-1" />
             <p className="text-xs lg:text-sm font-medium leading-normal text-gray-300">
-              <strong className="text-blue-400 block mb-1">CHAKRA (TOP)</strong>
+              <strong className="text-blue-400 block mb-1">GENJUTSU (TOP)</strong>
               {cp}
             </p>
           </div>
@@ -120,7 +120,7 @@ export function AnatomySection({
             <Sword className="w-5 h-5 text-red-500 shrink-0 mt-1" />
             <p className="text-xs lg:text-sm font-medium leading-normal text-gray-300">
               <strong className="text-red-500 block mb-1">
-                ATTACK (RIGHT)
+                TAIJUTSU (RIGHT)
               </strong>
               {atk}
             </p>
@@ -129,7 +129,7 @@ export function AnatomySection({
             <Zap className="w-5 h-5 text-yellow-500 shrink-0 mt-1" />
             <p className="text-xs lg:text-sm font-medium leading-normal text-gray-300">
               <strong className="text-yellow-500 block mb-1">
-                JUTSU (LEFT)
+                NINJUTSU (LEFT)
               </strong>
               {jt}
             </p>
@@ -138,7 +138,7 @@ export function AnatomySection({
             <Shield className="w-5 h-5 text-green-500 shrink-0 mt-1" />
             <p className="text-xs lg:text-sm font-medium leading-normal text-gray-300">
               <strong className="text-green-500 block mb-1">
-                DEFENSE (BOTTOM)
+                CHAKRA (BOTTOM)
               </strong>
               {df}
             </p>

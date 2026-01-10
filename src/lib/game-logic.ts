@@ -181,14 +181,14 @@ export function applyElementalPassives(
 
       // --- ORIGINAL ELEMENTAL PASSIVES ---
 
-      // 1. TANAH (Earth) -> 3 row paling bawah (row 2) -> +1 chakra (top)
+      // 1. TANAH (Earth) -> 3 row paling bawah (row 2) -> +1 genjutsu (top)
       if (card.element === "earth" && r === 2) {
         card.stats.top += 1;
         card.activePassives.push("earth");
         card.isBuffed = true;
       }
 
-      // 2. ANGIN (Wind) -> 3 row paling atas (row 0) -> +1 def (bottom)
+      // 2. ANGIN (Wind) -> 3 row paling atas (row 0) -> +1 chakra (bottom)
       if (card.element === "wind" && r === 0) {
         card.stats.bottom += 1;
         card.activePassives.push("wind");
@@ -206,12 +206,12 @@ export function applyElementalPassives(
           card.activePassives.push("water");
           card.isBuffed = true;
         } else if (r === 1 && c === 0) {
-          // Tengah kiri -> +1 atk (right)
+          // Tengah kiri -> +1 taijutsu (right)
           card.stats.right += 1;
           card.activePassives.push("water");
           card.isBuffed = true;
         } else if (r === 1 && c === 2) {
-          // Tengah kanan -> +1 jutsu (left)
+          // Tengah kanan -> +1 ninjutsu (left)
           card.stats.left += 1;
           card.activePassives.push("water");
           card.isBuffed = true;
@@ -234,18 +234,18 @@ export function applyElementalPassives(
       // 5. PETIR (Lightning)
       if (card.element === "lightning") {
         if (r === 0) {
-          // Row atas -> random +def (0-2)
+          // Row atas -> random +chakra (0-2)
           card.stats.bottom += stableRoll(card.id, 2, 0);
           card.activePassives.push("lightning");
           card.isBuffed = true;
         } else if (r === 1) {
-          // Row tengah -> random +atk (0-1) dan random +jutsu (0-1)
+          // Row tengah -> random +taijutsu (0-1) dan random +ninjutsu (0-1)
           card.stats.right += stableRoll(card.id, 1, 100); // use offset to avoid same roll
           card.stats.left += stableRoll(card.id, 1, 200);
           card.activePassives.push("lightning");
           card.isBuffed = true;
         } else if (r === 2) {
-          // Row bawah -> random +chakra (0-2)
+          // Row bawah -> random +genjutsu (0-2)
           card.stats.top += stableRoll(card.id, 2, 300);
           card.activePassives.push("lightning");
           card.isBuffed = true;
