@@ -10,6 +10,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-shojumaru: var(--font-shojumaru);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,5 +39,10 @@ body {
 
   .animate-border-glow {
     animation: borderGlow 3s ease-in-out infinite;
+  }
+
+  .text-stroke {
+    -webkit-text-stroke: 1px black;
+    paint-order: stroke fill;
   }
 }

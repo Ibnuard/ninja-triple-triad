@@ -16,13 +16,13 @@ interface CardProps {
   isGhost?: boolean;
 }
 
-const elementColors: Record<string, string> = {
-  fire: "bg-red-500/20",
-  water: "bg-blue-500/20",
-  earth: "bg-amber-800/20",
-  wind: "bg-emerald-500/20",
-  lightning: "bg-yellow-400/20",
-  none: "bg-gray-500/20",
+const elementGlows: Record<string, string> = {
+  fire: "border-red-500/50",
+  water: "border-blue-500/50",
+  earth: "border-amber-800/50",
+  wind: "border-emerald-500/50",
+  lightning: "border-yellow-400/50",
+  none: "border-gray-500/50",
 };
 
 export const Card = ({
@@ -81,97 +81,97 @@ export const Card = ({
         />
       )}
 
-      {/* STATS AREA: Top Left Diamond Grid */}
-      <div className="absolute top-2 left-2 lg:top-3 lg:left-3 z-10 flex flex-col items-start select-none">
-        <div className="grid grid-cols-3 grid-rows-3 gap-0 lg:gap-0.5 items-center justify-items-center font-black text-[10px] lg:text-[12px] leading-none">
+      {/* STATS AREA: Diamond Grid */}
+      <div className="absolute top-1 left-1 lg:top-1.5 lg:left-1.5 z-10 flex flex-col items-start select-none">
+        <div className="grid grid-cols-3 grid-rows-3 gap-0 items-center justify-items-center font-shojumaru text-[10px] lg:text-[14px] leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,1)] filter text-stroke">
           {/* Top: Chakra */}
           <div
             className={cn(
-              "col-start-2 row-start-1 flex items-center",
+              "col-start-2 row-start-1 flex items-center justify-center relative",
               card.stats.top > card.baseStats.top
                 ? "text-green-400"
                 : card.stats.top < card.baseStats.top
                 ? "text-red-400"
-                : "text-gray-200",
+                : "text-gray-100",
               isColorful ? "text-blue-500" : ""
             )}
           >
             {hideStats ? "?" : card.stats.top}
             {!hideStats && card.stats.top > card.baseStats.top && (
-              <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[7px] text-green-400">▲</span>
             )}
             {!hideStats && card.stats.top < card.baseStats.top && (
-              <span className="text-[8px] lg:text-[12px] ml-0.5">↓</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[7px] text-red-400">▼</span>
             )}
           </div>
 
           {/* Left: Jutsu */}
           <div
             className={cn(
-              "col-start-1 row-start-2 flex items-center",
+              "col-start-1 row-start-2 flex items-center justify-center relative",
               card.stats.left > card.baseStats.left
                 ? "text-green-400"
                 : card.stats.left < card.baseStats.left
                 ? "text-red-400"
-                : "text-gray-200",
+                : "text-gray-100",
               isColorful ? "text-yellow-500" : ""
             )}
           >
             {hideStats ? "?" : card.stats.left}
             {!hideStats && card.stats.left > card.baseStats.left && (
-              <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
+              <span className="absolute -left-1.5 -top-0.5 text-[7px] text-green-400">▲</span>
             )}
             {!hideStats && card.stats.left < card.baseStats.left && (
-              <span className="text-[8px] lg:text-[12px] ml-0.5">↓</span>
+              <span className="absolute -left-1.5 -top-0.5 text-[7px] text-red-400">▼</span>
             )}
           </div>
 
           {/* Right: ATK */}
           <div
             className={cn(
-              "col-start-3 row-start-2 flex items-center",
+              "col-start-3 row-start-2 flex items-center justify-center relative",
               card.stats.right > card.baseStats.right
                 ? "text-green-400"
                 : card.stats.right < card.baseStats.right
                 ? "text-red-400"
-                : "text-gray-200",
+                : "text-gray-100",
               isColorful ? "text-red-500" : ""
             )}
           >
             {hideStats ? "?" : card.stats.right}
             {!hideStats && card.stats.right > card.baseStats.right && (
-              <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[7px] text-green-400">▲</span>
             )}
             {!hideStats && card.stats.right < card.baseStats.right && (
-              <span className="text-[8px] lg:text-[12px] ml-0.5">↓</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[7px] text-red-400">▼</span>
             )}
           </div>
 
           {/* Bottom: DEF */}
           <div
             className={cn(
-              "col-start-2 row-start-3 flex items-center",
+              "col-start-2 row-start-3 flex items-center justify-center relative",
               card.stats.bottom > card.baseStats.bottom
                 ? "text-green-400"
                 : card.stats.bottom < card.baseStats.bottom
                 ? "text-red-400"
-                : "text-gray-200",
+                : "text-gray-100",
               isColorful ? "text-green-500" : ""
             )}
           >
             {hideStats ? "?" : card.stats.bottom}
             {!hideStats && card.stats.bottom > card.baseStats.bottom && (
-              <span className="text-[8px] lg:text-[12px] ml-0.5">↑</span>
+              <span className="absolute -right-1.5 -bottom-0.5 text-[7px] text-green-400">▲</span>
             )}
             {!hideStats && card.stats.bottom < card.baseStats.bottom && (
-              <span className="text-[8px] lg:text-[12px] ml-0.5">↓</span>
+              <span className="absolute -right-1.5 -bottom-0.5 text-[7px] text-red-400">▼</span>
             )}
           </div>
         </div>
       </div>
 
       {/* ELEMENT BADGE: Bottom Right Circle */}
-      <div className="absolute bottom-1 right-1 lg:bottom-2 lg:right-2 z-10">
+      <div className="absolute bottom-0.5 right-0.5 lg:bottom-1 lg:right-1 z-10">
         <motion.div
           animate={
             card.activePassives && card.activePassives.length > 0
@@ -183,15 +183,15 @@ export const Card = ({
           }
           transition={{ repeat: Infinity, duration: 1.5 }}
           className={cn(
-            "w-4 h-4 lg:w-5 lg:h-5 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-white/20 overflow-hidden",
-            elementColors[card.element] || "bg-gray-500"
+            "w-4 h-4 lg:w-5 lg:h-5 rounded-full flex items-center justify-center border overflow-hidden backdrop-blur-md bg-slate-900/90 shadow-sm",
+            elementGlows[card.element] || "border-white/20"
           )}
         >
           {card.element !== "none" ? (
             <img
               src={`/images/${card.element}.webp`}
               alt={card.element}
-              className="w-[60%] h-[60%] object-contain drop-shadow-md"
+              className="w-[70%] h-[70%] object-contain drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]"
             />
           ) : (
             <span className="text-[10px] lg:text-sm font-black text-white drop-shadow-md">
@@ -202,8 +202,13 @@ export const Card = ({
       </div>
 
       {/* Center Image Placeholder */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-        <span className="text-3xl lg:text-5xl">🥷</span>
+      {/* Center Image Placeholder */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden rounded-xl lg:rounded-2xl">
+        <img
+          src={card.image || "/images/dummy-ninja.webp"}
+          alt={card.name}
+          className="w-full h-full object-cover opacity-80"
+        />
       </div>
 
       {/* Card Name / Footer */}
