@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Shojumaru } from "next/font/google";
+import { Geist, Geist_Mono, Shojumaru, Luckiest_Guy } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,6 +17,12 @@ const shojumaru = Shojumaru({
   variable: "--font-shojumaru",
   subsets: ["latin"],
 });
+ 
+const luckiestGuy = Luckiest_Guy({
+  weight: "400",
+  variable: "--font-luckiest",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -31,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${shojumaru.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${shojumaru.variable} ${luckiestGuy.variable} antialiased`}
       >
         {children}
       </body>

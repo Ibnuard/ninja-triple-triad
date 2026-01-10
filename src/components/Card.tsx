@@ -46,7 +46,7 @@ export const Card = ({
           ? "w-full h-full"
           : "w-[18vw] h-[25vw] max-w-[100px] max-h-[140px] lg:w-24 lg:h-32",
         isSelected
-          ? "ring-4 ring-blue-500 ring-offset-2 ring-offset-black scale-105 z-20 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+          ? "ring-4 ring-blue-500 ring-offset-2 ring-offset-black scale-115 -translate-y-6 z-20 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
           : !isGhost && "hover:shadow-2xl hover:-translate-y-1",
         owner === "player1"
           ? isPlaced
@@ -88,8 +88,8 @@ export const Card = ({
 
       {/* STATS AREA: Diamond Grid */}
       <div className="absolute top-1 left-1 lg:top-1.5 lg:left-1.5 z-10 flex flex-col items-start select-none">
-        <div className="grid grid-cols-3 grid-rows-3 gap-0 items-center justify-items-center font-shojumaru text-[10px] lg:text-[14px] leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,1)] filter text-stroke">
-          {/* Top: Chakra */}
+        <div className="grid grid-cols-3 grid-rows-3 gap-0 items-center justify-items-center font-luckiest text-[14px] lg:text-[16px] leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,1)] filter text-stroke">
+          {/* Top: Genjutsu (Top) */}
           <div
             className={cn(
               "col-start-2 row-start-1 flex items-center justify-center relative",
@@ -103,14 +103,14 @@ export const Card = ({
           >
             {hideStats ? "?" : card.stats.top}
             {!hideStats && card.stats.top > card.baseStats.top && (
-              <span className="absolute -right-1.5 -top-0.5 text-[7px] text-green-400">▲</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-green-400">▲</span>
             )}
             {!hideStats && card.stats.top < card.baseStats.top && (
-              <span className="absolute -right-1.5 -top-0.5 text-[7px] text-red-400">▼</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-red-400">▼</span>
             )}
           </div>
 
-          {/* Left: Jutsu */}
+          {/* Left: Ninjutsu (Left) */}
           <div
             className={cn(
               "col-start-1 row-start-2 flex items-center justify-center relative",
@@ -124,14 +124,14 @@ export const Card = ({
           >
             {hideStats ? "?" : card.stats.left}
             {!hideStats && card.stats.left > card.baseStats.left && (
-              <span className="absolute -left-1.5 -top-0.5 text-[7px] text-green-400">▲</span>
+              <span className="absolute -left-1.5 -top-0.5 text-[8px] text-green-400">▲</span>
             )}
             {!hideStats && card.stats.left < card.baseStats.left && (
-              <span className="absolute -left-1.5 -top-0.5 text-[7px] text-red-400">▼</span>
+              <span className="absolute -left-1.5 -top-0.5 text-[8px] text-red-400">▼</span>
             )}
           </div>
 
-          {/* Right: ATK */}
+          {/* Right: Taijutsu (Right) */}
           <div
             className={cn(
               "col-start-3 row-start-2 flex items-center justify-center relative",
@@ -145,14 +145,14 @@ export const Card = ({
           >
             {hideStats ? "?" : card.stats.right}
             {!hideStats && card.stats.right > card.baseStats.right && (
-              <span className="absolute -right-1.5 -top-0.5 text-[7px] text-green-400">▲</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-green-400">▲</span>
             )}
             {!hideStats && card.stats.right < card.baseStats.right && (
-              <span className="absolute -right-1.5 -top-0.5 text-[7px] text-red-400">▼</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-red-400">▼</span>
             )}
           </div>
 
-          {/* Bottom: DEF */}
+          {/* Bottom: Chakra (Bottom) */}
           <div
             className={cn(
               "col-start-2 row-start-3 flex items-center justify-center relative",
@@ -166,10 +166,10 @@ export const Card = ({
           >
             {hideStats ? "?" : card.stats.bottom}
             {!hideStats && card.stats.bottom > card.baseStats.bottom && (
-              <span className="absolute -right-1.5 -bottom-0.5 text-[7px] text-green-400">▲</span>
+              <span className="absolute -right-1.5 -bottom-0.5 text-[8px] text-green-400">▲</span>
             )}
             {!hideStats && card.stats.bottom < card.baseStats.bottom && (
-              <span className="absolute -right-1.5 -bottom-0.5 text-[7px] text-red-400">▼</span>
+              <span className="absolute -right-1.5 -bottom-0.5 text-[8px] text-red-400">▼</span>
             )}
           </div>
         </div>
