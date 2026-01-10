@@ -80,7 +80,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   initGame: (roomId, vsComputer, initialMechanic, activeElement) => {
     // 1. Determine Mechanic & Element
     let selectedMechanic = initialMechanic;
-    if (!selectedMechanic || selectedMechanic === "none") {
+    if (!selectedMechanic || selectedMechanic === "random") {
       const mechanics: BoardMechanicType[] = [
         "random_elemental",
         "poison",

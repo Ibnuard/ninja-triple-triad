@@ -50,6 +50,7 @@ export type GamePhase = "lobby" | "deciding_turn" | "playing" | "game_over";
 
 export type BoardMechanicType =
   | "none"
+  | "random"
   | "random_elemental"
   | "poison"
   | "foggy"

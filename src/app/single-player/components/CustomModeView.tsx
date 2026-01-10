@@ -21,7 +21,7 @@ export function CustomModeView({
   onActiveElementChange,
   onStartBattle,
 }: CustomModeViewProps) {
-  const mechanics = ["none", "random_elemental", "poison", "foggy", "joker"];
+  const mechanics = ["none", "random", "random_elemental", "poison", "foggy", "joker"];
 
   const elements = ["random", "fire", "water", "earth", "wind", "lightning"];
 

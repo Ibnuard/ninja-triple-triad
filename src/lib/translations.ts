@@ -30,9 +30,15 @@ export const TRANSLATIONS = {
       cpu: "CPU",
       emptyHand: "Empty Hand",
       passiveInfo: "Passive Info",
+      standardMatch: "Standard Match",
       mechanics: {
         randomElemental: {
           title: "Elemental Board",
+          fireTitle: "Fire Board",
+          waterTitle: "Water Board",
+          earthTitle: "Earth Board",
+          windTitle: "Wind Board",
+          lightningTitle: "Lightning Board",
           desc: "The board has been infused with {element} energy. All cards with the {element} element receive +1 to all stats.",
         },
         poison: {
@@ -127,6 +133,7 @@ export const TRANSLATIONS = {
         selectElement: "Select Active Element",
         mechanics: {
           none: "None",
+          random: "Random",
           random_elemental: "Random Elemental",
           poison: "Poison",
           foggy: "Foggy",
@@ -247,9 +254,15 @@ export const TRANSLATIONS = {
       cpu: "CPU",
       emptyHand: "Tangan Kosong",
       passiveInfo: "Info Pasif",
+      standardMatch: "Pertandingan Standar",
       mechanics: {
         randomElemental: {
           title: "Papan Elemental",
+          fireTitle: "Papan Api",
+          waterTitle: "Papan Air",
+          earthTitle: "Papan Tanah",
+          windTitle: "Papan Angin",
+          lightningTitle: "Papan Petir",
           desc: "Papan telah dipenuhi energi {element}. Semua kartu dengan elemen {element} mendapat +1 untuk semua stat.",
         },
         poison: {
@@ -345,6 +358,7 @@ export const TRANSLATIONS = {
         selectElement: "Pilih Elemen Aktif",
         mechanics: {
           none: "Tidak Ada",
+          random: "Acak",
           random_elemental: "Elemental Acak",
           poison: "Racun",
           foggy: "Berkabut",

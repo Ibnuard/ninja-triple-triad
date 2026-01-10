@@ -66,6 +66,46 @@ const BOARD_CONFIG = {
     shadow: "shadow-orange-500/50",
     sound: "/sounds/joker-board.mp3",
   },
+  random: {
+    icon: Zap,
+    color: "from-indigo-900 via-purple-900 to-black",
+    borderColor: "border-purple-500",
+    shadow: "shadow-purple-500/50",
+    sound: null,
+  },
+};
+
+const ELEMENT_CONFIG: Record<string, any> = {
+  fire: {
+    icon: Flame,
+    color: "from-red-600 via-red-900 to-black",
+    borderColor: "border-red-500",
+    shadow: "shadow-red-500/50",
+  },
+  water: {
+    icon: Droplet,
+    color: "from-blue-600 via-blue-900 to-black",
+    borderColor: "border-blue-500",
+    shadow: "shadow-blue-500/50",
+  },
+  earth: {
+    icon: Mountain,
+    color: "from-amber-700 via-amber-900 to-black",
+    borderColor: "border-amber-600",
+    shadow: "shadow-amber-600/50",
+  },
+  wind: {
+    icon: Wind,
+    color: "from-emerald-600 via-emerald-900 to-black",
+    borderColor: "border-emerald-500",
+    shadow: "shadow-emerald-500/50",
+  },
+  lightning: {
+    icon: Zap,
+    color: "from-purple-600 via-purple-900 to-black",
+    borderColor: "border-purple-500",
+    shadow: "shadow-purple-500/50",
+  },
 };
 
 export function BoardIntroAnimation({
@@ -75,15 +115,41 @@ export function BoardIntroAnimation({
 }: BoardIntroAnimationProps) {
   const [show, setShow] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const t = useTranslation().game.mechanics;
+  const gameT = useTranslation().game;
+  const t = gameT.mechanics;
 
-  const config = BOARD_CONFIG[mechanicType];
+  // Determine config based on mechanic and element
+  let config = BOARD_CONFIG[mechanicType] || BOARD_CONFIG.none;
+  if (
+    mechanicType === "random_elemental" &&
+    activeElement &&
+    activeElement !== "none"
+  ) {
+    const elConfig = ELEMENT_CONFIG[activeElement];
+    if (elConfig) {
+      config = { ...config, ...elConfig };
+    }
+  }
+
   const Icon = config.icon;
 
   // Get title from translations
   const getTitle = () => {
+    if (mechanicType === "random_elemental" && activeElement && activeElement !== "none") {
+      const re = t.randomElemental;
+      switch (activeElement) {
+        case "fire": return re.fireTitle;
+        case "water": return re.waterTitle;
+        case "earth": return re.earthTitle;
+        case "wind": return re.windTitle;
+        case "lightning": return re.lightningTitle;
+        default: return re.title;
+      }
+    }
+
     switch (mechanicType) {
       case "random_elemental":
+      case "random":
         return t.randomElemental.title;
       case "poison":
         return t.poison.title;
@@ -92,7 +158,7 @@ export function BoardIntroAnimation({
       case "joker":
         return t.joker.title;
       default:
-        return "STANDARD MATCH";
+        return gameT.standardMatch;
     }
   };
 
@@ -193,22 +259,6 @@ export function BoardIntroAnimation({
               >
                 {getTitle()}
               </motion.h1>
-
-              {/* Active Element Subtext */}
-              {mechanicType === "random_elemental" && activeElement && (
-                <motion.div
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: "auto", opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="overflow-hidden whitespace-nowrap max-w-full"
-                >
-                  <span
-                    className={`text-sm sm:text-2xl md:text-4xl font-bold uppercase tracking-[0.2em] sm:tracking-[0.5em] text-white ${config.shadow} px-2 sm:px-4 py-1 border-2 border-white/50 bg-black/30 block`}
-                  >
-                    {activeElement} ACTIVE
-                  </span>
-                </motion.div>
-              )}
             </div>
           </motion.div>
         </div>

@@ -22,7 +22,7 @@ export const useGameConfigStore = create<GameConfigState>()(
     persist(
         (set) => ({
             mode: null,
-            mechanic: "none",
+            mechanic: "random",
             element: "none",
 
             setConfig: (config) => {
@@ -36,7 +36,7 @@ export const useGameConfigStore = create<GameConfigState>()(
             clearConfig: () => {
                 set({
                     mode: null,
-                    mechanic: "none",
+                    mechanic: "random",
                     element: "none",
                 });
             },
