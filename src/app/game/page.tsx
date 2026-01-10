@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Board } from "../../components/Board";
 import { BoardIntroAnimation } from "../../components/BoardIntroAnimation";
+import { BossIntroAnimation } from "../../components/BossIntroAnimation";
 import { BoardMechanicModal } from "../../components/BoardMechanicModal";
 import { Hand } from "../../components/Hand";
 import { PassiveInfoModal } from "../../components/PassiveInfoModal";
@@ -69,6 +70,7 @@ export default function GamePage() {
   const [showMechanicModal, setShowMechanicModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showBoardIntro, setShowBoardIntro] = useState(true);
+  const [showBossIntro, setShowBossIntro] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
 
   const {
@@ -105,10 +107,11 @@ export default function GamePage() {
 
   // Fix: Ensure intro is marked as "done" if animations are disabled
   useEffect(() => {
-    if (!activeSettings.showBoardAnimation && showBoardIntro) {
-      setShowBoardIntro(false);
+    if (!activeSettings.showBoardAnimation) {
+      if (showBossIntro) setShowBossIntro(false);
+      if (showBoardIntro) setShowBoardIntro(false);
     }
-  }, [activeSettings.showBoardAnimation, showBoardIntro]);
+  }, [activeSettings.showBoardAnimation, showBossIntro, showBoardIntro]);
 
   // Use selective subscriptions to prevent re-renders on drag state changes
   const initGame = useGameStore((state) => state.initGame);
@@ -156,6 +159,8 @@ export default function GamePage() {
     (state) => state.getOpponentConfig
   );
   const isGauntletActive = useGauntletStore((state) => state.isActive);
+  const isBossBattle = useGauntletStore((state) => state.isBossBattle);
+  const pendingRank = useGauntletStore((state) => state.pendingRank);
 
   const {
     mode: configMode,
@@ -232,33 +237,59 @@ export default function GamePage() {
     }
 
     setLoadingMessage(null);
-    setShowBoardIntro(true);
+    if (isGauntlet && isBossBattle) {
+      setShowBossIntro(true);
+      setShowBoardIntro(false);
+    } else {
+      setShowBossIntro(false);
+      setShowBoardIntro(true);
+    }
   };
 
 
   // Auto-skip intro if animation disabled
   useEffect(() => {
-    if (!activeSettings.showBoardAnimation && showBoardIntro) {
-      setShowBoardIntro(false);
+    if (!activeSettings.showBoardAnimation) {
+      if (showBossIntro) setShowBossIntro(false);
+      if (showBoardIntro) setShowBoardIntro(false);
     }
-  }, [showBoardIntro, activeSettings.showBoardAnimation]);
+  }, [showBossIntro, showBoardIntro, activeSettings.showBoardAnimation]);
 
   // Use AI Hook with Pause
-  useComputerAI({ isPaused: showBoardIntro });
+  useComputerAI({ isPaused: showBoardIntro || showBossIntro });
 
 
   const [showResult, setShowResult] = useState(false);
+  const [justFinishedBoss, setJustFinishedBoss] = useState(false);
+  const [oldGauntletScore, setOldGauntletScore] = useState(0);
 
   useEffect(() => {
     if (phase === "game_over") {
+      if (isGauntletMode) {
+        const board = useGameStore.getState().board;
+        let boardCardCount = 0;
+        board.forEach((row) =>
+          row.forEach((cell) => {
+            if (cell.owner === "player1") boardCardCount++;
+          })
+        );
+        setOldGauntletScore(gauntletScore);
+        setJustFinishedBoss(isBossBattle);
+        processMatchResult(
+          winner || "draw",
+          player1.totalFlips || 0,
+          boardCardCount
+        );
+      }
       const timer = setTimeout(() => {
         setShowResult(true);
       }, 2000);
       return () => clearTimeout(timer);
     } else {
       setShowResult(false);
+      setJustFinishedBoss(false);
     }
-  }, [phase]);
+  }, [phase, isGauntletMode]);
 
   useEffect(() => {
     // Always start game if in Gauntlet mode to ensure correct opponent name/config
@@ -278,8 +309,20 @@ export default function GamePage() {
         <>
           <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none overflow-hidden" />
 
+          {/* Boss Intro Animation */}
+          {showBossIntro && activeSettings.showBoardAnimation && (
+            <BossIntroAnimation
+              bossKey={getOpponentConfig().bossKey || ""}
+              bossImage={getOpponentConfig().bossImage || ""}
+              onComplete={() => {
+                setShowBossIntro(false);
+                setShowBoardIntro(true);
+              }}
+            />
+          )}
+
           {/* Board Intro Animation */}
-          {showBoardIntro && activeSettings.showBoardAnimation && (
+          {showBoardIntro && activeSettings.showBoardAnimation && !showBossIntro && (
             <BoardIntroAnimation
               mechanicType={mechanic.type}
               activeElement={mechanic.activeElement}
@@ -288,7 +331,7 @@ export default function GamePage() {
           )}
 
           {/* Main Game UI - Only render after Intro OR if animation is disabled/skipped */}
-          {(!showBoardIntro || !activeSettings.showBoardAnimation) && (
+          {((!showBoardIntro && !showBossIntro) || !activeSettings.showBoardAnimation) && (
             <>
               {/* Full-Screen Effects */}
               {activeSettings.showFullScreenEffect && (
@@ -540,7 +583,7 @@ export default function GamePage() {
                         <motion.div variants={{ hidden: { opacity: 0, y: -20 }, visible: { opacity: 1, y: 0 } }} className="mb-6 relative z-10">
                           <h2 className="text-gray-500 text-[10px] font-black tracking-[0.4em] mb-2 uppercase italic">
                             {isGauntletMode
-                              ? t.gauntlet.roundCleared
+                              ? (justFinishedBoss ? t.gauntlet.roundCleared : (isBossBattle ? t.gauntlet.thresholdReached : t.gauntlet.roundCleared))
                               : t.matchFinished}
                           </h2>
                           <motion.h1
@@ -552,15 +595,29 @@ export default function GamePage() {
                                 ? "text-blue-400"
                                 : winner === "player2"
                                 ? "text-red-500"
-                                : "text-yellow-500"
+                                : winner === "draw"
+                                ? "text-yellow-500"
+                                : "text-white"
                             )}
                           >
                             {winner === "draw"
-                              ? t.draw
+                              ? (justFinishedBoss ? t.gauntlet.rankUpFailed : t.draw)
                               : winner === "player1"
-                              ? t.victory
-                              : t.defeat}
+                              ? (justFinishedBoss ? t.gauntlet.bossDefeated : t.victory)
+                              : winner === "player2"
+                              ? (justFinishedBoss ? t.gauntlet.rankUpFailed : t.defeat)
+                              : (isBossBattle ? t.gauntlet.bossChallenge : t.victory)}
                           </motion.h1>
+                          {justFinishedBoss && winner !== null && (
+                            <motion.p 
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 1 }}
+                              className="text-[10px] text-red-400 font-bold mt-2 tracking-widest uppercase"
+                            >
+                              {winner === "player1" ? "You have proven your worth!" : "The Boss was too strong..."}
+                            </motion.p>
+                          )}
                         </motion.div>
 
                         {/* Stats Section (Middle) */}
@@ -640,52 +697,27 @@ export default function GamePage() {
                                 <div className="text-yellow-400 font-black text-base relative h-6 w-24">
                                     {/* Rank Text Animation */}
                                     {(() => {
+                                        if (isBossBattle && pendingRank) {
+                                            return (
+                                                <div className="absolute top-0 left-0 flex flex-col">
+                                                    <span className="text-yellow-400">{gauntletRank}</span>
+                                                    <motion.span 
+                                                        animate={{ opacity: [0.5, 1, 0.5] }}
+                                                        transition={{ repeat: Infinity, duration: 1.5 }}
+                                                        className="text-[8px] text-red-500 font-black"
+                                                    >
+                                                        BOSS CHALLENGE!
+                                                    </motion.span>
+                                                </div>
+                                            );
+                                        }
+
                                         const ranks: GauntletRank[] = ["Genin", "Chunin", "Jounin", "Anbu", "Kage", "Rikudo"];
                                         const currentRankIndex = ranks.indexOf(gauntletRank as GauntletRank);
                                         
-                                        // Calculate if rank up happened
-                                        let nextRank = gauntletRank;
-                                        if (winner === "player1") {
-                                            const baseWin = 20;
-                                            const board = useGameStore.getState().board;
-                                            let boardCardCount = 0;
-                                            board.forEach((row) =>
-                                              row.forEach((cell) => {
-                                                if (cell.owner === "player1") boardCardCount++;
-                                              })
-                                            );
-                                            const boardBonus = boardCardCount * 2;
-                                            const currentTotalScore = gauntletScore + baseWin + boardBonus;
-                                            
-                                            if (currentTotalScore >= RANK_THRESHOLDS.Rikudo) nextRank = "Rikudo";
-                                            else if (currentTotalScore >= RANK_THRESHOLDS.Kage) nextRank = "Kage";
-                                            else if (currentTotalScore >= RANK_THRESHOLDS.Anbu) nextRank = "Anbu";
-                                            else if (currentTotalScore >= RANK_THRESHOLDS.Jounin) nextRank = "Jounin";
-                                            else if (currentTotalScore >= RANK_THRESHOLDS.Chunin) nextRank = "Chunin";
-                                        }
-
-                                        if (nextRank !== gauntletRank) {
-                                            return (
-                                                <>
-                                                    <motion.div
-                                                        initial={{ opacity: 1, y: 0 }}
-                                                        animate={{ opacity: 0, y: -10 }}
-                                                        transition={{ delay: 1, duration: 0.5 }}
-                                                        className="absolute top-0 left-0"
-                                                    >
-                                                        {gauntletRank}
-                                                    </motion.div>
-                                                    <motion.div
-                                                        initial={{ opacity: 0, y: 10, scale: 0.5 }}
-                                                        animate={{ opacity: 1, y: 0, scale: 1.2 }}
-                                                        transition={{ delay: 1.5, type: "spring" }}
-                                                        className="absolute top-0 left-0 text-yellow-300"
-                                                    >
-                                                        {nextRank}
-                                                    </motion.div>
-                                                </>
-                                            );
-                                        }
+                                        // Calculate if rank up happened (this logic might need refinement if we want to show the animation ONLY after boss)
+                                        // For now, if we are in boss battle, we show the "Boss Challenge" text instead of the animation.
+                                        
                                         return <div className="absolute top-0 left-0">{gauntletRank}</div>;
                                     })()}
                                 </div>
@@ -698,24 +730,13 @@ export default function GamePage() {
                                     className="text-white font-black text-xl"
                                 >
                                     {(() => {
-                                        const baseWin = 20;
-                                        const board = useGameStore.getState().board;
-                                        let boardCardCount = 0;
-                                        board.forEach((row) =>
-                                          row.forEach((cell) => {
-                                            if (cell.owner === "player1") boardCardCount++;
-                                          })
-                                        );
-                                        const boardBonus = boardCardCount * 2;
-                                        const finalScore = winner === "player1" ? gauntletScore + baseWin + boardBonus : gauntletScore;
-
                                         return (
                                             <motion.span
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
                                                 ref={(node) => {
                                                     if (node) {
-                                                        animate(gauntletScore, finalScore, {
+                                                        animate(oldGauntletScore, gauntletScore, {
                                                             duration: 1.5,
                                                             delay: 0.5,
                                                             onUpdate: (latest) => {
@@ -731,17 +752,17 @@ export default function GamePage() {
                                 </div>
                             </div>
                             
-                            {winner === "player1" && (
+                             {isGauntletMode && (
                                 <>
                                     <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1">
                                         <div className="flex flex-col text-left">
                                             <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">Win Points</span>
-                                            <span className="text-white font-black">+20</span>
+                                            <span className="text-white font-black">{winner === "player1" ? "+20" : "0"}</span>
                                         </div>
                                         <div className="flex flex-col text-right">
                                             <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">{t.gauntlet.boardBonus}</span>
                                             <span className="text-green-400 font-black">
-                                                +{(() => {
+                                                +{winner === "player1" ? (() => {
                                                     const board = useGameStore.getState().board;
                                                     let boardCardCount = 0;
                                                     board.forEach((row) =>
@@ -750,10 +771,27 @@ export default function GamePage() {
                                                       })
                                                     );
                                                     return boardCardCount * 2;
-                                                })()}
+                                                })() : "0"}
                                             </span>
                                         </div>
                                     </div>
+
+                                    {(justFinishedBoss || isBossBattle) && winner !== "player1" && winner !== null && (
+                                        <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1 bg-red-500/10 p-2 rounded-lg">
+                                            <div className="flex flex-col text-left">
+                                                <span className="text-red-400 text-[8px] font-bold uppercase tracking-wider">{t.gauntlet.scoreReduction}</span>
+                                                <span className="text-red-500 font-black">
+                                                    {winner === "draw" ? "-33%" : "-50%"}
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-col text-right">
+                                                <span className="text-red-400 text-[8px] font-bold uppercase tracking-wider">Penalty</span>
+                                                <span className="text-red-500 font-black">
+                                                    -{Math.round(oldGauntletScore - gauntletScore)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Rank Progress Bar */}
                                     <div className="w-full mt-1">
@@ -781,19 +819,7 @@ export default function GamePage() {
                                                         const currentThreshold = RANK_THRESHOLDS[gauntletRank as GauntletRank];
                                                         const nextThreshold = RANK_THRESHOLDS[ranks[currentRankIndex + 1]];
                                                         
-                                                        // Calculate potential new score
-                                                        const baseWin = 20;
-                                                        const board = useGameStore.getState().board;
-                                                        let boardCardCount = 0;
-                                                        board.forEach((row) =>
-                                                          row.forEach((cell) => {
-                                                            if (cell.owner === "player1") boardCardCount++;
-                                                          })
-                                                        );
-                                                        const boardBonus = boardCardCount * 2;
-                                                        const currentTotalScore = gauntletScore + baseWin + boardBonus;
-
-                                                        const progress = Math.min(100, Math.max(0, ((currentTotalScore - currentThreshold) / (nextThreshold - currentThreshold)) * 100));
+                                                        const progress = Math.min(100, Math.max(0, ((gauntletScore - currentThreshold) / (nextThreshold - currentThreshold)) * 100));
                                                         return `${progress}%`;
                                                     })() 
                                                 }}
@@ -803,7 +829,7 @@ export default function GamePage() {
                                         </div>
                                     </div>
                                 </>
-                            )}
+                             )}
                           </motion.div>
                         )}
 
@@ -812,18 +838,6 @@ export default function GamePage() {
                           {isGauntletMode && winner === "player1" ? (
                             <button
                               onClick={() => {
-                                const board = useGameStore.getState().board;
-                                let boardCardCount = 0;
-                                board.forEach((row) =>
-                                  row.forEach((cell) => {
-                                    if (cell.owner === "player1") boardCardCount++;
-                                  })
-                                );
-                                processMatchResult(
-                                  "player1",
-                                  player1.totalFlips || 0,
-                                  boardCardCount
-                                );
                                 const config = getOpponentConfig();
                                 initGame("gauntlet-room", true, config.mechanic);
                                 useGameStore.setState((state) => ({
@@ -844,16 +858,22 @@ export default function GamePage() {
                                   player2: {
                                     ...state.player2,
                                     hand: config.deck,
-                                    name: `Enemy ${gauntletRank}`,
+                                    name: isBossBattle ? (t.gauntlet.bosses[config.bossKey as keyof typeof t.gauntlet.bosses] || config.deck[0]?.name || "Boss") : `Enemy ${gauntletRank}`,
                                     totalFlips: 0,
                                   },
                                 }));
                                 setShowResult(false);
-                                setShowBoardIntro(true);
+                                if (isBossBattle) {
+                                    setShowBossIntro(true);
+                                    setShowBoardIntro(false);
+                                } else {
+                                    setShowBossIntro(false);
+                                    setShowBoardIntro(true);
+                                }
                               }}
                               className="w-full py-3 bg-blue-500 text-white font-black text-xs tracking-[0.2em] hover:bg-blue-400 transition-all rounded-xl shadow-[0_4px_0_rgb(30,64,175)] active:translate-y-1 active:shadow-none uppercase italic"
                             >
-                              {t.gauntlet.nextBattle}
+                              {isBossBattle ? t.gauntlet.bossChallenge : t.gauntlet.nextBattle}
                             </button>
                           ) : (
                             <button
@@ -867,18 +887,6 @@ export default function GamePage() {
                           <button
                             onClick={async () => {
                               if (isGauntletMode) {
-                                const board = useGameStore.getState().board;
-                                let boardCardCount = 0;
-                                board.forEach((row) =>
-                                  row.forEach((cell) => {
-                                    if (cell.owner === "player1") boardCardCount++;
-                                  })
-                                );
-                                processMatchResult(
-                                  winner || "draw",
-                                  player1.totalFlips || 0,
-                                  boardCardCount
-                                );
                                 useGauntletStore.getState().endRun();
                               }
                               setLoadingMessage("Membersihkan battlefield...");

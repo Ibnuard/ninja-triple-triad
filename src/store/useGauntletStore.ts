@@ -11,12 +11,14 @@ interface GauntletState {
     round: number;
     deck: Card[];
     lastBoss: string;
+    isBossBattle: boolean;
+    pendingRank: GauntletRank | null;
 
     // Actions
     startRun: (deck: Card[]) => void;
     endRun: () => void;
     processMatchResult: (winner: "player1" | "player2" | "draw", flips: number, boardCardCount?: number) => { scoreAdded: number; newRank: GauntletRank | null };
-    getOpponentConfig: () => { deck: Card[]; mechanic: BoardMechanicType; activeElement?: ElementType };
+    getOpponentConfig: () => { deck: Card[]; mechanic: BoardMechanicType; activeElement?: ElementType; bossKey?: string; bossImage?: string };
 }
 
 export const RANK_THRESHOLDS: Record<GauntletRank, number> = {
@@ -37,6 +39,85 @@ const OPPONENT_NAMES: Record<GauntletRank, string[]> = {
     Rikudo: ["Madara", "Kaguya", "Sage of Six Paths"],
 };
 
+interface BossConfig {
+    name: string;
+    bossKey: string;
+    image: string;
+    mechanic: BoardMechanicType;
+    deck: Card[];
+}
+
+const BOSS_CONFIGS: Record<GauntletRank, BossConfig> = {
+    Genin: {
+        name: "Zabuza Momochi",
+        bossKey: "zabuza",
+        image: "/images/bosses/zabuza.webp",
+        mechanic: "foggy",
+        deck: [], // Will be populated with dummy cards
+    },
+    Chunin: {
+        name: "Sasori",
+        bossKey: "sasori",
+        image: "/images/bosses/sasori.webp",
+        mechanic: "poison",
+        deck: [],
+    },
+    Jounin: {
+        name: "Pain",
+        bossKey: "pain",
+        image: "/images/bosses/pain.webp",
+        mechanic: "joker",
+        deck: [],
+    },
+    Anbu: {
+        name: "Madara Uchiha",
+        bossKey: "madara",
+        image: "/images/bosses/madara.webp",
+        mechanic: "random_elemental",
+        deck: [],
+    },
+    Kage: {
+        name: "Kaguya Otsutsuki",
+        bossKey: "kaguya",
+        image: "/images/bosses/kaguya.webp",
+        mechanic: "random_elemental",
+        deck: [],
+    },
+    Rikudo: {
+        name: "The Final Sage",
+        bossKey: "kaguya", // Fallback or new key
+        image: "/images/bosses/kaguya.webp",
+        mechanic: "random_elemental",
+        deck: [],
+    }
+};
+
+// Helper to generate dummy boss cards
+const generateBossDeck = (rank: GauntletRank): Card[] => {
+    let stat = 5;
+    switch (rank) {
+        case "Genin": stat = 6; break;
+        case "Chunin": stat = 8; break;
+        case "Jounin": stat = 10; break;
+        case "Anbu": stat = 12; break;
+        case "Kage": stat = 15; break;
+        case "Rikudo": stat = 20; break;
+    }
+    return Array.from({ length: 5 }).map((_, i) => ({
+        id: `boss-${rank}-${i}`,
+        name: `Boss Card ${i + 1}`,
+        element: "none",
+        image: "",
+        stats: { top: stat, bottom: stat, left: stat, right: stat },
+        baseStats: { top: stat, bottom: stat, left: stat, right: stat },
+    }));
+};
+
+// Populate boss decks
+Object.keys(BOSS_CONFIGS).forEach((rank) => {
+    BOSS_CONFIGS[rank as GauntletRank].deck = generateBossDeck(rank as GauntletRank);
+});
+
 import { useDeckStore } from "./useDeckStore";
 
 export const useGauntletStore = create<GauntletState>()(
@@ -48,6 +129,8 @@ export const useGauntletStore = create<GauntletState>()(
             round: 1,
             deck: [],
             lastBoss: "-",
+            isBossBattle: false,
+            pendingRank: null,
 
             startRun: (deck) => {
                 set({
@@ -57,6 +140,8 @@ export const useGauntletStore = create<GauntletState>()(
                     round: 1,
                     deck,
                     lastBoss: "-",
+                    isBossBattle: false,
+                    pendingRank: null,
                 });
             },
 
@@ -67,8 +152,34 @@ export const useGauntletStore = create<GauntletState>()(
             },
 
             processMatchResult: (winner, flips, boardCardCount = 0) => {
-                const { score, rank, round } = get();
+                const { score, rank, round, isBossBattle, pendingRank } = get();
 
+                // 1. Handle Boss Battle Outcome
+                if (isBossBattle) {
+                    if (winner === "player1") {
+                        // Boss Defeated! Finalize Rank Up
+                        const newRank = pendingRank || rank;
+                        set({
+                            rank: newRank,
+                            isBossBattle: false,
+                            pendingRank: null,
+                            round: round + 1,
+                        });
+                        return { scoreAdded: 0, newRank };
+                    } else {
+                        // Boss Failed! Punishment and End Run
+                        let finalScore = score;
+                        if (winner === "draw") {
+                            finalScore = Math.floor(score * 0.66); // Draw: 1/3 reduction
+                        } else {
+                            finalScore = Math.floor(score * 0.5); // Loss: 1/2 reduction
+                        }
+                        set({ score: finalScore, isActive: false, isBossBattle: false });
+                        return { scoreAdded: 0, newRank: null };
+                    }
+                }
+
+                // 2. Handle Normal Match Outcome
                 if (winner !== "player1") {
                     set({ isActive: false }); // End run on loss or draw
                     return { scoreAdded: 0, newRank: null };
@@ -77,35 +188,58 @@ export const useGauntletStore = create<GauntletState>()(
                 // Scoring Logic
                 const baseWin = 20;
                 // Bonus: 2 points per card on board
-                const boardBonus = boardCardCount * 2;
+                const boardBonus = boardCardCount * 3;
 
                 const scoreAdded = baseWin + boardBonus;
                 const newScore = score + scoreAdded;
 
-                // Rank Progression
-                let newRank: GauntletRank = rank;
-                if (newScore >= RANK_THRESHOLDS.Rikudo) newRank = "Rikudo";
-                else if (newScore >= RANK_THRESHOLDS.Kage) newRank = "Kage";
-                else if (newScore >= RANK_THRESHOLDS.Anbu) newRank = "Anbu";
-                else if (newScore >= RANK_THRESHOLDS.Jounin) newRank = "Jounin";
-                else if (newScore >= RANK_THRESHOLDS.Chunin) newRank = "Chunin";
+                // Rank Progression Check
+                let nextRank: GauntletRank = rank;
+                if (newScore >= RANK_THRESHOLDS.Rikudo) nextRank = "Rikudo";
+                else if (newScore >= RANK_THRESHOLDS.Kage) nextRank = "Kage";
+                else if (newScore >= RANK_THRESHOLDS.Anbu) nextRank = "Anbu";
+                else if (newScore >= RANK_THRESHOLDS.Jounin) nextRank = "Jounin";
+                else if (newScore >= RANK_THRESHOLDS.Chunin) nextRank = "Chunin";
 
-                // Determine Boss Name for next round (just for display/history)
-                const possibleNames = OPPONENT_NAMES[newRank];
+                // Trigger Boss Battle if rank threshold crossed
+                if (nextRank !== rank) {
+                    set({
+                        score: newScore,
+                        isBossBattle: true,
+                        pendingRank: nextRank,
+                        lastBoss: BOSS_CONFIGS[rank].name, // Current rank's boss to advance
+                    });
+                    return { scoreAdded, newRank: null }; // No rank up yet!
+                }
+
+                // Normal progression
+                const possibleNames = OPPONENT_NAMES[rank];
                 const nextBoss = possibleNames[Math.floor(Math.random() * possibleNames.length)];
 
                 set({
                     score: newScore,
-                    rank: newRank,
                     round: round + 1,
                     lastBoss: nextBoss,
                 });
 
-                return { scoreAdded, newRank: newRank !== rank ? newRank : null };
+                return { scoreAdded, newRank: null };
             },
 
             getOpponentConfig: () => {
-                const { rank } = get();
+                const { rank, isBossBattle } = get();
+
+                if (isBossBattle) {
+                    const boss = BOSS_CONFIGS[rank];
+                    return {
+                        deck: boss.deck,
+                        mechanic: boss.mechanic,
+                        bossKey: boss.bossKey,
+                        bossImage: boss.image,
+                        activeElement: boss.mechanic === "random_elemental" ? (["fire", "water", "earth", "wind", "lightning"] as ElementType[])[Math.floor(Math.random() * 5)] : undefined
+                    };
+                }
+
+                // Normal Opponent Logic...
 
                 // 1. Generate Deck based on Rank Difficulty
                 let minStat = 1;
