@@ -170,10 +170,11 @@ export const Hand = ({
                   className={cn(
                     "relative", // Removed transition-all duration-300 to avoid conflict
                     compact && "scale-90 origin-center",
+                    isSelected && !isAnyCardDragging && "scale-110 z-20",
                     orientation === "horizontal" &&
                       isSelected &&
                       !isAnyCardDragging &&
-                      "scale-110 z-20 mx-2",
+                      "mx-2",
                     "cursor-pointer"
                   )}
                   whileHover={

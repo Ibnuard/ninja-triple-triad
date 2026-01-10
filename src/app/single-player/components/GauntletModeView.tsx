@@ -202,7 +202,7 @@ export function GauntletModeView({
                   >
                     <div className={cn(
                       "transform transition-all duration-300",
-                      isSelected ? "scale-105 z-20" : "hover:scale-110 hover:z-10",
+                      isSelected ? "z-20" : "hover:scale-110 hover:z-10",
                       // Dim unselected cards if deck is full
                       !isSelected && tempDeck.length === 5 && "opacity-50 grayscale-[0.5] scale-95"
                     )}>

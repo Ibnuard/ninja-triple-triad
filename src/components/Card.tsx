@@ -46,7 +46,7 @@ export const Card = ({
           ? "w-full h-full"
           : "w-[18vw] h-[25vw] max-w-[100px] max-h-[140px] lg:w-24 lg:h-32",
         isSelected
-          ? "ring-4 ring-blue-500 ring-offset-2 ring-offset-black scale-115 -translate-y-6 z-20 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+          ? "ring-4 ring-blue-500 ring-offset-2 ring-offset-black z-20 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
           : !isGhost && "hover:shadow-2xl hover:-translate-y-1",
         owner === "player1"
           ? isPlaced
