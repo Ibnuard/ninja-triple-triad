@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Swords, BookOpen, ChevronLeft, Layers, Trophy, Medal, X } from "lucide-react";
 import { useTranslation } from "../../../store/useSettingsStore";
-import { RANK_THRESHOLDS } from "../../../store/useGauntletStore";
+import { RANK_THRESHOLDS } from "../../../constants/gauntlet";
 import { cn } from "../../../lib/utils";
 import { Card } from "../../../components/Card";
 import { Card as CardType } from "../../../types/game";

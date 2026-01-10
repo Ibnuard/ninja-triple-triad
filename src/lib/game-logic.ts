@@ -5,13 +5,14 @@ import {
   Cell,
   Player,
 } from "../types/game";
+import { BOARD_SIZE, PASSIVE_BONUSES, STABLE_ROLL_OFFSETS } from "../constants/game";
 
 // Initialize a 3x3 empty board
 export function createEmptyBoard(): BoardState {
   const board: BoardState = [];
-  for (let r = 0; r < 3; r++) {
+  for (let r = 0; r < BOARD_SIZE; r++) {
     const row: Cell[] = [];
-    for (let c = 0; c < 3; c++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
       row.push({
         row: r,
         col: c,
@@ -27,7 +28,7 @@ export function createEmptyBoard(): BoardState {
 
 // Check boundaries
 function isValid(r: number, c: number): boolean {
-  return r >= 0 && r < 3 && c >= 0 && c < 3;
+  return r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE;
 }
 
 // stableRoll: Returns a deterministic random number [0..max] based on string seed (card.id)
@@ -119,15 +120,15 @@ export function applyElementalPassives(
 
   // Count occupied cells to determine "first 2 turns" (approx <= 4 cards placed)
   let occupiedCount = 0;
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
       if (newBoard[r][c].card) occupiedCount++;
     }
   }
   const isFirstTwoTurns = occupiedCount <= 4;
 
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
       const cell = newBoard[r][c];
       if (!cell.card) continue;
 
@@ -145,20 +146,20 @@ export function applyElementalPassives(
         mechanic.type === "random_elemental" &&
         card.element === mechanic.activeElement
       ) {
-        card.stats.top += 1;
-        card.stats.bottom += 1;
-        card.stats.left += 1;
-        card.stats.right += 1;
+        card.stats.top += PASSIVE_BONUSES.DEFAULT;
+        card.stats.bottom += PASSIVE_BONUSES.DEFAULT;
+        card.stats.left += PASSIVE_BONUSES.DEFAULT;
+        card.stats.right += PASSIVE_BONUSES.DEFAULT;
         card.activePassives.push("mechanic-elemental");
         card.isBuffed = true;
       }
 
       // 2. Poison Board: All cards -1 all stats
       if (mechanic.type === "poison") {
-        card.stats.top -= 1;
-        card.stats.bottom -= 1;
-        card.stats.left -= 1;
-        card.stats.right -= 1;
+        card.stats.top -= PASSIVE_BONUSES.DEFAULT;
+        card.stats.bottom -= PASSIVE_BONUSES.DEFAULT;
+        card.stats.left -= PASSIVE_BONUSES.DEFAULT;
+        card.stats.right -= PASSIVE_BONUSES.DEFAULT;
         card.activePassives.push("mechanic-poison");
         card.isBuffed = true; // technically debuffed, but stats changed
       }
@@ -182,15 +183,15 @@ export function applyElementalPassives(
       // --- ORIGINAL ELEMENTAL PASSIVES ---
 
       // 1. TANAH (Earth) -> 3 row paling bawah (row 2) -> +1 genjutsu (top)
-      if (card.element === "earth" && r === 2) {
-        card.stats.top += 1;
+      if (card.element === "earth" && r === BOARD_SIZE - 1) {
+        card.stats.top += PASSIVE_BONUSES.DEFAULT;
         card.activePassives.push("earth");
         card.isBuffed = true;
       }
 
       // 2. ANGIN (Wind) -> 3 row paling atas (row 0) -> +1 chakra (bottom)
       if (card.element === "wind" && r === 0) {
-        card.stats.bottom += 1;
+        card.stats.bottom += PASSIVE_BONUSES.DEFAULT;
         card.activePassives.push("wind");
         card.isBuffed = true;
       }
@@ -199,20 +200,20 @@ export function applyElementalPassives(
       if (card.element === "water") {
         if (r === 1 && c === 1) {
           // Tengah (1,1) -> +1 semua
-          card.stats.top += 1;
-          card.stats.right += 1;
-          card.stats.bottom += 1;
-          card.stats.left += 1;
+          card.stats.top += PASSIVE_BONUSES.DEFAULT;
+          card.stats.right += PASSIVE_BONUSES.DEFAULT;
+          card.stats.bottom += PASSIVE_BONUSES.DEFAULT;
+          card.stats.left += PASSIVE_BONUSES.DEFAULT;
           card.activePassives.push("water");
           card.isBuffed = true;
         } else if (r === 1 && c === 0) {
           // Tengah kiri -> +1 taijutsu (right)
-          card.stats.right += 1;
+          card.stats.right += PASSIVE_BONUSES.DEFAULT;
           card.activePassives.push("water");
           card.isBuffed = true;
         } else if (r === 1 && c === 2) {
           // Tengah kanan -> +1 ninjutsu (left)
-          card.stats.left += 1;
+          card.stats.left += PASSIVE_BONUSES.DEFAULT;
           card.activePassives.push("water");
           card.isBuffed = true;
         }
@@ -220,12 +221,12 @@ export function applyElementalPassives(
 
       // 4. API (Fire) -> corner -> +1 semua atribut
       if (card.element === "fire") {
-        const isCorner = (r === 0 || r === 2) && (c === 0 || c === 2);
+        const isCorner = (r === 0 || r === BOARD_SIZE - 1) && (c === 0 || c === BOARD_SIZE - 1);
         if (isCorner) {
-          card.stats.top += 1;
-          card.stats.right += 1;
-          card.stats.bottom += 1;
-          card.stats.left += 1;
+          card.stats.top += PASSIVE_BONUSES.DEFAULT;
+          card.stats.right += PASSIVE_BONUSES.DEFAULT;
+          card.stats.bottom += PASSIVE_BONUSES.DEFAULT;
+          card.stats.left += PASSIVE_BONUSES.DEFAULT;
           card.activePassives.push("fire");
           card.isBuffed = true;
         }
@@ -235,18 +236,18 @@ export function applyElementalPassives(
       if (card.element === "lightning") {
         if (r === 0) {
           // Row atas -> random +chakra (0-2)
-          card.stats.bottom += stableRoll(card.id, 2, 0);
+          card.stats.bottom += stableRoll(card.id, PASSIVE_BONUSES.LIGHTNING_MAX, 0);
           card.activePassives.push("lightning");
           card.isBuffed = true;
         } else if (r === 1) {
           // Row tengah -> random +taijutsu (0-1) dan random +ninjutsu (0-1)
-          card.stats.right += stableRoll(card.id, 1, 100); // use offset to avoid same roll
-          card.stats.left += stableRoll(card.id, 1, 200);
+          card.stats.right += stableRoll(card.id, 1, STABLE_ROLL_OFFSETS.LIGHTNING_RIGHT); // use offset to avoid same roll
+          card.stats.left += stableRoll(card.id, 1, STABLE_ROLL_OFFSETS.LIGHTNING_LEFT);
           card.activePassives.push("lightning");
           card.isBuffed = true;
         } else if (r === 2) {
           // Row bawah -> random +genjutsu (0-2)
-          card.stats.top += stableRoll(card.id, 2, 300);
+          card.stats.top += stableRoll(card.id, PASSIVE_BONUSES.LIGHTNING_MAX, STABLE_ROLL_OFFSETS.LIGHTNING_TOP);
           card.activePassives.push("lightning");
           card.isBuffed = true;
         }
@@ -268,8 +269,8 @@ export function handleFireRevenge(
 
 // Helper to check if board is full
 export function isBoardFull(board: BoardState): boolean {
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
       if (!board[r][c].card) return false;
     }
   }

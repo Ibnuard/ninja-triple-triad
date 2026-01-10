@@ -15,6 +15,7 @@ import {
   Swords,
 } from "lucide-react";
 import { useTranslation } from "../store/useSettingsStore";
+import { SOUND_PATHS } from "../constants/assets";
 
 interface BoardIntroAnimationProps {
   mechanicType: BoardMechanicType;
@@ -23,11 +24,11 @@ interface BoardIntroAnimationProps {
 }
 
 const ELEMENTAL_SOUNDS: Record<string, string> = {
-  fire: "/sounds/flame-effect.mp3",
-  water: "/sounds/water-effect.mp3",
-  earth: "/sounds/earth-effect.mp3",
-  wind: "/sounds/wind-effect.mp3",
-  lightning: "/sounds/lightning-effect.mp3",
+  fire: SOUND_PATHS.FIRE,
+  water: SOUND_PATHS.WATER,
+  earth: SOUND_PATHS.EARTH,
+  wind: SOUND_PATHS.WIND,
+  lightning: SOUND_PATHS.LIGHTNING,
 };
 
 const BOARD_CONFIG = {
@@ -50,21 +51,21 @@ const BOARD_CONFIG = {
     color: "from-green-900 via-emerald-950 to-black",
     borderColor: "border-green-500",
     shadow: "shadow-green-500/50",
-    sound: "/sounds/poison-board.mp3",
+    sound: SOUND_PATHS.POISON_BOARD,
   },
   foggy: {
     icon: Cloud,
     color: "from-gray-800 via-slate-900 to-black",
     borderColor: "border-gray-400",
     shadow: "shadow-gray-400/50",
-    sound: "/sounds/foggy-board.mp3",
+    sound: SOUND_PATHS.FOGGY_BOARD,
   },
   joker: {
     icon: Smile,
     color: "from-orange-900 via-red-950 to-black",
     borderColor: "border-orange-500",
     shadow: "shadow-orange-500/50",
-    sound: "/sounds/joker-board.mp3",
+    sound: SOUND_PATHS.JOKER_BOARD,
   },
   random: {
     icon: Zap,
@@ -167,7 +168,7 @@ export function BoardIntroAnimation({
     let soundFile = config.sound;
     if (mechanicType === "random_elemental" && activeElement) {
       soundFile =
-        ELEMENTAL_SOUNDS[activeElement] || "/sounds/lightning-effect.mp3";
+        ELEMENTAL_SOUNDS[activeElement] || SOUND_PATHS.LIGHTNING;
     }
 
     // Play sound effect

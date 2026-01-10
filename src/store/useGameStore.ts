@@ -18,6 +18,8 @@ import {
   handleFireRevenge,
 } from "../lib/game-logic";
 import { playSound, SOUNDS } from "../lib/sounds";
+import { GAME_MECHANICS, GAME_ELEMENTS, JOKER_MODIFIER_RANGE } from "../constants/game";
+import { UI_COLORS, DELAYS } from "../constants/ui";
 
 interface GameStore extends GameState {
   // Actions
@@ -44,7 +46,7 @@ const INITIAL_PLAYER_STATE: Player = {
   name: "",
   hand: [],
   capturedCount: 0,
-  color: "blue",
+  color: UI_COLORS.PLAYER1 as any,
   isComputer: false,
 };
 
@@ -55,13 +57,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     ...INITIAL_PLAYER_STATE,
     id: "p1",
     name: "Player 1",
-    color: "blue",
+    color: UI_COLORS.PLAYER1 as any,
   },
   player2: {
     ...INITIAL_PLAYER_STATE,
     id: "p2",
     name: "Player 2",
-    color: "red",
+    color: UI_COLORS.PLAYER2 as any,
   }, // Will be overwritten on init
   currentPlayerId: "player1",
   phase: "lobby",
@@ -81,14 +83,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // 1. Determine Mechanic & Element
     let selectedMechanic = initialMechanic;
     if (!selectedMechanic || selectedMechanic === "random") {
-      const mechanics: BoardMechanicType[] = [
-        "random_elemental",
-        "poison",
-        "foggy",
-        "joker",
-      ];
       selectedMechanic =
-        mechanics[Math.floor(Math.random() * mechanics.length)];
+        GAME_MECHANICS[Math.floor(Math.random() * GAME_MECHANICS.length)];
     }
 
     let mechanicState: BoardMechanicState = {
@@ -105,20 +101,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ) {
         mechanicState.activeElement = activeElement as ElementType;
       } else {
-        const elements: ElementType[] = [
-          "fire",
-          "water",
-          "earth",
-          "wind",
-          "lightning",
-        ];
         mechanicState.activeElement =
-          elements[Math.floor(Math.random() * elements.length)];
+          GAME_ELEMENTS[Math.floor(Math.random() * GAME_ELEMENTS.length)];
       }
     } else if (selectedMechanic === "joker") {
       const getMod = () => {
         const isPositive = Math.random() > 0.5;
-        const val = Math.floor(Math.random() * 3);
+        const val = Math.floor(Math.random() * (JOKER_MODIFIER_RANGE + 1));
         return isPositive ? val : -val;
       };
       mechanicState.jokerModifiers = {
@@ -135,14 +124,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
         ...INITIAL_PLAYER_STATE,
         id: "p1",
         name: "Player 1",
-        color: "blue",
+        color: UI_COLORS.PLAYER1 as any,
         hand: [],
       },
       player2: {
         ...INITIAL_PLAYER_STATE,
         id: "p2",
         name: vsComputer ? "Computer" : "Player 2",
-        color: "red",
+        color: UI_COLORS.PLAYER2 as any,
         isComputer: vsComputer,
         hand: [],
       },
@@ -242,7 +231,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     if (flips.length > 0) {
-      setTimeout(() => playSound(SOUNDS.FLIP), 200);
+      setTimeout(() => playSound(SOUNDS.FLIP), DELAYS.FLIP_SOUND);
     }
 
     // Remove card from hand

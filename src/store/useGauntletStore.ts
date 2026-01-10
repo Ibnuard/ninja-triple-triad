@@ -1,8 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Card, BoardMechanicType, ElementType } from "../types/game";
-
-export type GauntletRank = "Genin" | "Chunin" | "Jounin" | "Anbu" | "Kage" | "Rikudo";
+import {
+    GauntletRank,
+    RANK_THRESHOLDS,
+    OPPONENT_NAMES,
+    BOSS_CONFIGS,
+    GAUNTLET_SCORING
+} from "../constants/gauntlet";
+import { GAME_ELEMENTS } from "../constants/game";
 
 interface GauntletState {
     isActive: boolean;
@@ -21,76 +27,7 @@ interface GauntletState {
     getOpponentConfig: () => { deck: Card[]; mechanic: BoardMechanicType; activeElement?: ElementType; bossKey?: string; bossImage?: string };
 }
 
-export const RANK_THRESHOLDS: Record<GauntletRank, number> = {
-    Genin: 0,
-    Chunin: 200,
-    Jounin: 500,
-    Anbu: 1000,
-    Kage: 2000,
-    Rikudo: 5000,
-};
-
-const OPPONENT_NAMES: Record<GauntletRank, string[]> = {
-    Genin: ["Academy Student", "Genin Rookie", "Bandit"],
-    Chunin: ["Chunin Exam Proctor", "Sound Ninja", "Mist Ninja"],
-    Jounin: ["Kakashi Copy", "Guy Sensei", "Asuma"],
-    Anbu: ["Root Member", "Masked Ninja", "Itachi Clone"],
-    Kage: ["Raikage", "Tsuchikage", "Mizukage", "Kazekage"],
-    Rikudo: ["Madara", "Kaguya", "Sage of Six Paths"],
-};
-
-interface BossConfig {
-    name: string;
-    bossKey: string;
-    image: string;
-    mechanic: BoardMechanicType;
-    deck: Card[];
-}
-
-const BOSS_CONFIGS: Record<GauntletRank, BossConfig> = {
-    Genin: {
-        name: "Zabuza Momochi",
-        bossKey: "zabuza",
-        image: "/images/bosses/zabuza.webp",
-        mechanic: "foggy",
-        deck: [], // Will be populated with dummy cards
-    },
-    Chunin: {
-        name: "Orochimaru",
-        bossKey: "orochimaru",
-        image: "/images/bosses/orochimaru.png",
-        mechanic: "poison",
-        deck: [],
-    },
-    Jounin: {
-        name: "Pain",
-        bossKey: "pain",
-        image: "/images/bosses/pain.webp",
-        mechanic: "joker",
-        deck: [],
-    },
-    Anbu: {
-        name: "Madara Uchiha",
-        bossKey: "madara",
-        image: "/images/bosses/madara.webp",
-        mechanic: "random_elemental",
-        deck: [],
-    },
-    Kage: {
-        name: "Kaguya Otsutsuki",
-        bossKey: "kaguya",
-        image: "/images/bosses/kaguya.webp",
-        mechanic: "random_elemental",
-        deck: [],
-    },
-    Rikudo: {
-        name: "The Final Sage",
-        bossKey: "kaguya", // Fallback or new key
-        image: "/images/bosses/kaguya.webp",
-        mechanic: "random_elemental",
-        deck: [],
-    }
-};
+// BOSS_CONFIGS is now imported from constants/gauntlet
 
 // Helper to generate dummy boss cards
 const generateBossDeck = (rank: GauntletRank): Card[] => {
@@ -170,9 +107,9 @@ export const useGauntletStore = create<GauntletState>()(
                         // Boss Failed! Punishment and End Run
                         let finalScore = score;
                         if (winner === "draw") {
-                            finalScore = Math.floor(score * 0.66); // Draw: 1/3 reduction
+                            finalScore = Math.floor(score * GAUNTLET_SCORING.DRAW_PENALTY_MULTIPLIER);
                         } else {
-                            finalScore = Math.floor(score * 0.5); // Loss: 1/2 reduction
+                            finalScore = Math.floor(score * GAUNTLET_SCORING.LOSS_PENALTY_MULTIPLIER);
                         }
                         set({ score: finalScore, isActive: false, isBossBattle: false });
                         return { scoreAdded: 0, newRank: null };
@@ -186,9 +123,9 @@ export const useGauntletStore = create<GauntletState>()(
                 }
 
                 // Scoring Logic
-                const baseWin = 20;
-                // Bonus: 2 points per card on board
-                const boardBonus = boardCardCount * 3;
+                const baseWin = GAUNTLET_SCORING.BASE_WIN;
+                // Bonus: points per card on board
+                const boardBonus = boardCardCount * GAUNTLET_SCORING.BOARD_BONUS_PER_CARD;
 
                 const scoreAdded = baseWin + boardBonus;
                 const newScore = score + scoreAdded;
@@ -235,7 +172,7 @@ export const useGauntletStore = create<GauntletState>()(
                         mechanic: boss.mechanic,
                         bossKey: boss.bossKey,
                         bossImage: boss.image,
-                        activeElement: boss.mechanic === "random_elemental" ? (["fire", "water", "earth", "wind", "lightning"] as ElementType[])[Math.floor(Math.random() * 5)] : undefined
+                        activeElement: boss.mechanic === "random_elemental" ? GAME_ELEMENTS[Math.floor(Math.random() * GAME_ELEMENTS.length)] : undefined
                     };
                 }
 

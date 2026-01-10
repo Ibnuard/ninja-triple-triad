@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "../store/useSettingsStore";
+import { SOUND_PATHS } from "../constants/assets";
 
 interface BossIntroAnimationProps {
   bossKey: string;
@@ -23,7 +24,7 @@ export function BossIntroAnimation({
 
   useEffect(() => {
     // Play boss encounter sound
-    const audio = new Audio("/sounds/boss-encounter.mp3");
+    const audio = new Audio(SOUND_PATHS.BOSS_ENCOUNTER);
     audio.volume = 0.7;
     audioRef.current = audio;
     audio.play().catch((err) => console.log("Audio play failed:", err));

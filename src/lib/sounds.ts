@@ -1,15 +1,17 @@
+import { SOUND_PATHS } from "../constants/assets";
+
 export const SOUNDS = {
-    CLICK: '/sounds/card-click.mp3',
-    PLACE: '/sounds/card-place.mp3',
-    FLIP: '/sounds/card-flip.mp3',
-    WIN: '/sounds/game-win.mp3',
-    LOSE: '/sounds/game-lose.mp3',
-    DRAW: '/sounds/game-draw.mp3',
-    FIRE: '/sounds/flame-effect.mp3',
-    WATER: '/sounds/water-effect.mp3',
-    EARTH: '/sounds/earth-effect.mp3',
-    WIND: '/sounds/wind-effect.mp3',
-    LIGHTNING: '/sounds/lightning-effect.mp3',
+    CLICK: SOUND_PATHS.CLICK,
+    PLACE: SOUND_PATHS.PLACE,
+    FLIP: SOUND_PATHS.FLIP,
+    WIN: SOUND_PATHS.WIN,
+    LOSE: SOUND_PATHS.LOSE,
+    DRAW: SOUND_PATHS.DRAW,
+    FIRE: SOUND_PATHS.FIRE,
+    WATER: SOUND_PATHS.WATER,
+    EARTH: SOUND_PATHS.EARTH,
+    WIND: SOUND_PATHS.WIND,
+    LIGHTNING: SOUND_PATHS.LIGHTNING,
 };
 
 export const playSound = (soundPath: string) => {

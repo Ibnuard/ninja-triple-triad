@@ -14,7 +14,8 @@ import { SettingsModal } from "../../components/SettingsModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
-import { useGauntletStore, RANK_THRESHOLDS, GauntletRank } from "../../store/useGauntletStore";
+import { useGauntletStore } from "../../store/useGauntletStore";
+import { RANK_THRESHOLDS, GauntletRank } from "../../constants/gauntlet";
 import { animate } from "framer-motion";
 
 import { FullScreenEffects } from "@/components/effects/FullScreenEffects";
@@ -25,6 +26,10 @@ import gameConfig from "../../gameConfig.json";
 import { LoadingOverlay } from "../../components/LoadingOverlay";
 import { useGameConfigStore } from "../../store/useGameConfigStore";
 import { Settings as SettingsIcon } from "lucide-react";
+import { GAME_ELEMENTS } from "../../constants/game";
+import { GAUNTLET_SCORING } from "../../constants/gauntlet";
+import { ANIMATION_DURATIONS, DELAYS, UI_COLORS } from "../../constants/ui";
+import { IMAGE_PATHS } from "../../constants/assets";
 
 // Mock Cards
 const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
@@ -37,8 +42,8 @@ const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
   return {
     id: `card-${i}-${Math.random()}`,
     name: `Ninja ${i + 1}`,
-    element: ["fire", "water", "earth", "wind", "lightning"][
-      Math.floor(Math.random() * 5)
+    element: GAME_ELEMENTS[
+      Math.floor(Math.random() * GAME_ELEMENTS.length)
     ] as any,
     image: "",
     stats: { ...stats },
@@ -56,8 +61,8 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
   return {
     id: `opp-card-${i}-${Math.random()}`,
     name: `Ronin ${i + 1}`,
-    element: ["fire", "water", "earth", "wind", "lightning"][
-      Math.floor(Math.random() * 5)
+    element: GAME_ELEMENTS[
+      Math.floor(Math.random() * GAME_ELEMENTS.length)
     ] as any,
     image: "",
     stats: { ...stats },
@@ -129,7 +134,7 @@ export default function GamePage() {
   const router = useRouter();
 
   const generateDiverseHand = (prefix: string): Card[] => {
-    const elements: any[] = ["fire", "water", "earth", "wind", "lightning"];
+    const elements = GAME_ELEMENTS;
     return elements.map((el, i) => {
       const stats = {
         top: Math.floor(Math.random() * 5) + 3,
@@ -175,7 +180,7 @@ export default function GamePage() {
     setLoadingMessage(isRestart ? t.cleaning : t.preparing);
 
     // Artificial delay for cleanup/prep
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, DELAYS.GAME_PREP));
 
     const isCustom = isCustomMode;
     const isGauntlet = isGauntletMode;
@@ -283,7 +288,7 @@ export default function GamePage() {
       }
       const timer = setTimeout(() => {
         setShowResult(true);
-      }, 2000);
+      }, DELAYS.RESULT_MODAL_SHOW);
       return () => clearTimeout(timer);
     } else {
       setShowResult(false);
@@ -391,7 +396,7 @@ export default function GamePage() {
                           {mechanic.activeElement === "fire" && (
                             <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-red-500/20 flex items-center justify-center">
                               <img
-                                src="/images/fire.webp"
+                                src={IMAGE_PATHS.ELEMENTS.FIRE}
                                 alt="fire"
                                 className="w-[60%] h-[60%] object-contain"
                               />
@@ -400,7 +405,7 @@ export default function GamePage() {
                           {mechanic.activeElement === "water" && (
                             <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
                               <img
-                                src="/images/water.webp"
+                                src={IMAGE_PATHS.ELEMENTS.WATER}
                                 alt="water"
                                 className="w-[60%] h-[60%] object-contain"
                               />
@@ -409,7 +414,7 @@ export default function GamePage() {
                           {mechanic.activeElement === "earth" && (
                             <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-amber-800/20 flex items-center justify-center">
                               <img
-                                src="/images/earth.webp"
+                                src={IMAGE_PATHS.ELEMENTS.EARTH}
                                 alt="earth"
                                 className="w-[60%] h-[60%] object-contain"
                               />
@@ -418,7 +423,7 @@ export default function GamePage() {
                           {mechanic.activeElement === "wind" && (
                             <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
                               <img
-                                src="/images/wind.webp"
+                                src={IMAGE_PATHS.ELEMENTS.WIND}
                                 alt="wind"
                                 className="w-[60%] h-[60%] object-contain"
                               />
@@ -427,7 +432,7 @@ export default function GamePage() {
                           {mechanic.activeElement === "lightning" && (
                             <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-yellow-400/20 flex items-center justify-center">
                               <img
-                                src="/images/lightning.webp"
+                                src={IMAGE_PATHS.ELEMENTS.LIGHTNING}
                                 alt="lightning"
                                 className="w-[60%] h-[60%] object-contain"
                               />
@@ -487,7 +492,7 @@ export default function GamePage() {
                   <button
                     onClick={async () => {
                       setLoadingMessage(t.cleaning);
-                      await new Promise((resolve) => setTimeout(resolve, 1000));
+                      await new Promise((resolve) => setTimeout(resolve, DELAYS.GAME_CLEANUP));
                       resetGame();
                       router.push("/");
                     }}
@@ -559,7 +564,7 @@ export default function GamePage() {
                             scale: 1,
                             transition: { 
                               type: "spring",
-                              duration: 0.6,
+                              duration: ANIMATION_DURATIONS.RESULT_MODAL_SPRING,
                               bounce: 0.4,
                               staggerChildren: 0.15
                             }
@@ -588,7 +593,7 @@ export default function GamePage() {
                           </h2>
                           <motion.h1
                             animate={{ scale: [1, 1.1, 1] }}
-                            transition={{ duration: 0.5, repeat: 0, delay: 0.5 }}
+                            transition={{ duration: ANIMATION_DURATIONS.BOARD_INTRO, repeat: 0, delay: 0.5 }}
                             className={cn(
                               "text-5xl md:text-6xl font-black tracking-tighter drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] italic",
                               winner === "player1"
@@ -737,7 +742,7 @@ export default function GamePage() {
                                                 ref={(node) => {
                                                     if (node) {
                                                         animate(oldGauntletScore, gauntletScore, {
-                                                            duration: 1.5,
+                                                            duration: ANIMATION_DURATIONS.SCORE_COUNTUP,
                                                             delay: 0.5,
                                                             onUpdate: (latest) => {
                                                                 node.textContent = Math.round(latest).toString();
@@ -757,7 +762,7 @@ export default function GamePage() {
                                     <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1">
                                         <div className="flex flex-col text-left">
                                             <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">Win Points</span>
-                                            <span className="text-white font-black">{winner === "player1" ? "+20" : "0"}</span>
+                                            <span className="text-white font-black">{winner === "player1" ? `+${GAUNTLET_SCORING.BASE_WIN}` : "0"}</span>
                                         </div>
                                         <div className="flex flex-col text-right">
                                             <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">{t.gauntlet.boardBonus}</span>
@@ -770,7 +775,7 @@ export default function GamePage() {
                                                         if (cell.owner === "player1") boardCardCount++;
                                                       })
                                                     );
-                                                    return boardCardCount * 2;
+                                                    return boardCardCount * GAUNTLET_SCORING.BOARD_BONUS_PER_CARD;
                                                 })() : "0"}
                                             </span>
                                         </div>
@@ -781,7 +786,7 @@ export default function GamePage() {
                                             <div className="flex flex-col text-left">
                                                 <span className="text-red-400 text-[8px] font-bold uppercase tracking-wider">{t.gauntlet.scoreReduction}</span>
                                                 <span className="text-red-500 font-black">
-                                                    {winner === "draw" ? "-33%" : "-50%"}
+                                                    {winner === "draw" ? `-${Math.round((1 - GAUNTLET_SCORING.DRAW_PENALTY_MULTIPLIER) * 100)}%` : `-${Math.round((1 - GAUNTLET_SCORING.LOSS_PENALTY_MULTIPLIER) * 100)}%`}
                                                 </span>
                                             </div>
                                             <div className="flex flex-col text-right">
