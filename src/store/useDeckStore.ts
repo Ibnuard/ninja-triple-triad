@@ -6,24 +6,42 @@ interface DeckStore {
     loadDeck: () => void;
     saveDeck: (deck: Card[]) => void;
     isDeckComplete: () => boolean;
+    // Stats
     lastRunScore: number;
     lastBoss: string;
+    setLastRunStats: (score: number, boss: string) => void;
 }
 
 const STORAGE_KEY = "gauntlet_deck";
+const STATS_KEY = "gauntlet_stats";
 
 export const useDeckStore = create<DeckStore>((set, get) => ({
     selectedDeck: [],
+    lastRunScore: 0,
+    lastBoss: "-",
 
     loadDeck: () => {
         if (typeof window !== "undefined") {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
+            const storedDeck = localStorage.getItem(STORAGE_KEY);
+            if (storedDeck) {
                 try {
-                    const deck = JSON.parse(stored);
+                    const deck = JSON.parse(storedDeck);
                     set({ selectedDeck: deck });
                 } catch (error) {
                     console.error("Failed to load deck:", error);
+                }
+            }
+
+            const storedStats = localStorage.getItem(STATS_KEY);
+            if (storedStats) {
+                try {
+                    const stats = JSON.parse(storedStats);
+                    set({
+                        lastRunScore: stats.score || 0,
+                        lastBoss: stats.boss || "-"
+                    });
+                } catch (error) {
+                    console.error("Failed to load stats:", error);
                 }
             }
         }
@@ -42,7 +60,10 @@ export const useDeckStore = create<DeckStore>((set, get) => ({
         return get().selectedDeck.length === 5;
     },
 
-    // Mock stats for now
-    lastRunScore: 0,
-    lastBoss: "None",
+    setLastRunStats: (score: number, boss: string) => {
+        set({ lastRunScore: score, lastBoss: boss });
+        if (typeof window !== "undefined") {
+            localStorage.setItem(STATS_KEY, JSON.stringify({ score, boss }));
+        }
+    },
 }));

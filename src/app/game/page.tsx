@@ -13,7 +13,7 @@ import { SettingsModal } from "../../components/SettingsModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
-import { useGauntletStore } from "../../store/useGauntletStore";
+import { useGauntletStore, RANK_MULTIPLIERS, GauntletRank } from "../../store/useGauntletStore";
 
 import { FullScreenEffects } from "@/components/effects/FullScreenEffects";
 import { FPSCounter } from "../../components/FPSCounter";
@@ -622,23 +622,48 @@ export default function GamePage() {
 
                         {/* Gauntlet Specific Info */}
                         {isGauntletMode && (
-                          <div className="w-full bg-black/40 rounded-2xl p-4 border border-white/5 mb-8 relative z-10 flex justify-between items-center">
-                            <div className="text-left">
-                              <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">
-                                {t.gauntlet.rank}
-                              </div>
-                              <div className="text-yellow-400 font-black text-lg">
-                                {gauntletRank}
-                              </div>
+                          <div className="w-full bg-black/40 rounded-2xl p-4 border border-white/5 mb-8 relative z-10 flex flex-col gap-2">
+                            <div className="flex justify-between items-center">
+                                <div className="text-left">
+                                <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">
+                                    {t.gauntlet.rank}
+                                </div>
+                                <div className="text-yellow-400 font-black text-lg">
+                                    {gauntletRank}
+                                </div>
+                                </div>
+                                <div className="text-right">
+                                <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">
+                                    {t.gauntlet.totalScore}
+                                </div>
+                                <div className="text-white font-black text-2xl">
+                                    {(() => {
+                                        if (winner === "player1") {
+                                            const baseWin = 20;
+                                            const flipBonus = (player1.totalFlips || 0) * 5;
+                                            const multiplier = RANK_MULTIPLIERS[gauntletRank as GauntletRank] || 1;
+                                            const scoreAdded = Math.floor((baseWin + flipBonus) * multiplier);
+                                            return gauntletScore + scoreAdded;
+                                        }
+                                        return gauntletScore;
+                                    })()}
+                                </div>
+                                </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">
-                                {t.gauntlet.totalScore}
-                              </div>
-                              <div className="text-white font-black text-2xl">
-                                {gauntletScore}
-                              </div>
-                            </div>
+                            
+                            {winner === "player1" && (
+                                <div className="w-full pt-2 border-t border-white/10 flex justify-between items-center">
+                                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Score Earned</span>
+                                    <span className="text-green-400 font-black text-sm">
+                                        +{(() => {
+                                            const baseWin = 20;
+                                            const flipBonus = (player1.totalFlips || 0) * 5;
+                                            const multiplier = RANK_MULTIPLIERS[gauntletRank as GauntletRank] || 1;
+                                            return Math.floor((baseWin + flipBonus) * multiplier);
+                                        })()}
+                                    </span>
+                                </div>
+                            )}
                           </div>
                         )}
 
@@ -693,11 +718,12 @@ export default function GamePage() {
 
                           <button
                             onClick={async () => {
-                              if (isGauntletMode && winner !== "player1") {
+                              if (isGauntletMode) {
                                 processMatchResult(
                                   winner || "draw",
                                   player1.totalFlips || 0
                                 );
+                                useGauntletStore.getState().endRun();
                               }
                               setLoadingMessage("Membersihkan battlefield...");
                               await new Promise((resolve) =>

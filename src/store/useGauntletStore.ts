@@ -46,6 +46,8 @@ const OPPONENT_NAMES: Record<GauntletRank, string[]> = {
     Rikudo: ["Madara", "Kaguya", "Sage of Six Paths"],
 };
 
+import { useDeckStore } from "./useDeckStore";
+
 export const useGauntletStore = create<GauntletState>()(
     persist(
         (set, get) => ({
@@ -68,6 +70,8 @@ export const useGauntletStore = create<GauntletState>()(
             },
 
             endRun: () => {
+                const { score, lastBoss } = get();
+                useDeckStore.getState().setLastRunStats(score, lastBoss);
                 set({ isActive: false });
             },
 
