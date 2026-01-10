@@ -32,7 +32,7 @@ export const BOSS_CONFIGS: Record<GauntletRank, BossConfig> = {
     Genin: {
         name: "Zabuza Momochi",
         bossKey: "zabuza",
-        image: "/images/bosses/zabuza.webp",
+        image: "/images/bosses/zabuza.png",
         mechanic: "foggy",
         deck: [],
     },
