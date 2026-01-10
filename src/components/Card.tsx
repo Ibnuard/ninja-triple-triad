@@ -39,7 +39,8 @@ export const Card = ({
   return (
     <motion.div
       className={cn(
-        "relative aspect-[2.5/3.5] rounded-xl lg:rounded-2xl cursor-pointer overflow-hidden border-2",
+        "relative aspect-[2.5/3.5] rounded-xl lg:rounded-2xl cursor-pointer overflow-hidden",
+        isPlaced ? "border-4" : "border-2",
         !isDragging && "transition-all duration-500",
         isPlaced
           ? "w-full h-full"
@@ -48,7 +49,11 @@ export const Card = ({
           ? "ring-4 ring-blue-500 ring-offset-2 ring-offset-black scale-105 z-20 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
           : !isGhost && "hover:shadow-2xl hover:-translate-y-1",
         owner === "player1"
-          ? "border-blue-500/30 bg-gray-900/90"
+          ? isPlaced
+            ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)] bg-gray-900/95"
+            : "border-blue-500/30 bg-gray-900/90"
+          : isPlaced
+          ? "border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] bg-gray-900/95"
           : "border-red-500/30 bg-gray-900/90",
         isGhost &&
           "opacity-40 grayscale-[0.2] border-dashed border-blue-400/50",
@@ -183,7 +188,7 @@ export const Card = ({
           }
           transition={{ repeat: Infinity, duration: 1.5 }}
           className={cn(
-            "w-4 h-4 lg:w-5 lg:h-5 rounded-full flex items-center justify-center border overflow-hidden backdrop-blur-md bg-slate-900/90 shadow-sm",
+            "w-4 h-4 lg:w-5 lg:h-5 rounded-full flex items-center justify-center border overflow-hidden bg-slate-900 shadow-sm",
             elementGlows[card.element] || "border-white/20"
           )}
         >

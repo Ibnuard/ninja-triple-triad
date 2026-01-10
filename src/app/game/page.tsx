@@ -598,171 +598,183 @@ export default function GamePage() {
 
               {showResult && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/80"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black"
                 >
                   <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-gray-900/80 border border-white/10 p-8 lg:p-12 rounded-[2rem] shadow-2xl flex flex-col items-center max-w-[90vw] w-[400px] text-center"
+                    initial={{ y: 50, opacity: 0, scale: 0.9 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="bg-gray-900 border-2 border-white/10 p-8 lg:p-12 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,1)] flex flex-col items-center max-w-[95vw] w-[450px] text-center relative overflow-hidden"
                   >
-                    {/* GAUNTLET MODE RESULT */}
-                    {isGauntletMode ? (
-                      <div className="mb-6 w-full">
-                        <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2 uppercase">
-                          {winner === "player1"
-                            ? t.gauntlet.roundCleared
-                            : t.gauntlet.gauntletOver}
-                        </h2>
+                    {/* Background Glow Decoration */}
+                    <div className={cn(
+                      "absolute -top-24 -left-24 w-48 h-48 rounded-full blur-[80px] opacity-20",
+                      winner === "player1" ? "bg-blue-500" : winner === "player2" ? "bg-red-500" : "bg-yellow-500"
+                    )} />
 
-                        <h1
-                          className={cn(
-                            "text-5xl lg:text-6xl font-black tracking-tighter drop-shadow-2xl mb-4",
-                            winner === "player1"
-                              ? "text-green-400"
-                              : "text-red-500"
-                          )}
-                        >
-                          {winner === "player1" ? t.victory : t.defeat}
-                        </h1>
+                    {/* Title Section (Top) */}
+                    <div className="mb-8 relative z-10">
+                      <h2 className="text-gray-500 text-[10px] lg:text-xs font-black tracking-[0.4em] mb-2 uppercase italic">
+                        {isGauntletMode ? t.gauntlet.roundCleared : "Match Finished"}
+                      </h2>
+                      <h1
+                        className={cn(
+                          "text-6xl lg:text-7xl font-black tracking-tighter drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] italic",
+                          winner === "player1"
+                            ? "text-blue-400"
+                            : winner === "player2"
+                            ? "text-red-500"
+                            : "text-yellow-500"
+                        )}
+                      >
+                        {winner === "draw"
+                          ? t.draw
+                          : winner === "player1"
+                          ? t.victory
+                          : t.defeat}
+                      </h1>
+                    </div>
 
-                        {/* Score Summary */}
-                        <div className="bg-black/40 rounded-xl p-4 border border-white/5 mb-6">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-gray-400 text-xs uppercase tracking-wider">
-                              {t.gauntlet.rank}
-                            </span>
-                            <span className="text-yellow-400 font-black">
-                              {gauntletRank}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-gray-400 text-xs uppercase tracking-wider">
-                              {t.gauntlet.totalScore}
-                            </span>
-                            <span className="text-white font-black text-xl">
-                              {gauntletScore}
-                            </span>
-                          </div>
-                          {winner === "player1" && (
-                            <div className="text-xs text-green-400 font-bold mt-2 border-t border-white/10 pt-2">
-                              + {player1.totalFlips || 0}{" "}
-                              {t.gauntlet.flipsBonus}
+                    {/* Stats Section (Middle) */}
+                    <div className="flex items-center justify-between w-full gap-4 mb-10 relative z-10">
+                      {/* Player Stat */}
+                      <div className="flex flex-col items-center flex-1">
+                        <div className="relative mb-3">
+                          <div className="w-16 h-20 lg:w-20 lg:h-24 rounded-xl border-2 border-blue-500/50 p-1 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.1)] flex items-center justify-center overflow-hidden">
+                            <div className="w-full h-full rounded-lg bg-gradient-to-br from-blue-500/20 to-transparent flex items-center justify-center">
+                              <div className="w-8 h-8 rounded-full border-2 border-blue-500/30 flex items-center justify-center">
+                                <div className="w-4 h-4 bg-blue-500/40 rounded-full" />
+                              </div>
                             </div>
-                          )}
+                          </div>
+                          <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md border border-white/20 shadow-lg">
+                            YOU
+                          </div>
                         </div>
-
-                        <div className="flex flex-col gap-3 w-full">
-                          {winner === "player1" ? (
-                            <button
-                              onClick={() => {
-                                // Process result and start next round
-                                processMatchResult(
-                                  "player1",
-                                  player1.totalFlips || 0
-                                );
-                                const config = getOpponentConfig();
-
-                                // Re-init game with new config
-                                initGame(
-                                  "gauntlet-room",
-                                  true,
-                                  config.mechanic
-                                );
-                                useGameStore.setState((state) => ({
-                                  mechanic: {
-                                    type: config.mechanic,
-                                    activeElement:
-                                      config.activeElement || "none",
-                                    jokerModifiers: { player1: 0, player2: 0 },
-                                  },
-                                  player1: {
-                                    ...state.player1,
-                                    hand: [...gauntletDeck].map((c) => ({
-                                      ...c,
-                                      id: c.id + Math.random(),
-                                    })), // Refresh IDs
-                                    totalFlips: 0,
-                                  },
-                                  player2: {
-                                    ...state.player2,
-                                    hand: config.deck,
-                                    name: `Enemy ${gauntletRank}`,
-                                    totalFlips: 0,
-                                  },
-                                }));
-                                setShowResult(false);
-                                setShowBoardIntro(true);
-                              }}
-                              className="w-full py-4 bg-green-500 text-black font-black text-sm tracking-widest hover:bg-green-400 transition-colors rounded-2xl shadow-xl uppercase"
-                            >
-                              {t.gauntlet.nextBattle}
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                processMatchResult(
-                                  winner || "draw",
-                                  player1.totalFlips || 0
-                                ); // This ends the run
-                                resetGame();
-                                router.push("/single-player");
-                              }}
-                              className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl uppercase"
-                            >
-                              {t.gauntlet.returnToMenu}
-                            </button>
-                          )}
+                        <div className="text-4xl lg:text-5xl font-black text-white drop-shadow-md">
+                          {(() => {
+                            const board = useGameStore.getState().board;
+                            let count = 0;
+                            board.forEach((row) =>
+                              row.forEach((cell) => {
+                                if (cell.owner === "player1") count++;
+                              })
+                            );
+                            return count;
+                          })()}
                         </div>
                       </div>
-                    ) : (
-                      // STANDARD MODE RESULT
-                      <>
-                        <div className="mb-6">
-                          <h2 className="text-gray-400 text-sm font-bold tracking-[0.3em] mb-2">
-                            Game Result
-                          </h2>
-                          <h1
-                            className={cn(
-                              "text-5xl lg:text-7xl font-black tracking-tighter drop-shadow-2xl",
-                              winner === "player1"
-                                ? "text-blue-400"
-                                : winner === "player2"
-                                ? "text-red-500"
-                                : "text-yellow-500"
-                            )}
-                          >
-                            {winner === "draw"
-                              ? t.draw
-                              : `${
-                                  winner === "player1" ? t.victory : t.defeat
-                                }`}
-                          </h1>
-                        </div>
 
-                        <div className="flex flex-col gap-3 w-full">
-                          <button
-                            onClick={() => {
-                              startGame();
-                            }}
-                            className="w-full py-4 bg-white text-black font-black text-sm tracking-widest hover:bg-gray-200 transition-colors rounded-2xl shadow-xl"
-                          >
-                            {t.playAgain}
-                          </button>
-                          <button
-                            onClick={() => {
-                              resetGame();
-                              router.push("/");
-                            }}
-                            className="w-full py-4 bg-white/5 text-white/50 font-bold text-sm tracking-widest hover:bg-white/10 hover:text-white transition-all rounded-2xl"
-                          >
-                            {t.exit}
-                          </button>
+                      {/* VS Divider */}
+                      <div className="flex flex-col items-center">
+                        <div className="h-10 w-[2px] bg-gradient-to-b from-transparent via-white/10 to-transparent mb-2" />
+                        <div className="text-lg font-black text-gray-700 italic">VS</div>
+                        <div className="h-10 w-[2px] bg-gradient-to-t from-transparent via-white/10 to-transparent mt-2" />
+                      </div>
+
+                      {/* Opponent Stat */}
+                      <div className="flex flex-col items-center flex-1">
+                        <div className="relative mb-3">
+                          <div className="w-16 h-20 lg:w-20 lg:h-24 rounded-xl border-2 border-red-500/50 p-1 bg-red-500/10 shadow-[0_0_20px_rgba(239,68,68,0.1)] flex items-center justify-center overflow-hidden">
+                            <div className="w-full h-full rounded-lg bg-gradient-to-br from-red-500/20 to-transparent flex items-center justify-center">
+                              <div className="w-8 h-8 rounded-full border-2 border-red-500/30 flex items-center justify-center">
+                                <div className="w-4 h-4 bg-red-500/40 rounded-full" />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="absolute -bottom-2 -left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md border border-white/20 shadow-lg">
+                            {isGauntletMode ? "BOSS" : "CPU"}
+                          </div>
                         </div>
-                      </>
+                        <div className="text-4xl lg:text-5xl font-black text-white drop-shadow-md">
+                          {(() => {
+                            const board = useGameStore.getState().board;
+                            let count = 0;
+                            board.forEach((row) =>
+                              row.forEach((cell) => {
+                                if (cell.owner === "player2") count++;
+                              })
+                            );
+                            return count;
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Gauntlet Specific Info */}
+                    {isGauntletMode && (
+                      <div className="w-full bg-black/40 rounded-2xl p-4 border border-white/5 mb-8 relative z-10 flex justify-between items-center">
+                        <div className="text-left">
+                          <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">{t.gauntlet.rank}</div>
+                          <div className="text-yellow-400 font-black text-lg">{gauntletRank}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">{t.gauntlet.totalScore}</div>
+                          <div className="text-white font-black text-2xl">{gauntletScore}</div>
+                        </div>
+                      </div>
                     )}
+
+                    {/* Buttons Section (Bottom) */}
+                    <div className="flex flex-col gap-3 w-full relative z-10">
+                      {isGauntletMode && winner === "player1" ? (
+                        <button
+                          onClick={() => {
+                            processMatchResult("player1", player1.totalFlips || 0);
+                            const config = getOpponentConfig();
+                            initGame("gauntlet-room", true, config.mechanic);
+                            useGameStore.setState((state) => ({
+                              mechanic: {
+                                type: config.mechanic,
+                                activeElement: config.activeElement || "none",
+                                jokerModifiers: { player1: 0, player2: 0 },
+                              },
+                              player1: {
+                                ...state.player1,
+                                hand: [...gauntletDeck].map((c) => ({
+                                  ...c,
+                                  id: c.id + Math.random(),
+                                })),
+                                totalFlips: 0,
+                              },
+                              player2: {
+                                ...state.player2,
+                                hand: config.deck,
+                                name: `Enemy ${gauntletRank}`,
+                                totalFlips: 0,
+                              },
+                            }));
+                            setShowResult(false);
+                            setShowBoardIntro(true);
+                          }}
+                          className="w-full py-4 bg-blue-500 text-white font-black text-sm tracking-[0.2em] hover:bg-blue-400 transition-all rounded-2xl shadow-[0_4px_0_rgb(30,64,175)] active:translate-y-1 active:shadow-none uppercase italic"
+                        >
+                          {t.gauntlet.nextBattle}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => startGame()}
+                          className="w-full py-4 bg-white text-black font-black text-sm tracking-[0.2em] hover:bg-gray-200 transition-all rounded-2xl shadow-[0_4px_0_rgb(156,163,175)] active:translate-y-1 active:shadow-none uppercase italic"
+                        >
+                          {t.playAgain}
+                        </button>
+                      )}
+                      
+                      <button
+                        onClick={() => {
+                          if (isGauntletMode && winner !== "player1") {
+                            processMatchResult(winner || "draw", player1.totalFlips || 0);
+                          }
+                          resetGame();
+                          router.push("/");
+                        }}
+                        className="w-full py-4 bg-gray-800 text-gray-400 font-black text-sm tracking-[0.2em] hover:bg-gray-700 hover:text-white transition-all rounded-2xl uppercase italic"
+                      >
+                        {t.exit}
+                      </button>
+                    </div>
                   </motion.div>
                 </motion.div>
               )}

@@ -50,10 +50,10 @@ export const Hand = ({
         <motion.div
           animate={
             isGameOver
-              ? { scale: 0, opacity: 0, filter: "blur(10px)" }
-              : { scale: 1, opacity: 1, filter: "blur(0px)" }
+              ? { scale: 0, opacity: 0 }
+              : { scale: 1, opacity: 1 }
           }
-          transition={{ duration: 1, ease: "circIn" }}
+          transition={{ duration: 0.4, ease: "circIn" }}
           className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/80 rounded-xl border border-white/10 shadow-lg"
         >
           <span className="text-[9px] font-black tracking-widest text-gray-500 uppercase mr-1">
@@ -87,10 +87,10 @@ export const Hand = ({
     <motion.div
       animate={
         isGameOver
-          ? { scale: 0, opacity: 0, y: 100, filter: "blur(10px)" }
-          : { scale: 1, opacity: 1, y: 0, filter: "blur(0px)" }
+          ? { scale: 0, opacity: 0, y: 100 }
+          : { scale: 1, opacity: 1, y: 0 }
       }
-      transition={{ duration: 1.5, ease: "circOut" }}
+      transition={{ duration: 0.5, ease: "circOut" }}
       className={cn(
         "flex flex-col items-center gap-1 lg:gap-4 transition-all duration-300 w-full scale-90 sm:scale-100 origin-center",
         isHidden && "opacity-80"
