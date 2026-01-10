@@ -18,11 +18,12 @@ interface Mode {
 }
 
 interface ModeSelectionGridProps {
+  t: any;
   modes: Mode[];
   onModeClick: (modeId: string) => void;
 }
 
-export function ModeSelectionGrid({ modes, onModeClick }: ModeSelectionGridProps) {
+export function ModeSelectionGrid({ t, modes, onModeClick }: ModeSelectionGridProps) {
   return (
     <motion.div
       key="mode-selection"
@@ -63,7 +64,7 @@ export function ModeSelectionGrid({ modes, onModeClick }: ModeSelectionGridProps
 
             <div className="mt-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <span className="text-xs font-bold tracking-[0.2em] uppercase text-white border border-white/20 px-4 py-2 rounded-full backdrop-blur-md">
-                Select Mode
+                {t.selectMode}
               </span>
             </div>
           </div>

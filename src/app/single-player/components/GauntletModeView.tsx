@@ -41,7 +41,7 @@ export function GauntletModeView({
   const StatsCard = ({ className = "" }: { className?: string }) => (
     <div className={cn("relative w-full bg-black/40 rounded-3xl border border-white/5 p-4 md:p-6 flex flex-col gap-4 md:gap-6", className)}>
       <div className="flex items-center justify-between border-b border-white/10 pb-4">
-        <h3 className="text-lg md:text-xl font-black italic uppercase text-white/50">Last Run</h3>
+        <h3 className="text-lg md:text-xl font-black italic uppercase text-white/50">{t.gauntletSub.lastRun}</h3>
         <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] md:text-xs font-bold text-gray-400">
           {new Date().toLocaleDateString()}
         </div>
@@ -51,21 +51,21 @@ export function GauntletModeView({
         <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
           <Trophy className="w-6 h-6 md:w-8 md:h-8 text-yellow-500" />
           <div className="text-center">
-            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Score</div>
+            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">{t.gauntletSub.score}</div>
             <div className="text-xl md:text-2xl font-black text-white">{lastRunScore}</div>
           </div>
         </div>
         <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
           <Skull className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
           <div className="text-center">
-            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">Last Boss</div>
+            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">{t.gauntletSub.lastBoss}</div>
             <div className="text-sm md:text-lg font-black text-white truncate max-w-[80px] md:max-w-[100px]">{lastBoss}</div>
           </div>
         </div>
       </div>
 
       <div className="mt-auto pt-4 border-t border-white/10">
-          <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 text-center">Deck Used</div>
+          <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 text-center">{t.gauntletSub.deckUsed}</div>
           <div className="flex justify-center -space-x-3 md:-space-x-4">
             {selectedDeck.length > 0 ? (
               selectedDeck.map((card, i) => (
@@ -83,7 +83,7 @@ export function GauntletModeView({
                 </div>
               ))
             ) : (
-              <div className="text-sm text-gray-600 italic">No deck data</div>
+              <div className="text-sm text-gray-600 italic">{t.gauntletSub.noDeckData}</div>
             )}
           </div>
       </div>

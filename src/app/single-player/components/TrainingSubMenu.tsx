@@ -34,11 +34,11 @@ export function TrainingSubMenu({ t, onNavigate }: TrainingSubMenuProps) {
               {t.trainingSub.ownDeck}
             </h3>
             <p className="text-sm text-gray-400">
-              Use your collection to train strategies.
+              {t.trainingSub.ownDeckDesc}
             </p>
           </div>
           <div className="flex items-center gap-2 text-blue-400 font-bold uppercase tracking-widest text-xs mt-8 group-hover:translate-x-2 transition-transform">
-            Select <ChevronLeft className="rotate-180 w-4 h-4" />
+            {t.trainingSub.select} <ChevronLeft className="rotate-180 w-4 h-4" />
           </div>
         </div>
       </button>
@@ -60,11 +60,11 @@ export function TrainingSubMenu({ t, onNavigate }: TrainingSubMenuProps) {
               {t.trainingSub.randomDeck}
             </h3>
             <p className="text-sm text-gray-400">
-              Challenge yourself with randomized cards.
+              {t.trainingSub.randomDeckDesc}
             </p>
           </div>
           <div className="flex items-center gap-2 text-cyan-400 font-bold uppercase tracking-widest text-xs mt-8 group-hover:translate-x-2 transition-transform">
-            Select <ChevronLeft className="rotate-180 w-4 h-4" />
+            {t.trainingSub.select} <ChevronLeft className="rotate-180 w-4 h-4" />
           </div>
         </div>
       </button>

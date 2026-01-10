@@ -40,7 +40,7 @@ export function CustomModeView({
       {/* Left Side: Info */}
       <div className="flex-1 text-center md:text-left z-10 text-white">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-black uppercase tracking-widest mb-4">
-          <Zap className="w-3 h-3" /> Sandbox Mode
+          <Zap className="w-3 h-3" /> {t.customSub.sandboxMode}
         </div>
         <h2 className="text-4xl md:text-5xl font-black italic uppercase text-white mb-4 leading-none">
           {t.modes.custom.title}
@@ -54,7 +54,7 @@ export function CustomModeView({
           className="group relative px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-purple-400 transition-colors w-full md:w-auto overflow-hidden rounded-xl"
         >
           <span className="relative z-10 flex items-center justify-center gap-2">
-            Start Battle{" "}
+            {t.customSub.startBattle}{" "}
             <ChevronLeft className="rotate-180 w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </span>
         </button>
@@ -64,7 +64,7 @@ export function CustomModeView({
       <div className="flex-1 w-full z-10 space-y-4">
         <div className="bg-black/40 rounded-2xl p-6 border border-white/5">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 block text-center">
-            Board Mechanic Configuration
+            {t.customSub.mechanicConfig}
           </label>
           <div className="grid grid-cols-2 gap-3">
             {mechanics.map((mechanic) => (
@@ -78,7 +78,7 @@ export function CustomModeView({
                     : "border-white/5 bg-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300"
                 )}
               >
-                {mechanic.replace("_", " ")}
+                {t.customSub.mechanics[mechanic]}
               </button>
             ))}
           </div>
@@ -94,7 +94,7 @@ export function CustomModeView({
               className="bg-black/40 rounded-2xl p-6 border border-white/5"
             >
               <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 block text-center">
-                Select Active Element
+                {t.customSub.selectElement}
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {elements.map((el) => (
@@ -108,7 +108,7 @@ export function CustomModeView({
                         : "border-white/5 bg-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300"
                     )}
                   >
-                    {el}
+                    {t.customSub.elements[el]}
                   </button>
                 ))}
               </div>

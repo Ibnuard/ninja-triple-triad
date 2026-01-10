@@ -143,7 +143,7 @@ export default function SinglePlayerModes() {
           >
             <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             <span className="font-bold tracking-widest text-xs uppercase">
-              {selectedMode ? "BACK" : "MAIN MENU"}
+              {selectedMode ? t.back : t.mainMenu}
             </span>
           </button>
 
@@ -158,7 +158,7 @@ export default function SinglePlayerModes() {
         <div className="min-h-[400px] flex flex-col items-center justify-center">
           <AnimatePresence mode="wait">
             {!selectedMode ? (
-              <ModeSelectionGrid modes={modes} onModeClick={handleModeClick} />
+              <ModeSelectionGrid t={t} modes={modes} onModeClick={handleModeClick} />
             ) : selectedMode === "training" ? (
               <TrainingSubMenu
                 t={t}

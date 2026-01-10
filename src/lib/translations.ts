@@ -73,10 +73,15 @@ export const TRANSLATIONS = {
     },
     spSelection: {
       title: "Select Mode",
-      back: "Back to Home",
+      back: "Back",
+      mainMenu: "Main Menu",
+      selectMode: "Select Mode",
       trainingSub: {
         ownDeck: "Own Deck",
+        ownDeckDesc: "Use your collection to train strategies.",
         randomDeck: "Random Deck",
+        randomDeckDesc: "Challenge yourself with randomized cards.",
+        select: "Select",
       },
       modes: {
         gauntlet: {
@@ -105,8 +110,35 @@ export const TRANSLATIONS = {
         },
         custom: {
           title: "Custom Mode",
-          description:
-            "Control both players locally to test cards and passives.",
+          description: "Control both players locally to test cards and passives.",
+        },
+      },
+      gauntletSub: {
+        lastRun: "Last Run",
+        score: "Score",
+        lastBoss: "Last Boss",
+        deckUsed: "Deck Used",
+        noDeckData: "No deck data",
+      },
+      customSub: {
+        sandboxMode: "Sandbox Mode",
+        startBattle: "Start Battle",
+        mechanicConfig: "Board Mechanic Configuration",
+        selectElement: "Select Active Element",
+        mechanics: {
+          none: "None",
+          random_elemental: "Random Elemental",
+          poison: "Poison",
+          foggy: "Foggy",
+          joker: "Joker",
+        },
+        elements: {
+          random: "Random",
+          fire: "Fire",
+          water: "Water",
+          earth: "Earth",
+          wind: "Wind",
+          lightning: "Lightning",
         },
       },
     },
@@ -258,10 +290,15 @@ export const TRANSLATIONS = {
     },
     spSelection: {
       title: "Pilih Mode",
-      back: "Kembali ke Beranda",
+      back: "Kembali",
+      mainMenu: "Menu Utama",
+      selectMode: "Pilih Mode",
       trainingSub: {
         ownDeck: "Dek Sendiri",
+        ownDeckDesc: "Gunakan koleksimu untuk melatih strategi.",
         randomDeck: "Dek Acak",
+        randomDeckDesc: "Tantang dirimu dengan kartu acak.",
+        select: "Pilih",
       },
       modes: {
         gauntlet: {
@@ -292,6 +329,34 @@ export const TRANSLATIONS = {
           title: "Mode Kustom",
           description:
             "Kamu bisa menjalankan dua sisi sekaligus untuk mencoba kartu dan pasif.",
+        },
+      },
+      gauntletSub: {
+        lastRun: "Sesi Terakhir",
+        score: "Skor",
+        lastBoss: "Boss Terakhir",
+        deckUsed: "Dek yang Digunakan",
+        noDeckData: "Tidak ada data dek",
+      },
+      customSub: {
+        sandboxMode: "Mode Sandbox",
+        startBattle: "Mulai Pertempuran",
+        mechanicConfig: "Konfigurasi Mekanik Papan",
+        selectElement: "Pilih Elemen Aktif",
+        mechanics: {
+          none: "Tidak Ada",
+          random_elemental: "Elemental Acak",
+          poison: "Racun",
+          foggy: "Berkabut",
+          joker: "Joker",
+        },
+        elements: {
+          random: "Acak",
+          fire: "Api",
+          water: "Air",
+          earth: "Tanah",
+          wind: "Angin",
+          lightning: "Petir",
         },
       },
     },
