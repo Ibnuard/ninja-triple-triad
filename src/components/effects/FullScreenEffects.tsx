@@ -49,10 +49,11 @@ export const FullScreenEffects = memo(
           }
 
           app = newApp;
-          containerRef.current.appendChild(app.canvas);
+          const localApp = newApp; // Local reference for closures
+          containerRef.current.appendChild(localApp.canvas);
 
-          const { width, height } = app.screen;
-          const stage = app.stage;
+          const { width, height } = localApp.screen;
+          const stage = localApp.stage;
 
           // --- EFFECT FACTORIES ---
 
@@ -70,24 +71,24 @@ export const FullScreenEffects = memo(
               maxLife: number;
             }[] = [];
             let timer = 0;
-            let nextStorm = 1 + Math.random() * 3; // Initial faster trigger
+            let nextStorm = 1 + Math.random() * 3;
 
             return {
               update: (delta) => {
+                if (isDisposed) return;
+
                 timer += delta;
                 if (timer > nextStorm) {
                   timer = 0;
                   nextStorm = 3 + Math.random() * 7;
-                  // Trigger
                   if (Math.random() > 0.4) {
-                    const bx = Math.random() * app!.screen.width;
+                    const bx = Math.random() * localApp.screen.width;
                     const bScale = 0.5 + Math.random() * 1.5;
                     const g = new PIXI.Graphics();
-                    // Draw bolt logic
                     const segments = 12;
                     let cx = bx;
                     let cy = 0;
-                    const segH = app!.screen.height / segments;
+                    const segH = localApp.screen.height / segments;
                     const path = [{ x: cx, y: 0 }];
                     for (let i = 0; i < segments; i++) {
                       cy += segH + (Math.random() - 0.5) * 20;
@@ -119,19 +120,21 @@ export const FullScreenEffects = memo(
                   flashAlpha = 0.6 + Math.random() * 0.4;
                 }
 
-                // Flash
                 if (flashAlpha > 0) {
                   flashAlpha -= delta * 3;
                   if (flashAlpha < 0) flashAlpha = 0;
-                  flashGraph?.clear();
-                  flashGraph
-                    .rect(0, 0, app!.screen.width, app!.screen.height)
-                    .fill({ color: 0xffffff, alpha: flashAlpha * 0.3 }); // Reduced flash alpha
+                  if (!flashGraph.destroyed) {
+                    flashGraph.clear();
+                    flashGraph
+                      .rect(0, 0, localApp.screen.width, localApp.screen.height)
+                      .fill({ color: 0xffffff, alpha: flashAlpha * 0.3 });
+                  }
                 } else {
-                  flashGraph?.clear();
+                  if (!flashGraph.destroyed) {
+                    flashGraph.clear();
+                  }
                 }
 
-                // Bolts
                 for (let i = activeBolts.length - 1; i >= 0; i--) {
                   const b = activeBolts[i];
                   b.life -= delta;
@@ -144,13 +147,13 @@ export const FullScreenEffects = memo(
               },
               resize: () => {},
               destroy: () => {
-                container.destroy({ children: true });
-                flashGraph.destroy();
+                if (!container.destroyed) container.destroy({ children: true });
+                if (!flashGraph.destroyed) flashGraph.destroy();
               },
             };
           };
 
-          // 2. FIRE (Embers + Heat + Distortion)
+          // 2. FIRE
           const createFireEffect = (): EffectSystem => {
             const container = new PIXI.Container();
             stage.addChild(container);
@@ -167,35 +170,6 @@ export const FullScreenEffects = memo(
             }
             const embers: Ember[] = [];
 
-            // Create a soft glow texture for particles (better than flat circles)
-            const createGlowTexture = () => {
-              const s = 64;
-              const c = document.createElement("canvas");
-              c.width = s;
-              c.height = s;
-              const ctx = c.getContext("2d");
-              if (!ctx) return PIXI.Texture.WHITE;
-              const grad = ctx.createRadialGradient(
-                s / 2,
-                s / 2,
-                0,
-                s / 2,
-                s / 2,
-                s / 2
-              );
-              grad.addColorStop(0, "rgba(255, 200, 100, 1)");
-              grad.addColorStop(0.4, "rgba(255, 100, 0, 0.5)");
-              grad.addColorStop(1, "rgba(255, 0, 0, 0)");
-              ctx.fillStyle = grad;
-              ctx.fillRect(0, 0, s, s);
-              return PIXI.Texture.from(c);
-            };
-            const glowTex = createGlowTexture();
-
-            // Add bottom glow gradient
-            const glow = new PIXI.Graphics();
-            glow.rect(0, 0, width, height).fill({ color: 0xff4500, alpha: 0 }); // clear setup
-            // Create a real gradient sprite for the bottom
             const bottomGradTex = (() => {
               const c = document.createElement("canvas");
               c.width = 1;
@@ -219,25 +193,17 @@ export const FullScreenEffects = memo(
 
             return {
               update: (delta) => {
+                if (isDisposed) return;
                 const t = Date.now() * 0.001;
-                // Pulse bottom glow
                 bottomGlow.alpha = 0.6 + Math.sin(t * 2) * 0.2;
 
-                // Spawn embers
-                // Spawn more frequently but varied sizes
                 if (Math.random() < 0.4) {
                   const g = new PIXI.Graphics();
-                  // Actually use Sprite for better perf with texture, but Graphics is fine for small count
-                  // Let's use Sprite with the glow texture we made
-                  // const s = new PIXI.Sprite(glowTex);
-
-                  // Reverting to Graphics for simplicity if texture fails, but let's try Graphics with ADD blend
                   g.circle(0, 0, 4).fill({ color: 0xffaa00, alpha: 0.8 });
                   g.blendMode = "add";
 
-                  g.x = Math.random() * app!.screen.width;
-                  g.y = app!.screen.height + 10;
-                  // Random scale
+                  g.x = Math.random() * localApp.screen.width;
+                  g.y = localApp.screen.height + 10;
                   const scale = 0.5 + Math.random();
                   g.scale.set(scale);
 
@@ -246,7 +212,7 @@ export const FullScreenEffects = memo(
                     g,
                     x: g.x,
                     y: g.y,
-                    vy: 50 + Math.random() * 80, // Slower, more floating
+                    vy: 50 + Math.random() * 80,
                     life: 0,
                     maxLife: 3 + Math.random() * 2,
                     sway: Math.random() * 10,
@@ -254,7 +220,6 @@ export const FullScreenEffects = memo(
                   });
                 }
 
-                // Update embers
                 for (let i = embers.length - 1; i >= 0; i--) {
                   const e = embers[i];
                   e.life += delta;
@@ -264,36 +229,34 @@ export const FullScreenEffects = memo(
                     continue;
                   }
 
-                  // Rise
                   e.y -= e.vy * delta;
-                  // Organic Sway: Sine wave compounded
                   const swayOffset =
                     Math.sin(t * 2 + e.sway) * 20 * (e.life / e.maxLife);
                   e.g.x = e.x + swayOffset;
                   e.g.y = e.y;
 
-                  // Fade out & Shrink
                   const p = e.life / e.maxLife;
                   e.g.alpha = 1 - p;
                   e.g.scale.set(e.baseScale * (1 - p * 0.5));
-
-                  // Color shift from Yellow -> Red? (Hard with Graphics color, simpler to just keep orange)
                 }
               },
               resize: (w, h) => {
-                bottomGlow.width = w;
-                bottomGlow.y = h - 300;
+                if (!bottomGlow.destroyed) {
+                  bottomGlow.width = w;
+                  bottomGlow.y = h - 300;
+                }
               },
-              destroy: () => container.destroy({ children: true }),
+              destroy: () => {
+                if (!container.destroyed) container.destroy({ children: true });
+              },
             };
           };
 
-          // 3. WATER (Bubbles/Caustics)
+          // 3. WATER
           const createWaterEffect = (): EffectSystem => {
             const container = new PIXI.Container();
             stage.addChild(container);
 
-            // Blue overlay
             const overlay = new PIXI.Graphics();
             overlay
               .rect(0, 0, width, height)
@@ -309,7 +272,6 @@ export const FullScreenEffects = memo(
             }
             const bubbles: Bubble[] = [];
 
-            // Init bubbles
             for (let i = 0; i < 30; i++) {
               const g = new PIXI.Graphics();
               g.circle(0, 0, 2 + Math.random() * 4).stroke({
@@ -331,26 +293,31 @@ export const FullScreenEffects = memo(
 
             return {
               update: (delta) => {
+                if (isDisposed) return;
                 const t = Date.now() * 0.001;
                 bubbles.forEach((b) => {
                   b.y -= b.vy * delta;
                   if (b.y < -10) {
-                    b.y = app!.screen.height + 10;
-                    b.x = Math.random() * app!.screen.width;
+                    b.y = localApp.screen.height + 10;
+                    b.x = Math.random() * localApp.screen.width;
                   }
                   b.g.y = b.y;
                   b.g.x = b.x + Math.sin(t + b.amp) * 10;
                 });
               },
               resize: (w, h) => {
-                overlay?.clear();
-                overlay.rect(0, 0, w, h).fill({ color: 0x001133, alpha: 0.2 });
+                if (!overlay.destroyed) {
+                  overlay.clear();
+                  overlay.rect(0, 0, w, h).fill({ color: 0x001133, alpha: 0.2 });
+                }
               },
-              destroy: () => container.destroy({ children: true }),
+              destroy: () => {
+                if (!container.destroyed) container.destroy({ children: true });
+              },
             };
           };
 
-          // 4. EARTH (Dust/Shake)
+          // 4. EARTH
           const createEarthEffect = (): EffectSystem => {
             const container = new PIXI.Container();
             stage.addChild(container);
@@ -377,14 +344,13 @@ export const FullScreenEffects = memo(
 
             return {
               update: (delta) => {
-                // Dust
+                if (isDisposed) return;
                 dusts.forEach((d) => {
                   d.x += d.vx * delta;
-                  if (d.x > app!.screen.width) d.x = 0;
+                  if (d.x > localApp.screen.width) d.x = 0;
                   d.g.x = d.x;
                 });
 
-                // Random Shake
                 if (Math.random() < 0.005) shakeTime = 0.5;
                 if (shakeTime > 0) {
                   shakeTime -= delta;
@@ -396,13 +362,13 @@ export const FullScreenEffects = memo(
               },
               resize: () => {},
               destroy: () => {
-                stage.position.set(0, 0);
-                container.destroy({ children: true });
+                if (!stage.destroyed) stage.position.set(0, 0);
+                if (!container.destroyed) container.destroy({ children: true });
               },
             };
           };
 
-          // 5. WIND (Speed Lines)
+          // 5. WIND
           const createWindEffect = (): EffectSystem => {
             const container = new PIXI.Container();
             stage.addChild(container);
@@ -429,22 +395,25 @@ export const FullScreenEffects = memo(
 
             return {
               update: (delta) => {
+                if (isDisposed) return;
                 lines.forEach((l) => {
                   l.x += l.speed * delta;
-                  if (l.x > app!.screen.width) {
+                  if (l.x > localApp.screen.width) {
                     l.x = -100;
-                    l.y = Math.random() * app!.screen.height;
+                    l.y = Math.random() * localApp.screen.height;
                   }
                   l.g.x = l.x;
                   l.g.y = l.y;
                 });
               },
               resize: () => {},
-              destroy: () => container.destroy({ children: true }),
+              destroy: () => {
+                if (!container.destroyed) container.destroy({ children: true });
+              },
             };
           };
 
-          // 6. POISON (Spores)
+          // 6. POISON
           const createPoisonEffect = (): EffectSystem => {
             const container = new PIXI.Container();
             stage.addChild(container);
@@ -471,40 +440,40 @@ export const FullScreenEffects = memo(
               });
             }
 
-            // Vignette graphics
             const vig = new PIXI.Graphics();
             container.addChild(vig);
 
             return {
               update: (delta) => {
+                if (isDisposed) return;
                 spores.forEach((s) => {
                   s.x += s.vx * delta;
                   s.y += s.vy * delta;
-                  // Wrap
-                  if (s.x < 0) s.x = app!.screen.width;
-                  if (s.x > app!.screen.width) s.x = 0;
-                  if (s.y < 0) s.y = app!.screen.height;
-                  if (s.y > app!.screen.height) s.y = 0;
+                  if (s.x < 0) s.x = localApp.screen.width;
+                  if (s.x > localApp.screen.width) s.x = 0;
+                  if (s.y < 0) s.y = localApp.screen.height;
+                  if (s.y > localApp.screen.height) s.y = 0;
                   s.g.x = s.x;
                   s.g.y = s.y;
                 });
 
-                // Pulse vignette
                 const t = Date.now() * 0.001;
                 const alpha = 0.2 + Math.sin(t) * 0.1;
-                vig?.clear();
-                // Simple vignette simulation (rect with hole? or just border rects?)
-                // Pixi graphics doesn't do gradient easy. Just a dark green Overlay with low alpha
-                vig
-                  .rect(0, 0, app!.screen.width, app!.screen.height)
-                  .fill({ color: 0x004400, alpha: alpha * 0.3 });
+                if (!vig.destroyed) {
+                  vig.clear();
+                  vig
+                    .rect(0, 0, localApp.screen.width, localApp.screen.height)
+                    .fill({ color: 0x004400, alpha: alpha * 0.3 });
+                }
               },
               resize: () => {},
-              destroy: () => container.destroy({ children: true }),
+              destroy: () => {
+                if (!container.destroyed) container.destroy({ children: true });
+              },
             };
           };
 
-          // 7. JOKER (Confetti + Glitch)
+          // 7. JOKER
           const createJokerEffect = (): EffectSystem => {
             const container = new PIXI.Container();
             stage.addChild(container);
@@ -536,18 +505,18 @@ export const FullScreenEffects = memo(
 
             return {
               update: (delta) => {
+                if (isDisposed) return;
                 confetti.forEach((c) => {
                   c.y += c.vy * delta;
                   c.g.rotation += c.vr * delta;
-                  if (c.y > app!.screen.height) {
+                  if (c.y > localApp.screen.height) {
                     c.y = -10;
-                    c.x = Math.random() * app!.screen.width;
+                    c.x = Math.random() * localApp.screen.width;
                   }
                   c.g.y = c.y;
                   c.g.x = c.x;
                 });
 
-                // Random glitch (offset stage)
                 if (Math.random() < 0.01) {
                   stage.position.x = (Math.random() - 0.5) * 20;
                   container.alpha = 0.5;
@@ -558,18 +527,17 @@ export const FullScreenEffects = memo(
               },
               resize: () => {},
               destroy: () => {
-                stage.position.x = 0;
-                container.destroy({ children: true });
+                if (!stage.destroyed) stage.position.x = 0;
+                if (!container.destroyed) container.destroy({ children: true });
               },
             };
           };
 
-          // 8. FOGGY (Rolling Mist)
+          // 8. FOGGY
           const createFoggyEffect = (): EffectSystem => {
             const container = new PIXI.Container();
             stage.addChild(container);
 
-            // Create mist texture procedurally
             const createMistTexture = () => {
               const size = 256;
               const canvas = document.createElement("canvas");
@@ -607,9 +575,6 @@ export const FullScreenEffects = memo(
               mists.push({ s, vx: 10 + Math.random() * 20 });
             }
 
-            // Noise Overlay
-            // (Simulated with static grain sprites or just many small dots)
-            // Graphics approach for grain
             const grain = new PIXI.Graphics();
             for (let i = 0; i < 500; i++) {
               grain
@@ -620,19 +585,21 @@ export const FullScreenEffects = memo(
 
             return {
               update: (delta) => {
+                if (isDisposed) return;
                 mists.forEach((m) => {
                   m.s.x -= m.vx * delta;
-                  if (m.s.x < -200) m.s.x = app!.screen.width + 200;
+                  if (m.s.x < -200) m.s.x = localApp.screen.width + 200;
                 });
 
-                // Jitter grain
                 grain.position.set(
                   (Math.random() - 0.5) * 5,
                   (Math.random() - 0.5) * 5
                 );
               },
               resize: () => {},
-              destroy: () => container.destroy({ children: true }),
+              destroy: () => {
+                if (!container.destroyed) container.destroy({ children: true });
+              },
             };
           };
 
@@ -669,7 +636,6 @@ export const FullScreenEffects = memo(
                 currentEffect = createFoggyEffect();
                 break;
               default:
-                // None
                 break;
             }
           };
@@ -678,18 +644,22 @@ export const FullScreenEffects = memo(
 
           // Animation Loop
           const animate = (time: number) => {
-            if (isDisposed || !app) return;
-            const delta = lastTime ? (time - lastTime) / 1000 : 0.016;
-            lastTime = time;
+            if (isDisposed || !app || !app.renderer) return;
+            try {
+              const delta = lastTime ? (time - lastTime) / 1000 : 0.016;
+              lastTime = time;
 
-            if (currentEffect) currentEffect.update(delta);
+              if (currentEffect) currentEffect.update(delta);
 
-            animationId = requestAnimationFrame(animate);
+              animationId = requestAnimationFrame(animate);
+            } catch (err) {
+              console.error("FullScreenEffects Animation Error:", err);
+            }
           };
           animationId = requestAnimationFrame(animate);
 
           const handleResize = () => {
-            if (!app || isDisposed) return;
+            if (!app || !app.renderer || isDisposed) return;
             app.renderer.resize(window.innerWidth, window.innerHeight);
             if (currentEffect)
               currentEffect.resize(window.innerWidth, window.innerHeight);
@@ -705,8 +675,18 @@ export const FullScreenEffects = memo(
       return () => {
         isDisposed = true;
         if (animationId) cancelAnimationFrame(animationId);
-        if (currentEffect) currentEffect.destroy();
-        if (app) app.destroy(true, { children: true, texture: true });
+        if (currentEffect) {
+          try {
+            currentEffect.destroy();
+          } catch (e) {}
+          currentEffect = null;
+        }
+        if (app) {
+          try {
+            app.destroy(true, { children: true, texture: true });
+          } catch (e) {}
+          app = null;
+        }
       };
     }, [effectKey]); // Re-run when effectKey changes
 

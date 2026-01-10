@@ -1,8 +1,5 @@
 "use client";
 
-import { type Engine } from "@tsparticles/engine";
-import Particles, { initParticlesEngine } from "@tsparticles/react";
-import { loadSlim } from "@tsparticles/slim";
 import { motion } from "framer-motion";
 import { Info, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -12,6 +9,7 @@ import { BoardIntroAnimation } from "../../components/BoardIntroAnimation";
 import { BoardMechanicModal } from "../../components/BoardMechanicModal";
 import { Hand } from "../../components/Hand";
 import { PassiveInfoModal } from "../../components/PassiveInfoModal";
+import { SettingsModal } from "../../components/SettingsModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
@@ -24,6 +22,7 @@ import { Card } from "../../types/game";
 import gameConfig from "../../gameConfig.json";
 import { LoadingOverlay } from "../../components/LoadingOverlay";
 import { useGameConfigStore } from "../../store/useGameConfigStore";
+import { Settings as SettingsIcon } from "lucide-react";
 
 // Mock Cards
 const MOCK_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
@@ -67,8 +66,48 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
 export default function GamePage() {
   const [showInfo, setShowInfo] = useState(false);
   const [showMechanicModal, setShowMechanicModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showBoardIntro, setShowBoardIntro] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
+
+  const {
+    showFPS: userShowFPS,
+    showBoardAnimation: userShowBoardAnimation,
+  } = useSettingsStore();
+
+  // Active Settings (Respect devMode)
+  const activeSettings = useMemo(() => {
+    if (gameConfig.devMode) {
+      return {
+        showFPS: true, // Always show FPS in devMode
+        showBoardAnimation: gameConfig.showAnimation,
+        showCardPlaceAnimation: gameConfig.showAnimation,
+        showBoardEffect: gameConfig.showBoardEffect,
+        showFullScreenEffect: gameConfig.showFullScreenEffect,
+      };
+    }
+    return {
+      showFPS: userShowFPS,
+      showBoardAnimation: userShowBoardAnimation,
+      showCardPlaceAnimation: userShowBoardAnimation,
+      showBoardEffect: userShowBoardAnimation,
+      showFullScreenEffect: userShowBoardAnimation,
+    };
+  }, [
+    userShowFPS,
+    userShowBoardAnimation,
+    gameConfig.devMode,
+    gameConfig.showAnimation,
+    gameConfig.showBoardEffect,
+    gameConfig.showFullScreenEffect,
+  ]);
+
+  // Fix: Ensure intro is marked as "done" if animations are disabled
+  useEffect(() => {
+    if (!activeSettings.showBoardAnimation && showBoardIntro) {
+      setShowBoardIntro(false);
+    }
+  }, [activeSettings.showBoardAnimation, showBoardIntro]);
 
   // Use selective subscriptions to prevent re-renders on drag state changes
   const initGame = useGameStore((state) => state.initGame);
@@ -195,165 +234,17 @@ export default function GamePage() {
     setShowBoardIntro(true);
   };
 
-  const [pInit, setPInit] = useState(false);
-
-  useEffect(() => {
-    initParticlesEngine(async (engine: Engine) => {
-      await loadSlim(engine);
-    }).then(() => {
-      setPInit(true);
-    });
-  }, []);
 
   // Auto-skip intro if animation disabled
   useEffect(() => {
-    if (!gameConfig.showAnimation && showBoardIntro) {
+    if (!activeSettings.showBoardAnimation && showBoardIntro) {
       setShowBoardIntro(false);
     }
-  }, [showBoardIntro]);
+  }, [showBoardIntro, activeSettings.showBoardAnimation]);
 
   // Use AI Hook with Pause
   useComputerAI({ isPaused: showBoardIntro });
 
-  const particlesOptions = useMemo(() => {
-    let color = ["#ffffff"];
-    let direction: any = "bottom";
-    let speed = { min: 1, max: 3 };
-    let shape: any = "circle";
-    let size: any = { min: 1, max: 3 };
-    let particleCount = 40;
-    let opacity: any = { min: 0.1, max: 0.4 };
-    let moveOptions: any = {};
-    let shapeOptions: any = {};
-    let wobble: any = { enable: false };
-    let rotate: any = { value: 0 };
-
-    const type = mechanic.type;
-    const el = mechanic.activeElement;
-
-    // CATEGORY 1: RISING CIRCLES (Fire, Earth, Poison)
-    if (
-      (type === "random_elemental" && (el === "fire" || el === "earth")) ||
-      type === "poison"
-    ) {
-      direction = "top";
-      speed = { min: 1, max: 4 };
-      shape = "circle";
-      size = { min: 2, max: 5 };
-      particleCount = 50;
-      opacity = { min: 0.3, max: 0.7 };
-      if (el === "fire") color = ["#ff3b00", "#ff7a00", "#ffd000"];
-      else if (el === "earth") color = ["#d97706", "#b45309", "#78350f"];
-      else color = ["#a855f7", "#c084fc", "#9333ea"]; // Poison
-    }
-    // CATEGORY 2: RAIN (Lightning, Water, Foggy)
-    else if (
-      (type === "random_elemental" && (el === "lightning" || el === "water")) ||
-      type === "foggy"
-    ) {
-      direction = "bottom";
-      speed = { min: 15, max: 25 }; // Faster for rain feel
-      shape = "circle";
-      size = { min: 1, max: 3 };
-      particleCount = 100; // More particles for heavy rain
-      opacity = { min: 0.3, max: 0.6 };
-      if (el === "lightning") color = ["#60a5fa", "#facc15", "#ffffff"];
-      else if (el === "water") color = ["#3b82f6", "#0ea5e9", "#93c5fd"];
-      else color = ["#9ca3af", "#d1d5db", "#ffffff"]; // Foggy/Rainy
-
-      moveOptions = { straight: true, random: false };
-    }
-    // CATEGORY 3: LEAVES (Wind)
-    else if (type === "random_elemental" && el === "wind") {
-      direction = "bottom-right";
-      speed = { min: 3, max: 7 };
-      shape = "image";
-      size = { min: 8, max: 15 };
-      particleCount = 20;
-      opacity = { min: 0.4, max: 0.8 };
-      shapeOptions = {
-        image: [
-          {
-            src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2322c55e' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
-            width: 100,
-            height: 100,
-          },
-          {
-            src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2316a34a' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
-            width: 100,
-            height: 100,
-          },
-          {
-            src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%2378350f' d='M17,8C8,10,5.9,16.17,4.5,18.17v2h1c2.83-1.4,9-3.5,11-3.5a1.53,1.53,0,0,0,1,1s1.5-3.5,0-6S17,8,17,8Z'/></svg>",
-            width: 100,
-            height: 100,
-          },
-        ],
-      };
-      wobble = { enable: true, distance: 10, speed: 10 };
-      rotate = {
-        value: { min: 0, max: 360 },
-        animation: { enable: true, speed: 5 },
-      };
-    }
-    // DEFAULT / JOKER
-    else {
-      color = ["#ec4899", "#a855f7", "#3b82f6"];
-      direction = "none";
-      particleCount = 30;
-    }
-
-    return {
-      fullScreen: { enable: false },
-      fpsLimit: 120,
-      particles: {
-        number: { value: particleCount, density: { enable: true, area: 1000 } },
-        color: { value: color },
-        shape: { type: shape, options: shapeOptions },
-        opacity: {
-          value: opacity,
-          animation: {
-            enable: true,
-            speed: 1,
-            minimumValue: opacity.min,
-            sync: false,
-          },
-        },
-        size: {
-          value: size,
-          animation: {
-            enable: true,
-            speed: 2,
-            minimumValue: size.min,
-            sync: false,
-          },
-        },
-        move: {
-          enable: true,
-          speed: speed,
-          direction: direction,
-          random: true,
-          outModes: { default: "out" },
-          ...moveOptions,
-        },
-        wobble,
-        rotate,
-      },
-      detectRetina: true,
-    };
-  }, [mechanic.type, mechanic.activeElement]);
-
-  // Memoize the Particles component to prevent remounting
-  const particlesComponent = useMemo(() => {
-    if (!pInit || !gameConfig.showTsParticle) return null;
-    return (
-      <Particles
-        id="tsparticles"
-        options={particlesOptions as any}
-        className="absolute inset-0 pointer-events-none"
-      />
-    );
-  }, [pInit, particlesOptions]);
 
   const [showResult, setShowResult] = useState(false);
 
@@ -384,12 +275,10 @@ export default function GamePage() {
 
       {!loadingMessage && (
         <>
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none overflow-hidden">
-            {particlesComponent}
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black z-0 pointer-events-none overflow-hidden" />
 
           {/* Board Intro Animation */}
-          {showBoardIntro && gameConfig.showAnimation && (
+          {showBoardIntro && activeSettings.showBoardAnimation && (
             <BoardIntroAnimation
               mechanicType={mechanic.type}
               activeElement={mechanic.activeElement}
@@ -398,10 +287,10 @@ export default function GamePage() {
           )}
 
           {/* Main Game UI - Only render after Intro OR if animation is disabled/skipped */}
-          {(!showBoardIntro || !gameConfig.showAnimation) && (
+          {(!showBoardIntro || !activeSettings.showBoardAnimation) && (
             <>
               {/* Full-Screen Effects */}
-              {gameConfig.showFullScreenEffect && (
+              {activeSettings.showFullScreenEffect && (
                 <FullScreenEffects
                   mechanicType={mechanic.type}
                   activeElement={mechanic.activeElement}
@@ -540,9 +429,17 @@ export default function GamePage() {
                 </div>
               )}
 
-              {/* Right Side: Exit Button */}
+              {/* Right Side: Exit & Settings Buttons */}
               {phase !== "game_over" && (
-                <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none flex flex-col items-end gap-2">
+                <div className="absolute top-2 right-2 lg:top-4 lg:right-4 z-[60] pointer-events-none flex flex-row items-center gap-2">
+                  <button
+                    onClick={() => setShowSettingsModal(true)}
+                    className="p-2 lg:p-3 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-400 hover:text-purple-300 hover:border-purple-400 transition-all pointer-events-auto shadow-lg backdrop-blur-sm"
+                    title={t.settings.title}
+                  >
+                    <SettingsIcon className="w-4 h-4" />
+                  </button>
+
                   <button
                     onClick={async () => {
                       setLoadingMessage(t.cleaning);
@@ -550,7 +447,7 @@ export default function GamePage() {
                       resetGame();
                       router.push("/");
                     }}
-                    className="p-2 lg:px-3 lg:py-2 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto"
+                    className="p-2 lg:p-3 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto shadow-lg backdrop-blur-sm"
                     title={t.exit}
                   >
                     <LogOut className="w-4 h-4" />
@@ -595,7 +492,10 @@ export default function GamePage() {
                 <div className="order-2 w-full h-full flex flex-col items-center justify-center relative min-h-0 min-w-0 gap-2 lg:gap-6">
                   <div className="relative w-full h-full max-h-[50vh] sm:max-h-[55vh] lg:max-h-[75vh] aspect-square flex items-center justify-center">
                     <div className="scale-85 sm:scale-75 lg:scale-95 transition-transform duration-500">
-                      <Board />
+                      <Board 
+                        showCardPlaceAnimation={activeSettings.showCardPlaceAnimation} 
+                        showBoardEffect={activeSettings.showBoardEffect}
+                      />
                     </div>
                   </div>
 
@@ -851,7 +751,11 @@ export default function GamePage() {
           )}
         </>
       )}
-      <FPSCounter />
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+      />
+      {activeSettings.showFPS && <FPSCounter />}
     </div>
   );
 }

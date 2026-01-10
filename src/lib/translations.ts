@@ -64,6 +64,14 @@ export const TRANSLATIONS = {
         multiplier: "Multiplier",
         flipsBonus: "Flips Bonus",
       },
+      settings: {
+        title: "Game Settings",
+        fpsCounter: "FPS Counter",
+        boardAnimation: "Board Effect",
+        on: "ON",
+        off: "OFF",
+        close: "Close",
+      },
     },
     lobby: {
       title: "Multiplayer Lobby",
@@ -287,6 +295,14 @@ export const TRANSLATIONS = {
         totalScore: "Total Skor",
         multiplier: "Pengali",
         flipsBonus: "Bonus Balik",
+      },
+      settings: {
+        title: "Pengaturan Game",
+        fpsCounter: "Penghitung FPS",
+        boardAnimation: "Efek Board",
+        on: "AKTIF",
+        off: "MATI",
+        close: "Tutup",
       },
     },
     lobby: {

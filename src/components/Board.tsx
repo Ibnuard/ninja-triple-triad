@@ -26,6 +26,7 @@ const BoardCell = ({
   isFirstTwoTurns,
   mechanic,
   placeCard,
+  showAnimation,
 }: {
   rIndex: number;
   cIndex: number;
@@ -34,6 +35,7 @@ const BoardCell = ({
   isFirstTwoTurns: boolean;
   mechanic: any;
   placeCard: (r: number, c: number) => void;
+  showAnimation?: boolean;
 }) => {
   const isHovered = useGameStore(
     (state) =>
@@ -53,9 +55,9 @@ const BoardCell = ({
         isHovered && !cell.card && "ring-2 ring-blue-500 bg-blue-500/20"
       )}
       onClick={() => placeCard(rIndex, cIndex)}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: (rIndex * 3 + cIndex) * 0.05 }}
+      initial={showAnimation ? { opacity: 0, scale: 0.8 } : false}
+      animate={showAnimation ? { opacity: 1, scale: 1 } : false}
+      transition={showAnimation ? { delay: (rIndex * 3 + cIndex) * 0.05 } : { duration: 0 }}
     >
       {cell.card ? (
         <Card
@@ -81,7 +83,13 @@ const BoardCell = ({
   );
 };
 
-export const Board = () => {
+export const Board = ({
+  showCardPlaceAnimation = true,
+  showBoardEffect = true,
+}: {
+  showCardPlaceAnimation?: boolean;
+  showBoardEffect?: boolean;
+}) => {
   // Use selective subscriptions to prevent unnecessary re-renders
   const board = useGameStore((state) => state.board);
   const placeCard = useGameStore((state) => state.placeCard);
@@ -176,7 +184,7 @@ export const Board = () => {
       )}
     >
       <div className="relative inline-block">
-        {gameConfig.showBoardEffect && (
+        {showBoardEffect && (
           <BoardEffects
             mechanicType={mechanic.type}
             activeElement={mechanic.activeElement}
@@ -200,6 +208,7 @@ export const Board = () => {
                   isFirstTwoTurns={isFirstTwoTurns}
                   mechanic={mechanic}
                   placeCard={placeCard}
+                  showAnimation={showCardPlaceAnimation}
                 />
               );
             })

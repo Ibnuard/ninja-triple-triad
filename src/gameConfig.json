@@ -1,6 +1,6 @@
 {
-  "showTsParticle": false,
   "showBoardEffect": true,
   "showAnimation": true,
-  "showFullScreenEffect": true
+  "showFullScreenEffect": true,
+  "devMode": false
 }
