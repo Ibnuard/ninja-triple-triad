@@ -76,7 +76,7 @@ export const TRANSLATIONS = {
         lastJourney: "Last Journey",
         bosses: {
           zabuza: "Zabuza Momochi",
-          sasori: "Sasori",
+          orochimaru: "Orochimaru",
           pain: "Pain",
           madara: "Madara Uchiha",
           kaguya: "Kaguya Otsutsuki",
@@ -326,7 +326,7 @@ export const TRANSLATIONS = {
         lastJourney: "Perjalanan Terakhir",
         bosses: {
           zabuza: "Zabuza Momochi",
-          sasori: "Sasori",
+          orochimaru: "Orochimaru",
           pain: "Pain",
           madara: "Madara Uchiha",
           kaguya: "Kaguya Otsutsuki",

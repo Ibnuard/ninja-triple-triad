@@ -56,9 +56,9 @@ const BOSS_CONFIGS: Record<GauntletRank, BossConfig> = {
         deck: [], // Will be populated with dummy cards
     },
     Chunin: {
-        name: "Sasori",
-        bossKey: "sasori",
-        image: "/images/bosses/sasori.webp",
+        name: "Orochimaru",
+        bossKey: "orochimaru",
+        image: "/images/bosses/orochimaru.png",
         mechanic: "poison",
         deck: [],
     },

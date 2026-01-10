@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Swords, BookOpen, ChevronLeft, Layers, Trophy, Skull, X } from "lucide-react";
+import { Swords, BookOpen, ChevronLeft, Layers, Trophy, Medal, X } from "lucide-react";
 import { useTranslation } from "../../../store/useSettingsStore";
 import { RANK_THRESHOLDS } from "../../../store/useGauntletStore";
 import { cn } from "../../../lib/utils";
@@ -70,7 +70,7 @@ export function GauntletModeView({
             </div>
           </div>
           <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
-            <Skull className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
+            <Medal className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
             <div className="text-center">
               <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">{gauntletT.rank}</div>
               <div className="text-sm md:text-lg font-black text-white truncate max-w-[80px] md:max-w-[100px]">{rankName}</div>
