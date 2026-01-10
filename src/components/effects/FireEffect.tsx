@@ -280,7 +280,7 @@ export const FireEffect = memo(({ lastMove }: FireEffectProps) => {
           // Ember Grid Pulsing
           grids.forEach((g, idx) => {
             const p = (Math.sin(time * 0.003 + idx) + 1) / 2;
-            g.graphics.clear().moveTo(g.points[0].x, g.points[0].y);
+            g.graphics?.clear().moveTo(g.points[0].x, g.points[0].y);
             g.points.forEach((pt) => {
               const ox = (Math.random() - 0.5) * 2;
               const oy = (Math.random() - 0.5) * 2;

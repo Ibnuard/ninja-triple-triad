@@ -250,7 +250,7 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
               continue;
             }
             const p = r.life / r.maxLife;
-            r.graphics.clear();
+            r.graphics?.clear();
             const ringCount = r.isRaindrop ? 1 : 3;
             for (let ring = 0; ring < ringCount; ring++) {
               const rp = Math.max(0, p - ring * 0.15);
@@ -267,7 +267,7 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
 
           // Liquid Border Animation
           const bp = (Math.sin(time * 0.003) + 1) / 2;
-          borderPulse.clear();
+          borderPulse?.clear();
           borderPulse.rect(0, 0, width, height);
           borderPulse.stroke({
             width: 4 + bp * 4,
@@ -287,7 +287,7 @@ export const WaterEffect = memo(({ lastMove }: WaterEffectProps) => {
           // Caustic Grid
           caustics.forEach((c, idx) => {
             const p = (Math.sin(time * 0.0015 + idx) + 1) / 2;
-            c.graphics.clear().moveTo(c.points[0].x, c.points[0].y);
+            c.graphics?.clear().moveTo(c.points[0].x, c.points[0].y);
             c.points.forEach((pt) => {
               const ox = Math.sin(time * 0.003 + pt.x * 0.01) * 7;
               const oy = Math.cos(time * 0.003 + pt.y * 0.01) * 7;

@@ -67,7 +67,7 @@ export const FullScreenLightning = memo(() => {
             boltContainer.addChild(g);
 
             // Draw Bolt
-            g.clear();
+            g?.clear();
             // Outer Glow
             g.moveTo(x, 0);
 
@@ -134,12 +134,12 @@ export const FullScreenLightning = memo(() => {
             flashAlpha -= delta * 3; // Fade speed
             if (flashAlpha < 0) flashAlpha = 0;
 
-            flashGraphics.clear();
+            flashGraphics?.clear();
             flashGraphics
               .rect(0, 0, width, height)
               .fill({ color: 0xffffff, alpha: flashAlpha * 0.5 });
           } else {
-            flashGraphics.clear();
+            flashGraphics?.clear();
           }
 
           // 2. Update Bolts

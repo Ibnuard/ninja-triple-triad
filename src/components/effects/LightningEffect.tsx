@@ -257,7 +257,7 @@ export const LightningEffect = memo(({ lastMove }: LightningEffectProps) => {
           // Electric Pulse Grid
           grids.forEach((g, idx) => {
             const pulse = (Math.sin(time * 0.005 + idx) + 1) / 2;
-            g.graphics.clear().moveTo(g.points[0].x, g.points[0].y);
+            g.graphics?.clear().moveTo(g.points[0].x, g.points[0].y);
             g.points.forEach((pt) => {
               const ox = (Math.random() - 0.5) * 3;
               const oy = (Math.random() - 0.5) * 3;
@@ -286,7 +286,7 @@ export const LightningEffect = memo(({ lastMove }: LightningEffectProps) => {
               borderArcs.splice(i, 1);
               continue;
             }
-            a.graphics.clear().moveTo(a.points[0].x, a.points[0].y);
+            a.graphics?.clear().moveTo(a.points[0].x, a.points[0].y);
             a.points.forEach((pt) =>
               a.graphics.lineTo(
                 pt.x + (Math.random() - 0.5) * 6,
@@ -319,7 +319,7 @@ export const LightningEffect = memo(({ lastMove }: LightningEffectProps) => {
               continue;
             }
             const prog = f.life / f.maxLife;
-            f.graphics.clear();
+            f.graphics?.clear();
             // Core shockwave
             f.graphics
               .circle(f.x, f.y, prog * 140)

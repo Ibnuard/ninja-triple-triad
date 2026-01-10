@@ -136,7 +136,7 @@ export const WindEffect = memo(({ lastMove }: WindEffectProps) => {
           idx: number,
           isVertical: boolean
         ) => {
-          g.clear();
+          g?.clear();
           const p = (Math.sin(time * 0.002 + idx) + 1) / 2;
           const pos = (idx / 3) * (isVertical ? width : height);
 
@@ -241,7 +241,7 @@ export const WindEffect = memo(({ lastMove }: WindEffectProps) => {
             if (a.life > a.maxLife) a.life = 0;
             const p = a.life / a.maxLife;
             const alpha = p < 0.2 ? p / 0.2 : 1 - (p - 0.2) / 0.8;
-            a.graphics.clear();
+            a.graphics?.clear();
             const radius = 15 + Math.sin(time * 0.01 + a.pos) * 5;
             const rot = time * 0.01 + a.life * 5;
 
@@ -285,7 +285,7 @@ export const WindEffect = memo(({ lastMove }: WindEffectProps) => {
             p.graphics.x += p.speed;
             p.graphics.y += Math.sin(time * 0.005 + p.graphics.x * 0.01) * 2;
             const prog = p.life / p.maxLife;
-            p.graphics.clear().moveTo(p.points[0].x, p.points[0].y);
+            p.graphics?.clear().moveTo(p.points[0].x, p.points[0].y);
             p.points.forEach((pt) =>
               p.graphics.lineTo(pt.x, pt.y + Math.sin(time * 0.01 + pt.x) * 3)
             );
@@ -306,7 +306,7 @@ export const WindEffect = memo(({ lastMove }: WindEffectProps) => {
               continue;
             }
             const p = f.life / f.maxLife;
-            f.graphics.clear();
+            f.graphics?.clear();
             const rings = 10;
             for (let j = 0; j < rings; j++) {
               // Staggered radial expansion

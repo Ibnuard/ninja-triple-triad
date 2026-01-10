@@ -339,7 +339,7 @@ export const EarthEffect = memo(
             const pulse = (Math.sin(time * 0.002) + 1) / 2;
 
             gridCracks.forEach((c) => {
-              c.graphics.clear();
+              c.graphics?.clear();
               c.graphics.moveTo(c.points[0].x, c.points[0].y);
               c.points.forEach((p) => c.graphics.lineTo(p.x, p.y));
               c.graphics.stroke({
@@ -366,7 +366,7 @@ export const EarthEffect = memo(
                 continue;
               }
               const p = c.life / c.maxLife;
-              c.graphics.clear().moveTo(0, 0);
+              c.graphics?.clear().moveTo(0, 0);
               c.points.forEach((pt) => c.graphics.lineTo(pt.x, pt.y));
               c.graphics.stroke({
                 width: 5 * (1 - p),
@@ -392,11 +392,11 @@ export const EarthEffect = memo(
               const glow = f.container.children[0] as PIXI.Graphics;
               const core = f.container.children[1] as PIXI.Graphics;
               glow
-                .clear()
+                ?.clear()
                 .circle(0, 0, p * 100)
                 .fill({ color: colors.lavaGlow, alpha: (1 - p) * 0.5 });
               core
-                .clear()
+                ?.clear()
                 .circle(0, 0, p * 40)
                 .fill({ color: colors.lavaCore, alpha: (1 - p) * 0.9 });
             }

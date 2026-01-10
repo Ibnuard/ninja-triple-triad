@@ -123,12 +123,12 @@ export const FullScreenEffects = memo(
                 if (flashAlpha > 0) {
                   flashAlpha -= delta * 3;
                   if (flashAlpha < 0) flashAlpha = 0;
-                  flashGraph.clear();
+                  flashGraph?.clear();
                   flashGraph
                     .rect(0, 0, app!.screen.width, app!.screen.height)
                     .fill({ color: 0xffffff, alpha: flashAlpha * 0.3 }); // Reduced flash alpha
                 } else {
-                  flashGraph.clear();
+                  flashGraph?.clear();
                 }
 
                 // Bolts
@@ -343,7 +343,7 @@ export const FullScreenEffects = memo(
                 });
               },
               resize: (w, h) => {
-                overlay.clear();
+                overlay?.clear();
                 overlay.rect(0, 0, w, h).fill({ color: 0x001133, alpha: 0.2 });
               },
               destroy: () => container.destroy({ children: true }),
@@ -492,7 +492,7 @@ export const FullScreenEffects = memo(
                 // Pulse vignette
                 const t = Date.now() * 0.001;
                 const alpha = 0.2 + Math.sin(t) * 0.1;
-                vig.clear();
+                vig?.clear();
                 // Simple vignette simulation (rect with hole? or just border rects?)
                 // Pixi graphics doesn't do gradient easy. Just a dark green Overlay with low alpha
                 vig

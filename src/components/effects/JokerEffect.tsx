@@ -251,7 +251,7 @@ export const JokerEffect = memo(({ lastMove }: JokerEffectProps) => {
           }
 
           // 2. Glitch Grid
-          gridG.clear();
+          gridG?.clear();
           // Draw random glitch lines
           const glitchChance = Math.sin(t * 5) > 0.5; // Pulsing chaos
           gridG.stroke({
@@ -306,7 +306,7 @@ export const JokerEffect = memo(({ lastMove }: JokerEffectProps) => {
           });
 
           // 4. Border
-          borderG.clear();
+          borderG?.clear();
           // const hue = (time * 0.1) % 360;
           // Rainbow border rect
           borderG

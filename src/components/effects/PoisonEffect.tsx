@@ -246,7 +246,7 @@ export const PoisonEffect = memo(({ lastMove }: PoisonEffectProps) => {
         borderLayer.addChild(borderGraphics);
 
         const updateBorder = () => {
-          borderGraphics.clear();
+          borderGraphics?.clear();
           const pad = 12;
           // Top & Bottom bones
           for (let x = pad + 30; x < width - pad; x += 50) {
@@ -340,7 +340,7 @@ export const PoisonEffect = memo(({ lastMove }: PoisonEffectProps) => {
           // Corroded Grid + Grid Bubbles
           grids.forEach((g, idx) => {
             const pulse = (Math.sin(time * 0.003 + idx) + 1) / 2;
-            g.graphics.clear().moveTo(g.points[0].x, g.points[0].y);
+            g.graphics?.clear().moveTo(g.points[0].x, g.points[0].y);
 
             // Draw viscous jagged line
             g.points.forEach((pt, pIdx) => {

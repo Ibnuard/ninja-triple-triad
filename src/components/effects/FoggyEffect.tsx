@@ -306,7 +306,7 @@ export const FoggyEffect = memo(({ lastMove }: FoggyEffectProps) => {
           });
 
           // 2. Draw Organic Grid
-          gridG.clear();
+          gridG?.clear();
           const t = time * 0.001;
 
           const drawSineLine = (
@@ -352,7 +352,7 @@ export const FoggyEffect = memo(({ lastMove }: FoggyEffectProps) => {
           }
 
           // 3. Draw Particles
-          particleG.clear();
+          particleG?.clear();
           particles.forEach((p) => {
             p.x += p.vx;
             p.y += p.vy;
@@ -370,7 +370,7 @@ export const FoggyEffect = memo(({ lastMove }: FoggyEffectProps) => {
           });
 
           // 4. Draw Border Wisps
-          borderG.clear();
+          borderG?.clear();
           borderWisps.forEach((w, i) => {
             w.phase += w.speed;
 
@@ -424,7 +424,7 @@ export const FoggyEffect = memo(({ lastMove }: FoggyEffectProps) => {
             const alpha = (1 - p) * 0.6;
             const scale = s.scale * (1 + p * 0.5); // Expand slightly
 
-            s.graphics.clear();
+            s.graphics?.clear();
             // Draw a "wispy" shape instead of circle
             // A cluster of 3 circles to look like a cloud puff
             s.graphics
