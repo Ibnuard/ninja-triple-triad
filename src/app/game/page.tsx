@@ -282,7 +282,10 @@ export default function GamePage() {
   }, [showBossIntro, showBoardIntro, activeSettings.showBoardAnimation]);
 
   // Use AI Hook with Pause
-  useComputerAI({ isPaused: showBoardIntro || showBossIntro });
+  useComputerAI({ 
+    isPaused: showBoardIntro || showBossIntro,
+    rank: isGauntletMode ? gauntletRank : "Chunin" // Default to Chunin for non-gauntlet
+  });
 
 
   const [showResult, setShowResult] = useState(false);
