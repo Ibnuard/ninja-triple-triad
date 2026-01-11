@@ -25,6 +25,14 @@ const elementGlows: Record<string, string> = {
   none: "border-gray-500/50",
 };
 
+const rarityStyles: Record<string, string> = {
+  common: "border-gray-500/50",
+  rare: "border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.4)]",
+  epic: "border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.4)]",
+  legend: "animate-rainbow-border shadow-[0_0_15px_rgba(255,255,255,0.3)]",
+  special: "border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.4)]",
+};
+
 export const Card = ({
   card,
   owner,
@@ -36,6 +44,9 @@ export const Card = ({
   isDragging,
   isGhost,
 }: CardProps) => {
+  const rarity = card.rarity || "common";
+  const rarityStyle = rarityStyles[rarity];
+
   return (
     <motion.div
       className={cn(
@@ -48,13 +59,16 @@ export const Card = ({
         isSelected
           ? "ring-4 ring-blue-500 ring-offset-2 ring-offset-black z-20 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
           : !isGhost && "hover:shadow-2xl hover:-translate-y-1",
-        owner === "player1"
-          ? isPlaced
-            ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)] bg-gray-900/95"
-            : "border-blue-500/30 bg-gray-900/90"
-          : isPlaced
-          ? "border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] bg-gray-900/95"
-          : "border-red-500/30 bg-gray-900/90",
+        // Rarity Border
+        rarityStyle,
+        // Owner Glow (if placed)
+        isPlaced && (
+          owner === "player1"
+            ? "shadow-[0_0_20px_rgba(59,130,246,0.6)]"
+            : "shadow-[0_0_20px_rgba(239,68,68,0.6)]"
+        ),
+        // Background
+        "bg-gray-900/95",
         isGhost &&
           "opacity-40 grayscale-[0.2] border-dashed border-blue-400/50",
         isDragging && "z-[1000] rotate-2 shadow-2xl pointer-events-none"

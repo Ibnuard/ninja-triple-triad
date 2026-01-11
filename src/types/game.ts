@@ -6,6 +6,8 @@ export type ElementType =
   | "lightning"
   | "none";
 
+export type CardRarity = "common" | "rare" | "epic" | "legend" | "special";
+
 export interface CardStats {
   top: number; // Genjutsu
   right: number; // Taijutsu
@@ -21,7 +23,7 @@ export interface Card {
   element: ElementType;
   image: string; // URL or local path
   description?: string;
-  rarity?: number;
+  rarity?: CardRarity;
   activePassives?: string[]; // IDs or names of active passives
   isBuffed?: boolean;
 }

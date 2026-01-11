@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSettingsStore, useTranslation } from "../store/useSettingsStore";
 import { Sword, Users, BookOpen, Globe, Zap, Shield } from "lucide-react";
 import React from "react";
+import { CardListModal } from "../components/CardListModal";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { type Engine } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
@@ -15,6 +16,7 @@ export default function Home() {
   const t = useTranslation().home;
   const [isMounted, setIsMounted] = useState(false);
   const [pInit, setPInit] = useState(false);
+  const [showCardList, setShowCardList] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -96,6 +98,13 @@ export default function Home() {
       icon: BookOpen,
       color: "from-amber-500 to-amber-700",
       shadow: "shadow-amber-900/40",
+    },
+    {
+      onClick: () => setShowCardList(true),
+      label: t.cardList,
+      icon: Globe,
+      color: "from-blue-500 to-blue-700",
+      shadow: "shadow-blue-900/40",
     },
   ];
 
@@ -203,55 +212,20 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-4 w-full">
           {menuItems.map((item, idx) => (
             <motion.div
-              key={item.href}
+              key={item.label}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
             >
-              <Link href={item.href} className="block group">
-                <button
-                  className={cn(
-                    "w-full h-16 relative overflow-hidden rounded-2xl border border-white/10 transition-all duration-300",
-                    "bg-gradient-to-r from-white/5 to-transparent hover:to-white/5",
-                    "flex items-center justify-between px-6 px-8",
-                    "group-hover:border-white/20 group-hover:scale-[1.02] active:scale-[0.98]",
-                    "group-hover:shadow-[0_0_30px_rgba(0,0,0,0.5)]"
-                  )}
-                >
-                  {/* Hover Background Accent */}
-                  <div
-                    className={cn(
-                      "absolute inset-y-0 left-0 w-1 transition-all duration-300 bg-gradient-to-b",
-                      item.color,
-                      "group-hover:w-full group-hover:opacity-10"
-                    )}
-                  />
-
-                  <div className="flex items-center gap-4 relative z-10">
-                    <div
-                      className={cn(
-                        "p-2.5 rounded-xl bg-black/40 border border-white/10 group-hover:scale-110 transition-transform duration-500",
-                        "shadow-inner shadow-white/5"
-                      )}
-                    >
-                      <item.icon className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-black text-sm tracking-widest uppercase italic group-hover:translate-x-2 transition-transform duration-300">
-                      {item.label}
-                    </span>
-                  </div>
-
-                  <div className="relative z-10 flex items-center justify-center group-hover:translate-x-2 transition-transform">
-                    <div
-                      className={cn(
-                        "w-2 h-2 rounded-full",
-                        item.color,
-                        "shadow-[0_0_10px_currentColor]"
-                      )}
-                    />
-                  </div>
-                </button>
-              </Link>
+              {item.href ? (
+                <Link href={item.href} className="block group">
+                  <MenuButton item={item} />
+                </Link>
+              ) : (
+                <div onClick={item.onClick} className="block group cursor-pointer">
+                  <MenuButton item={item} />
+                </div>
+              )}
             </motion.div>
           ))}
         </div>
@@ -264,6 +238,8 @@ export default function Home() {
           <Zap className="w-12 h-12 text-red-600" />
         </div>
       </div>
+
+      <CardListModal isOpen={showCardList} onClose={() => setShowCardList(false)} />
 
       {/* Footer Decoration */}
       <footer className="absolute bottom-8 w-full px-12 flex justify-between items-center z-10">
@@ -283,6 +259,53 @@ export default function Home() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function MenuButton({ item }: { item: any }) {
+  return (
+    <button
+      className={cn(
+        "w-full h-16 relative overflow-hidden rounded-2xl border border-white/10 transition-all duration-300",
+        "bg-gradient-to-r from-white/5 to-transparent hover:to-white/5",
+        "flex items-center justify-between px-6 md:px-8",
+        "group-hover:border-white/20 group-hover:scale-[1.02] active:scale-[0.98]",
+        "group-hover:shadow-[0_0_30px_rgba(0,0,0,0.5)]"
+      )}
+    >
+      {/* Hover Background Accent */}
+      <div
+        className={cn(
+          "absolute inset-y-0 left-0 w-1 transition-all duration-300 bg-gradient-to-b",
+          item.color,
+          "group-hover:w-full group-hover:opacity-10"
+        )}
+      />
+
+      <div className="flex items-center gap-4 relative z-10">
+        <div
+          className={cn(
+            "p-2.5 rounded-xl bg-black/40 border border-white/10 group-hover:scale-110 transition-transform duration-500",
+            "shadow-inner shadow-white/5"
+          )}
+        >
+          <item.icon className="w-5 h-5 text-white" />
+        </div>
+        <span className="font-black text-sm tracking-widest uppercase italic group-hover:translate-x-2 transition-transform duration-300">
+          {item.label}
+        </span>
+      </div>
+
+      <div className="relative z-10 flex items-center justify-center group-hover:translate-x-2 transition-transform">
+        <div
+          className={cn(
+            "w-2 h-2 rounded-full",
+            item.color,
+            "shadow-[0_0_10px_currentColor]"
+          )}
+        />
+      </div>
+    </button>
   );
 }
 

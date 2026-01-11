@@ -8,6 +8,7 @@ export const TRANSLATIONS = {
       konami: "KONAMI CODE NOT ENABLED",
       start: "PRESS START",
       howToPlay: "How to Play",
+      cardList: "Card List",
     },
     game: {
       yourTurn: "Your Turn",
@@ -94,6 +95,8 @@ export const TRANSLATIONS = {
           pickHand: "Select a card from your hand to swap",
           pickCollection: "Select a card from your collection"
         },
+        howToObtain: "How to Obtain",
+        obtainDummy: "Obtained from Gauntlet Mode or Card Packs.",
         bosses: {
           zabuza: "Zabuza Momochi",
           orochimaru: "Orochimaru",
@@ -278,6 +281,7 @@ export const TRANSLATIONS = {
       konami: "KODE KONAMI TIDAK AKTIF",
       start: "TEKAN MULAI",
       howToPlay: "Cara Bermain",
+      cardList: "Daftar Kartu",
     },
     game: {
       yourTurn: "Giliranmu",
@@ -364,6 +368,8 @@ export const TRANSLATIONS = {
           pickHand: "Pilih kartu dari tanganmu untuk ditukar",
           pickCollection: "Pilih kartu dari koleksimu"
         },
+        howToObtain: "Cara Mendapatkan",
+        obtainDummy: "Didapatkan dari Mode Gauntlet atau Paket Kartu.",
         bosses: {
           zabuza: "Zabuza Momochi",
           orochimaru: "Orochimaru",

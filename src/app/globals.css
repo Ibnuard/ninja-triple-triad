@@ -42,6 +42,20 @@ body {
     animation: borderGlow 3s ease-in-out infinite;
   }
 
+  @keyframes rainbow {
+    0% { border-color: #ff0000; }
+    17% { border-color: #ff00ff; }
+    33% { border-color: #0000ff; }
+    50% { border-color: #00ffff; }
+    67% { border-color: #00ff00; }
+    83% { border-color: #ffff00; }
+    100% { border-color: #ff0000; }
+  }
+
+  .animate-rainbow-border {
+    animation: rainbow 4s linear infinite;
+  }
+
   .text-stroke {
     -webkit-text-stroke: 1px black;
     paint-order: stroke fill;

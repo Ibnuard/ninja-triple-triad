@@ -10,6 +10,7 @@ export const CARD_POOL: Card[] = [
         image: "",
         stats: { top: 7, bottom: 3, left: 5, right: 6 },
         baseStats: { top: 7, bottom: 3, left: 5, right: 6 },
+        rarity: "common",
     },
     {
         id: "fire-2",
@@ -18,6 +19,7 @@ export const CARD_POOL: Card[] = [
         image: "",
         stats: { top: 8, bottom: 2, left: 4, right: 7 },
         baseStats: { top: 8, bottom: 2, left: 4, right: 7 },
+        rarity: "rare",
     },
     {
         id: "fire-3",
@@ -26,6 +28,7 @@ export const CARD_POOL: Card[] = [
         image: "",
         stats: { top: 6, bottom: 5, left: 6, right: 4 },
         baseStats: { top: 6, bottom: 5, left: 6, right: 4 },
+        rarity: "common",
     },
 
     // Water Cards
@@ -36,6 +39,7 @@ export const CARD_POOL: Card[] = [
         image: "",
         stats: { top: 5, bottom: 7, left: 6, right: 3 },
         baseStats: { top: 5, bottom: 7, left: 6, right: 3 },
+        rarity: "common",
     },
     {
         id: "water-2",
@@ -44,6 +48,7 @@ export const CARD_POOL: Card[] = [
         image: "",
         stats: { top: 4, bottom: 8, left: 7, right: 2 },
         baseStats: { top: 4, bottom: 8, left: 7, right: 2 },
+        rarity: "epic",
     },
     {
         id: "water-3",
@@ -52,6 +57,7 @@ export const CARD_POOL: Card[] = [
         image: "",
         stats: { top: 6, bottom: 6, left: 5, right: 4 },
         baseStats: { top: 6, bottom: 6, left: 5, right: 4 },
+        rarity: "common",
     },
 
     // Earth Cards
@@ -122,6 +128,7 @@ export const CARD_POOL: Card[] = [
         image: "",
         stats: { top: 9, bottom: 2, left: 7, right: 3 },
         baseStats: { top: 9, bottom: 2, left: 7, right: 3 },
+        rarity: "legend",
     },
     {
         id: "lightning-3",
@@ -130,6 +137,7 @@ export const CARD_POOL: Card[] = [
         image: "",
         stats: { top: 7, bottom: 5, left: 5, right: 4 },
         baseStats: { top: 7, bottom: 5, left: 5, right: 4 },
+        rarity: "special",
     },
 
     // Balanced Cards
