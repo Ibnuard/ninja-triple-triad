@@ -4,9 +4,11 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSettingsStore, useTranslation } from "../store/useSettingsStore";
-import { Sword, Users, BookOpen, Globe, Zap, Shield } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
+import { Sword, Users, BookOpen, Globe, Zap, Shield, Github, LogOut } from "lucide-react";
 import React from "react";
 import { CardListModal } from "../components/CardListModal";
+import { UserProfile } from "../components/UserProfile";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { type Engine } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
@@ -84,6 +86,14 @@ export default function Home() {
     []
   );
 
+  const { 
+    user, 
+    loading, 
+    signInWithGithub, 
+    signInWithGoogle, 
+    signOut 
+  } = useAuthStore();
+
   const menuItems = [
     {
       href: "/single-player",
@@ -106,6 +116,30 @@ export default function Home() {
       color: "from-blue-500 to-blue-700",
       shadow: "shadow-blue-900/40",
     },
+    {
+      onClick: signOut,
+      label: t.logout,
+      icon: LogOut,
+      color: "from-gray-600 to-gray-800",
+      shadow: "shadow-gray-900/40",
+    }
+  ];
+
+  const loginItems = [
+    {
+      onClick: signInWithGithub,
+      label: t.loginWithGithub,
+      icon: Github,
+      color: "from-gray-700 to-gray-900",
+      shadow: "shadow-black/40",
+    },
+    {
+      onClick: signInWithGoogle,
+      label: t.loginWithGoogle,
+      icon: Globe,
+      color: "from-blue-600 to-blue-800",
+      shadow: "shadow-blue-900/40",
+    }
   ];
 
   if (!isMounted) return null;
@@ -130,6 +164,9 @@ export default function Home() {
       {/* Title Decoration */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-50" />
       <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-900 to-transparent opacity-50" />
+
+      {/* User Profile */}
+      <UserProfile />
 
       {/* Language Toggle - Refined */}
       <div className="absolute top-6 right-6 z-50 flex bg-white/5 backdrop-blur-md rounded-full border border-white/10 p-1">
@@ -210,24 +247,43 @@ export default function Home() {
 
         {/* Menu Items */}
         <div className="grid grid-cols-1 gap-4 w-full">
-          {menuItems.map((item, idx) => (
-            <motion.div
-              key={item.label}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
-            >
-              {item.href ? (
-                <Link href={item.href} className="block group">
-                  <MenuButton item={item} />
-                </Link>
-              ) : (
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : !user ? (
+            loginItems.map((item, idx) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
+              >
                 <div onClick={item.onClick} className="block group cursor-pointer">
                   <MenuButton item={item} />
                 </div>
-              )}
-            </motion.div>
-          ))}
+              </motion.div>
+            ))
+          ) : (
+            menuItems.map((item, idx) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
+              >
+                {item.href ? (
+                  <Link href={item.href} className="block group">
+                    <MenuButton item={item} />
+                  </Link>
+                ) : (
+                  <div onClick={item.onClick} className="block group cursor-pointer">
+                    <MenuButton item={item} />
+                  </div>
+                )}
+              </motion.div>
+            ))
+          )}
         </div>
 
         {/* Decorative corner accents */}

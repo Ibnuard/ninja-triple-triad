@@ -9,6 +9,9 @@ export const TRANSLATIONS = {
       start: "PRESS START",
       howToPlay: "How to Play",
       cardList: "Card List",
+      loginWithGithub: "Login with GitHub",
+      loginWithGoogle: "Login with Google",
+      logout: "Logout",
     },
     game: {
       yourTurn: "Your Turn",
@@ -282,6 +285,9 @@ export const TRANSLATIONS = {
       start: "TEKAN MULAI",
       howToPlay: "Cara Bermain",
       cardList: "Daftar Kartu",
+      loginWithGithub: "Masuk dengan GitHub",
+      loginWithGoogle: "Masuk dengan Google",
+      logout: "Keluar",
     },
     game: {
       yourTurn: "Giliranmu",
