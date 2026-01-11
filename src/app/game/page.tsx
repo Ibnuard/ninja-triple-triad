@@ -11,12 +11,14 @@ import { BoardMechanicModal } from "../../components/BoardMechanicModal";
 import { Hand } from "../../components/Hand";
 import { PassiveInfoModal } from "../../components/PassiveInfoModal";
 import { SettingsModal } from "../../components/SettingsModal";
+import { GauntletRewardModal } from "../../components/GauntletRewardModal";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
 import { useGauntletStore } from "../../store/useGauntletStore";
 import { RANK_THRESHOLDS, GauntletRank } from "../../constants/gauntlet";
 import { animate } from "framer-motion";
+import { CARD_POOL } from "../../data/cardPool";
 
 import { FullScreenEffects } from "@/components/effects/FullScreenEffects";
 import { FPSCounter } from "../../components/FPSCounter";
@@ -166,6 +168,9 @@ export default function GamePage() {
   const isGauntletActive = useGauntletStore((state) => state.isActive);
   const isBossBattle = useGauntletStore((state) => state.isBossBattle);
   const pendingRank = useGauntletStore((state) => state.pendingRank);
+  const pendingReward = useGauntletStore((state) => state.pendingReward);
+  const consumeReward = useGauntletStore((state) => state.consumeReward);
+  const wins = useGauntletStore((state) => state.wins);
 
   const {
     mode: configMode,
@@ -175,6 +180,10 @@ export default function GamePage() {
 
   const isGauntletMode = configMode === "gauntlet";
   const isCustomMode = configMode === "custom";
+
+  const [showRewardModal, setShowRewardModal] = useState(false);
+  const [activeReward, setActiveReward] = useState<number | null>(null);
+  const [rewardData, setRewardData] = useState<any>(null);
 
   const startGame = async (isRestart = false) => {
     setLoadingMessage(isRestart ? t.cleaning : t.preparing);
@@ -214,10 +223,60 @@ export default function GamePage() {
         player2: {
           ...state.player2,
           hand: config.deck,
-          name: `Enemy ${gauntletRank}`,
+          name: isBossBattle && config.bossKey 
+            ? (t.gauntlet.bosses as any)[config.bossKey] 
+            : t.gauntlet.enemy,
           totalFlips: 0,
         },
+        // Apply Swift Strike (Option 2)
+        currentPlayerId: activeReward === 2 ? "player1" : (Math.random() > 0.5 ? "player1" : "player2"),
       }));
+
+      // Apply Enemy Sabotage (Option 1)
+      if (activeReward === 1) {
+        useGameStore.setState((state) => {
+          const p1Hand = [...state.player1.hand];
+          const p2Hand = [...state.player2.hand];
+          
+          // Pick random card from P1 and P2 to swap
+          const p1Idx = Math.floor(Math.random() * p1Hand.length);
+          const p2Idx = Math.floor(Math.random() * p2Hand.length);
+          
+          const p1Card = p1Hand[p1Idx];
+          const p2Card = p2Hand[p2Idx];
+          
+          p1Hand[p1Idx] = { ...p2Card, id: p2Card.id + "-swapped" };
+          p2Hand[p2Idx] = { ...p1Card, id: p1Card.id + "-swapped" };
+          
+          return {
+            player1: { ...state.player1, hand: p1Hand },
+            player2: { ...state.player2, hand: p2Hand },
+          };
+        });
+      }
+
+      // Apply Reinforcement (Option 3)
+      if (activeReward === 3) {
+        useGameStore.setState((state) => {
+          const p1Hand = [...state.player1.hand];
+          // Pick random card from P1 to swap with a random card from CARD_POOL (excluding current deck)
+          const p1Idx = Math.floor(Math.random() * p1Hand.length);
+          
+          const currentDeckIds = new Set(gauntletDeck.map(c => c.id));
+          const availablePool = CARD_POOL.filter((c: any) => !currentDeckIds.has(c.id));
+          
+          if (availablePool.length > 0) {
+            const randomPoolCard = availablePool[Math.floor(Math.random() * availablePool.length)];
+            p1Hand[p1Idx] = { ...randomPoolCard, id: randomPoolCard.id + "-reinforced" };
+          }
+          
+          return {
+            player1: { ...state.player1, hand: p1Hand },
+          };
+        });
+      }
+
+      setActiveReward(null); // Reset reward after applying
     } else {
       // Standard / Custom Initialization
       initGame("test-room", !isCustom, initialMechanic, activeElement);
@@ -309,6 +368,16 @@ export default function GamePage() {
   return (
     <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
       {loadingMessage && <LoadingOverlay message={loadingMessage} />}
+
+      <GauntletRewardModal 
+        isOpen={showRewardModal}
+        onSelect={(id) => {
+          setActiveReward(id);
+          setShowRewardModal(false);
+          consumeReward();
+          startGame();
+        }}
+      />
 
       {!loadingMessage && (
         <>
@@ -673,7 +742,7 @@ export default function GamePage() {
                                 </div>
                               </div>
                               <div className="absolute -bottom-2 -left-2 bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-md border border-white/20 shadow-lg">
-                                {isGauntletMode ? t.boss : t.cpu}
+                                {isGauntletMode ? player2.name : t.cpu}
                               </div>
                             </div>
                             <div className="text-3xl font-black text-white drop-shadow-md">
@@ -843,37 +912,11 @@ export default function GamePage() {
                           {isGauntletMode && winner === "player1" ? (
                             <button
                               onClick={() => {
-                                const config = getOpponentConfig();
-                                initGame("gauntlet-room", true, config.mechanic);
-                                useGameStore.setState((state) => ({
-                                  mechanic: {
-                                    type: config.mechanic,
-                                    activeElement:
-                                      config.activeElement || "none",
-                                    jokerModifiers: { player1: 0, player2: 0 },
-                                  },
-                                  player1: {
-                                    ...state.player1,
-                                    hand: [...gauntletDeck].map((c) => ({
-                                      ...c,
-                                      id: c.id + Math.random(),
-                                    })),
-                                    totalFlips: 0,
-                                  },
-                                  player2: {
-                                    ...state.player2,
-                                    hand: config.deck,
-                                    name: isBossBattle ? (t.gauntlet.bosses[config.bossKey as keyof typeof t.gauntlet.bosses] || config.deck[0]?.name || "Boss") : `Enemy ${gauntletRank}`,
-                                    totalFlips: 0,
-                                  },
-                                }));
-                                setShowResult(false);
-                                if (isBossBattle) {
-                                    setShowBossIntro(true);
-                                    setShowBoardIntro(false);
+                                if (pendingReward) {
+                                  setShowRewardModal(true);
+                                  setShowResult(false);
                                 } else {
-                                    setShowBossIntro(false);
-                                    setShowBoardIntro(true);
+                                  startGame();
                                 }
                               }}
                               className="w-full py-3 bg-blue-500 text-white font-black text-xs tracking-[0.2em] hover:bg-blue-400 transition-all rounded-xl shadow-[0_4px_0_rgb(30,64,175)] active:translate-y-1 active:shadow-none uppercase italic"

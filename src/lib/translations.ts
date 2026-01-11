@@ -74,6 +74,24 @@ export const TRANSLATIONS = {
         highRank: "Highest Rank",
         highScore: "Highest Score",
         lastJourney: "Last Journey",
+        enemy: "Enemy",
+        rewards: {
+          title: "Ninja Arts Selection",
+          subtitle: "Choose your advantage for the next battle",
+          option1: {
+            title: "Enemy Sabotage",
+            desc: "Swap one of your cards with a random card from the opponent's hand."
+          },
+          option2: {
+            title: "Swift Strike",
+            desc: "You will take the first turn in the next match."
+          },
+          option3: {
+            title: "Reinforcement",
+            desc: "Swap one card in your hand with a card from your collection."
+          },
+          select: "Select Art"
+        },
         bosses: {
           zabuza: "Zabuza Momochi",
           orochimaru: "Orochimaru",
@@ -324,6 +342,24 @@ export const TRANSLATIONS = {
         highRank: "Peringkat Tertinggi",
         highScore: "Skor Tertinggi",
         lastJourney: "Perjalanan Terakhir",
+        enemy: "Musuh",
+        rewards: {
+          title: "Pemilihan Seni Ninja",
+          subtitle: "Pilih keuntunganmu untuk pertempuran berikutnya",
+          option1: {
+            title: "Sabotase Musuh",
+            desc: "Tukar salah satu kartumu dengan kartu acak dari tangan lawan."
+          },
+          option2: {
+            title: "Serangan Kilat",
+            desc: "Kamu akan mengambil giliran pertama di pertandingan berikutnya."
+          },
+          option3: {
+            title: "Bantuan Tempur",
+            desc: "Tukar satu kartu di tanganmu dengan kartu dari koleksimu."
+          },
+          select: "Pilih Seni"
+        },
         bosses: {
           zabuza: "Zabuza Momochi",
           orochimaru: "Orochimaru",

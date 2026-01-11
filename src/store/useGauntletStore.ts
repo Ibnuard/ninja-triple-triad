@@ -15,16 +15,19 @@ interface GauntletState {
     rank: GauntletRank;
     score: number;
     round: number;
+    wins: number;
     deck: Card[];
     lastBoss: string;
     isBossBattle: boolean;
     pendingRank: GauntletRank | null;
+    pendingReward: boolean;
 
     // Actions
     startRun: (deck: Card[]) => void;
     endRun: () => void;
     processMatchResult: (winner: "player1" | "player2" | "draw", flips: number, boardCardCount?: number) => { scoreAdded: number; newRank: GauntletRank | null };
     getOpponentConfig: () => { deck: Card[]; mechanic: BoardMechanicType; activeElement?: ElementType; bossKey?: string; bossImage?: string };
+    consumeReward: () => void;
 }
 
 // BOSS_CONFIGS is now imported from constants/gauntlet
@@ -64,10 +67,12 @@ export const useGauntletStore = create<GauntletState>()(
             rank: "Genin",
             score: 0,
             round: 1,
+            wins: 0,
             deck: [],
             lastBoss: "-",
             isBossBattle: false,
             pendingRank: null,
+            pendingReward: false,
 
             startRun: (deck) => {
                 set({
@@ -75,10 +80,12 @@ export const useGauntletStore = create<GauntletState>()(
                     rank: "Genin",
                     score: 0,
                     round: 1,
+                    wins: 0,
                     deck,
                     lastBoss: "-",
                     isBossBattle: false,
                     pendingRank: null,
+                    pendingReward: false,
                 });
             },
 
@@ -89,7 +96,7 @@ export const useGauntletStore = create<GauntletState>()(
             },
 
             processMatchResult: (winner, flips, boardCardCount = 0) => {
-                const { score, rank, round, isBossBattle, pendingRank } = get();
+                const { score, rank, round, wins, isBossBattle, pendingRank } = get();
 
                 // 1. Handle Boss Battle Outcome
                 if (isBossBattle) {
@@ -101,6 +108,8 @@ export const useGauntletStore = create<GauntletState>()(
                             isBossBattle: false,
                             pendingRank: null,
                             round: round + 1,
+                            wins: wins + 1,
+                            pendingReward: (wins + 1) % 3 === 0,
                         });
                         return { scoreAdded: 0, newRank };
                     } else {
@@ -156,7 +165,9 @@ export const useGauntletStore = create<GauntletState>()(
                 set({
                     score: newScore,
                     round: round + 1,
+                    wins: wins + 1,
                     lastBoss: nextBoss,
+                    pendingReward: (wins + 1) % 3 === 0,
                 });
 
                 return { scoreAdded, newRank: null };
@@ -232,6 +243,10 @@ export const useGauntletStore = create<GauntletState>()(
                 }
 
                 return { deck, mechanic, activeElement };
+            },
+
+            consumeReward: () => {
+                set({ pendingReward: false });
             },
         }),
         {
