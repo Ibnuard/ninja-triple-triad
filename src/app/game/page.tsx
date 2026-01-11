@@ -12,6 +12,7 @@ import { Hand } from "../../components/Hand";
 import { PassiveInfoModal } from "../../components/PassiveInfoModal";
 import { SettingsModal } from "../../components/SettingsModal";
 import { GauntletRewardModal } from "../../components/GauntletRewardModal";
+import { RewardSelectionOverlay } from "../../components/RewardSelectionOverlay";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
@@ -183,9 +184,10 @@ export default function GamePage() {
 
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [activeReward, setActiveReward] = useState<number | null>(null);
-  const [rewardData, setRewardData] = useState<any>(null);
+  const [selectionPhase, setSelectionPhase] = useState<"none" | "pick_from_hand" | "pick_from_collection">("none");
+  const [selectedHandCard, setSelectedHandCard] = useState<Card | null>(null);
 
-  const startGame = async (isRestart = false) => {
+  const startGame = async (isRestart = false, overrideP1Hand?: Card[]) => {
     setLoadingMessage(isRestart ? t.cleaning : t.preparing);
 
     // Artificial delay for cleanup/prep
@@ -214,7 +216,7 @@ export default function GamePage() {
         },
         player1: {
           ...state.player1,
-          hand: [...gauntletDeck].map((c) => ({
+          hand: overrideP1Hand ? overrideP1Hand.map(c => ({ ...c, id: c.id + Math.random() })) : [...gauntletDeck].map((c) => ({
             ...c,
             id: c.id + Math.random(),
           })), // Refresh IDs
@@ -232,50 +234,7 @@ export default function GamePage() {
         currentPlayerId: activeReward === 2 ? "player1" : (Math.random() > 0.5 ? "player1" : "player2"),
       }));
 
-      // Apply Enemy Sabotage (Option 1)
-      if (activeReward === 1) {
-        useGameStore.setState((state) => {
-          const p1Hand = [...state.player1.hand];
-          const p2Hand = [...state.player2.hand];
-          
-          // Pick random card from P1 and P2 to swap
-          const p1Idx = Math.floor(Math.random() * p1Hand.length);
-          const p2Idx = Math.floor(Math.random() * p2Hand.length);
-          
-          const p1Card = p1Hand[p1Idx];
-          const p2Card = p2Hand[p2Idx];
-          
-          p1Hand[p1Idx] = { ...p2Card, id: p2Card.id + "-swapped" };
-          p2Hand[p2Idx] = { ...p1Card, id: p1Card.id + "-swapped" };
-          
-          return {
-            player1: { ...state.player1, hand: p1Hand },
-            player2: { ...state.player2, hand: p2Hand },
-          };
-        });
-      }
-
-      // Apply Reinforcement (Option 3)
-      if (activeReward === 3) {
-        useGameStore.setState((state) => {
-          const p1Hand = [...state.player1.hand];
-          // Pick random card from P1 to swap with a random card from CARD_POOL (excluding current deck)
-          const p1Idx = Math.floor(Math.random() * p1Hand.length);
-          
-          const currentDeckIds = new Set(gauntletDeck.map(c => c.id));
-          const availablePool = CARD_POOL.filter((c: any) => !currentDeckIds.has(c.id));
-          
-          if (availablePool.length > 0) {
-            const randomPoolCard = availablePool[Math.floor(Math.random() * availablePool.length)];
-            p1Hand[p1Idx] = { ...randomPoolCard, id: randomPoolCard.id + "-reinforced" };
-          }
-          
-          return {
-            player1: { ...state.player1, hand: p1Hand },
-          };
-        });
-      }
-
+      // Reward logic is now handled by the selection flow before calling startGame
       setActiveReward(null); // Reset reward after applying
     } else {
       // Standard / Custom Initialization
@@ -374,8 +333,63 @@ export default function GamePage() {
         onSelect={(id) => {
           setActiveReward(id);
           setShowRewardModal(false);
+          if (id === 1 || id === 3) {
+            setSelectionPhase("pick_from_hand");
+          } else {
+            consumeReward();
+            startGame();
+          }
+        }}
+      />
+
+      <RewardSelectionOverlay
+        isOpen={selectionPhase === "pick_from_hand"}
+        title={activeReward === 1 ? t.gauntlet.rewards.option1.title : t.gauntlet.rewards.option3.title}
+        subtitle={t.gauntlet.rewards.pickHand}
+        cards={gauntletDeck}
+        onCancel={() => {
+          setSelectionPhase("none");
+          setActiveReward(null);
+          setShowRewardModal(true);
+        }}
+        onSelect={(card) => {
+          setSelectedHandCard(card);
+          if (activeReward === 1) {
+            // Reward 1: Swap with random opponent card
+            const config = getOpponentConfig();
+            const oppDeck = [...config.deck];
+            const oppIdx = Math.floor(Math.random() * oppDeck.length);
+            const oppCard = oppDeck[oppIdx];
+            
+            const newHand = gauntletDeck.map(c => c.id === card.id ? oppCard : c);
+            
+            // We need to pass the modified hand to startGame or update store
+            // For Gauntlet, the store's 'deck' is the source of truth for the run
+            // But for a single match, we can override it in startGame
+            consumeReward();
+            setSelectionPhase("none");
+            startGame(false, newHand);
+          } else {
+            setSelectionPhase("pick_from_collection");
+          }
+        }}
+      />
+
+      <RewardSelectionOverlay
+        isOpen={selectionPhase === "pick_from_collection"}
+        title={t.gauntlet.rewards.option3.title}
+        subtitle={t.gauntlet.rewards.pickCollection}
+        cards={CARD_POOL.filter(c => !gauntletDeck.some(dc => dc.id === c.id))}
+        onCancel={() => {
+          setSelectionPhase("none");
+          setActiveReward(null);
+          setShowRewardModal(true);
+        }}
+        onSelect={(card) => {
+          const newHand = gauntletDeck.map(c => c.id === selectedHandCard?.id ? card : c);
           consumeReward();
-          startGame();
+          setSelectionPhase("none");
+          startGame(false, newHand);
         }}
       />
 

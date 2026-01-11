@@ -90,7 +90,9 @@ export const TRANSLATIONS = {
             title: "Reinforcement",
             desc: "Swap one card in your hand with a card from your collection."
           },
-          select: "Select Art"
+          select: "Select Art",
+          pickHand: "Select a card from your hand to swap",
+          pickCollection: "Select a card from your collection"
         },
         bosses: {
           zabuza: "Zabuza Momochi",
@@ -358,7 +360,9 @@ export const TRANSLATIONS = {
             title: "Bantuan Tempur",
             desc: "Tukar satu kartu di tanganmu dengan kartu dari koleksimu."
           },
-          select: "Pilih Seni"
+          select: "Pilih Seni",
+          pickHand: "Pilih kartu dari tanganmu untuk ditukar",
+          pickCollection: "Pilih kartu dari koleksimu"
         },
         bosses: {
           zabuza: "Zabuza Momochi",
