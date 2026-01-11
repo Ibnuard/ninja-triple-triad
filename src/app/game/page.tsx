@@ -13,6 +13,7 @@ import { PassiveInfoModal } from "../../components/PassiveInfoModal";
 import { SettingsModal } from "../../components/SettingsModal";
 import { GauntletRewardModal } from "../../components/GauntletRewardModal";
 import { RewardSelectionOverlay } from "../../components/RewardSelectionOverlay";
+import { SwapAnimationOverlay } from "../../components/SwapAnimationOverlay";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
@@ -186,6 +187,8 @@ export default function GamePage() {
   const [activeReward, setActiveReward] = useState<number | null>(null);
   const [selectionPhase, setSelectionPhase] = useState<"none" | "pick_from_hand" | "pick_from_collection">("none");
   const [selectedHandCard, setSelectedHandCard] = useState<Card | null>(null);
+  const [showSwapAnimation, setShowSwapAnimation] = useState(false);
+  const [swapData, setSwapData] = useState<{ oldCard: Card; newCard: Card } | null>(null);
 
   const startGame = async (isRestart = false, overrideP1Hand?: Card[]) => {
     setLoadingMessage(isRestart ? t.cleaning : t.preparing);
@@ -363,12 +366,15 @@ export default function GamePage() {
             
             const newHand = gauntletDeck.map(c => c.id === card.id ? oppCard : c);
             
-            // We need to pass the modified hand to startGame or update store
-            // For Gauntlet, the store's 'deck' is the source of truth for the run
-            // But for a single match, we can override it in startGame
-            consumeReward();
+            setSwapData({ oldCard: card, newCard: oppCard });
             setSelectionPhase("none");
-            startGame(false, newHand);
+            setShowSwapAnimation(true);
+            
+            setTimeout(() => {
+              setShowSwapAnimation(false);
+              consumeReward();
+              startGame(false, newHand);
+            }, 2500);
           } else {
             setSelectionPhase("pick_from_collection");
           }
@@ -387,10 +393,23 @@ export default function GamePage() {
         }}
         onSelect={(card) => {
           const newHand = gauntletDeck.map(c => c.id === selectedHandCard?.id ? card : c);
-          consumeReward();
+          
+          setSwapData({ oldCard: selectedHandCard!, newCard: card });
           setSelectionPhase("none");
-          startGame(false, newHand);
+          setShowSwapAnimation(true);
+          
+          setTimeout(() => {
+            setShowSwapAnimation(false);
+            consumeReward();
+            startGame(false, newHand);
+          }, 2500);
         }}
+      />
+
+      <SwapAnimationOverlay
+        isOpen={showSwapAnimation}
+        oldCard={swapData?.oldCard || null}
+        newCard={swapData?.newCard || null}
       />
 
       {!loadingMessage && (
