@@ -34,9 +34,17 @@ export default function SinglePlayerModes() {
     fetchUserCards,
   } = useCardStore();
 
+  const setCardPool = useGauntletStore((state) => state.setCardPool);
+
   useEffect(() => {
     fetchCards();
   }, [fetchCards]);
+
+  useEffect(() => {
+    if (dbCards.length > 0) {
+      setCardPool(dbCards);
+    }
+  }, [dbCards, setCardPool]);
 
   useEffect(() => {
     if (user) {
