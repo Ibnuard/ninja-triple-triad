@@ -366,8 +366,8 @@ export default function Home() {
       <StarterPackModal isOpen={!!user} />
 
       {/* Footer Decoration - Reduce Bottom Position */}
-      <footer className="absolute bottom-4 md:bottom-8 w-full px-6 md:px-12 flex justify-between items-center z-10">
-        <div className="ml-auto">
+      <footer className="absolute bottom-4 md:bottom-8 w-full px-6 md:px-12 flex justify-center items-center z-10">
+        <div>
           <p className="text-[10px] font-black tracking-widest text-gray-500 uppercase flex items-center gap-1.5">
             Develop with <span className="text-red-500 animate-pulse">❤️</span>{" "}
             by{" "}

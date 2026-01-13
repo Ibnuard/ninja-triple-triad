@@ -23,12 +23,12 @@ export function CardListModal({
   showOwnedOnly,
 }: CardListModalProps) {
   const t = useTranslation();
-  const { cards: dbCards, fetchCards } = useCardStore();
+  const { cards: dbCards, fetchCards, userCardIds } = useCardStore();
 
   // Filter cards if showOwnedOnly is true
   const rawCards = dbCards.length > 0 ? dbCards : CARD_POOL;
   const displayCardPool = showOwnedOnly
-    ? rawCards.filter((card) => card.isInit)
+    ? rawCards.filter((card) => userCardIds.includes(card.id))
     : rawCards;
 
   useEffect(() => {
@@ -144,7 +144,7 @@ export function CardListModal({
             {/* Footer Decoration */}
             <div className="p-4 bg-white/5 border-t border-white/5 flex justify-between items-center">
               <p className="text-[10px] text-gray-500 font-black italic uppercase tracking-[0.2em]">
-                Total Cards: {displayCardPool.length}
+                {t.home.totalCards} : {displayCardPool.length}
               </p>
               <div className="flex gap-2">
                 {["fire", "water", "earth", "wind", "lightning"].map((el) => (

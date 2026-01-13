@@ -21,7 +21,7 @@ export function UserProfile() {
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="flex items-center gap-3 bg-white/5 backdrop-blur-md rounded-full border border-white/10 p-1 pr-4"
+      className="flex items-center gap-3 bg-white/5 backdrop-blur-md rounded-full border border-white/10 p-1 md:pr-4"
     >
       <div className="relative">
         <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)] bg-black/40 flex items-center justify-center">
@@ -39,7 +39,7 @@ export function UserProfile() {
         <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-black shadow-[0_0_5px_rgba(34,197,94,0.5)]" />
       </div>
 
-      <div className="flex flex-col">
+      <div className="hidden md:flex flex-col">
         <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] leading-none mb-1">
           {t.home.authenticated}
         </span>
