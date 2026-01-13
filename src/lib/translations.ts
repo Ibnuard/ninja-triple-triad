@@ -17,6 +17,16 @@ export const TRANSLATIONS = {
       myCollection: "My Collection",
       authenticated: "Authenticated",
     },
+    starterPack: {
+      welcomeTitle: "Welcome Ninja",
+      welcomeDesc: "Begin your journey with this starter deck",
+      packTitle: "Starter Ninja Pack",
+      claimDeck: "Claim Deck",
+      loading: "Loading cards...",
+      resultTitle: "Cards Obtained!",
+      resultDesc: "These 10 cards have been added to your collection",
+      closeButton: "Start Playing",
+    },
     game: {
       yourTurn: "Your Turn",
       opponentTurn: "Opponent Turn",
@@ -297,6 +307,16 @@ export const TRANSLATIONS = {
       shop: "Toko",
       myCollection: "Koleksi Saya",
       authenticated: "Terautentikasi",
+    },
+    starterPack: {
+      welcomeTitle: "Selamat Datang Ninja",
+      welcomeDesc: "Mulai perjalananmu dengan dek pemula ini",
+      packTitle: "Paket Ninja Pemula",
+      claimDeck: "Klaim Dek",
+      loading: "Memuat kartu...",
+      resultTitle: "Kartu Didapatkan!",
+      resultDesc: "10 kartu ini telah ditambahkan ke koleksimu",
+      closeButton: "Mulai Bermain",
     },
     game: {
       yourTurn: "Giliranmu",

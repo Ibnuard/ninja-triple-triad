@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSettingsStore, useTranslation } from "../store/useSettingsStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { useCardStore } from "../store/useCardStore"; // Added this import
 import {
   Sword,
   Users,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { CardListModal } from "../components/CardListModal";
+import { StarterPackModal } from "../components/StarterPackModal"; // Added this import
 import { UserProfile } from "../components/UserProfile";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { type Engine } from "@tsparticles/engine";
@@ -29,6 +31,9 @@ import { loadSlim } from "@tsparticles/slim";
 export default function Home() {
   const { language, setLanguage } = useSettingsStore();
   const t = useTranslation().home;
+  const { user, loading, signInWithGithub, signInWithGoogle, signOut } =
+    useAuthStore();
+  const { fetchUserCards } = useCardStore();
   const [isMounted, setIsMounted] = useState(false);
   const [pInit, setPInit] = useState(false);
   const [showCardList, setShowCardList] = useState(false);
@@ -42,6 +47,13 @@ export default function Home() {
       setPInit(true);
     });
   }, []);
+
+  // New useEffect to fetch user cards when user logs in
+  useEffect(() => {
+    if (user) {
+      fetchUserCards(user.id);
+    }
+  }, [user, fetchUserCards]);
 
   const particlesOptions = useMemo(
     () => ({
@@ -99,9 +111,6 @@ export default function Home() {
     }),
     []
   );
-
-  const { user, loading, signInWithGithub, signInWithGoogle, signOut } =
-    useAuthStore();
 
   const menuItems = [
     {
@@ -352,6 +361,9 @@ export default function Home() {
         title={t.myCollection}
         showOwnedOnly={true}
       />
+
+      {/* Onboarding Modal */}
+      <StarterPackModal isOpen={!!user} />
 
       {/* Footer Decoration - Reduce Bottom Position */}
       <footer className="absolute bottom-4 md:bottom-8 w-full px-6 md:px-12 flex justify-between items-center z-10">
