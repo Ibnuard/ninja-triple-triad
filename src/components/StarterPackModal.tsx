@@ -9,6 +9,8 @@ import { Card as CardType } from "../types/game";
 import { Loader2, Sparkles, X } from "lucide-react";
 import { useTranslation } from "../store/useSettingsStore";
 
+import { PackOpeningSequence } from "../app/shop/PackOpeningSequence";
+
 interface StarterPackModalProps {
   isOpen: boolean;
 }
@@ -21,6 +23,7 @@ export function StarterPackModal({ isOpen }: StarterPackModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [claimedCards, setClaimedCards] = useState<CardType[]>([]);
   const [showResult, setShowResult] = useState(false);
+  const [isOpening, setIsOpening] = useState(false);
 
   // Ensure we have cards to pick from
   useEffect(() => {
@@ -46,6 +49,7 @@ export function StarterPackModal({ isOpen }: StarterPackModalProps) {
     if (result.success) {
       setClaimedCards(selected);
       setShowResult(true);
+      setIsOpening(true);
       // Refresh profile in background, but wait to close until user clicks "Continue"
       refreshProfile();
     } else {
@@ -71,7 +75,15 @@ export function StarterPackModal({ isOpen }: StarterPackModalProps) {
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl"
       >
-        {!showResult ? (
+        {showResult && isOpening ? (
+          <PackOpeningSequence
+            cards={claimedCards}
+            duplicates={[]}
+            coinsGained={0}
+            onComplete={() => {}}
+            onClose={handleClose}
+          />
+        ) : !showResult ? (
           <div className="w-full max-w-md flex flex-col items-center gap-6 relative">
             {/* Background Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-600/20 blur-[100px] rounded-full pointer-events-none" />
@@ -139,40 +151,7 @@ export function StarterPackModal({ isOpen }: StarterPackModalProps) {
               )}
             </div>
           </div>
-        ) : (
-          <div className="w-full max-w-4xl flex flex-col items-center gap-2 md:gap-6 relative max-h-[90vh]">
-            <div className="text-center space-y-0.5 md:space-y-1 mt-2">
-              <h1 className="text-lg md:text-4xl font-black italic text-white uppercase tracking-tighter">
-                {t.starterPack.resultTitle}
-              </h1>
-              <p className="text-[10px] md:text-sm text-gray-400 font-medium tracking-wide">
-                {t.starterPack.resultDesc}
-              </p>
-            </div>
-
-            {/* Cards Grid - Using Flex for better centering of last row */}
-            <div className="flex flex-wrap justify-center content-start gap-1.5 md:gap-4 overflow-y-auto p-1 md:p-4 w-full no-scrollbar">
-              {claimedCards.map((card, idx) => (
-                <motion.div
-                  key={card.id}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="w-[22%] md:w-[18%] aspect-[3/4]"
-                >
-                  <Card card={card} isPlaced={false} disableAnimations />
-                </motion.div>
-              ))}
-            </div>
-
-            <button
-              onClick={handleClose}
-              className="px-8 py-3 rounded-full bg-white text-black hover:bg-gray-200 font-bold uppercase tracking-widest transition-colors shadow-lg mt-4"
-            >
-              {t.starterPack.closeButton}
-            </button>
-          </div>
-        )}
+        ) : null}
       </motion.div>
     </AnimatePresence>
   );
