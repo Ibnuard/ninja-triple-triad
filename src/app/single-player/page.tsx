@@ -14,6 +14,7 @@ import { TrainingSubMenu } from "./components/TrainingSubMenu";
 import { GauntletModeView } from "./components/GauntletModeView";
 import { CustomModeView } from "./components/CustomModeView";
 import { useGameConfigStore } from "../../store/useGameConfigStore";
+import { useCardStore } from "../../store/useCardStore";
 
 export default function SinglePlayerModes() {
   const router = useRouter();
@@ -21,6 +22,18 @@ export default function SinglePlayerModes() {
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [customMechanic, setCustomMechanic] = useState<string>("none");
   const [activeElement, setActiveElement] = useState<string>("random");
+
+  // Dynamic Card Pool
+  const {
+    cards: dbCards,
+    fetchCards,
+    isLoading: isCardsLoading,
+  } = useCardStore();
+  const displayCardPool = dbCards.length > 0 ? dbCards : CARD_POOL;
+
+  useEffect(() => {
+    fetchCards();
+  }, [fetchCards]);
 
   // Gauntlet Mode State
   const startGauntletRun = useGauntletStore((state) => state.startRun);
@@ -158,7 +171,11 @@ export default function SinglePlayerModes() {
         <div className="min-h-[400px] flex flex-col items-center justify-center">
           <AnimatePresence mode="wait">
             {!selectedMode ? (
-              <ModeSelectionGrid t={t} modes={modes} onModeClick={handleModeClick} />
+              <ModeSelectionGrid
+                t={t}
+                modes={modes}
+                onModeClick={handleModeClick}
+              />
             ) : selectedMode === "training" ? (
               <TrainingSubMenu
                 t={t}
@@ -176,7 +193,7 @@ export default function SinglePlayerModes() {
                 isDeckComplete={isDeckComplete}
                 lastRunScore={lastRunScore}
                 lastBoss={lastBoss}
-                cardPool={CARD_POOL}
+                cardPool={displayCardPool}
                 onStartGauntlet={handleStartGauntlet}
                 onManageDeck={() => setShowDeckSelection(true)}
                 onToggleCard={toggleCardSelection}

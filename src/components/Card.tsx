@@ -14,6 +14,7 @@ interface CardProps {
   hideStats?: boolean;
   isDragging?: boolean;
   isGhost?: boolean;
+  disableAnimations?: boolean;
 }
 
 const elementGlows: Record<string, string> = {
@@ -43,6 +44,7 @@ export const Card = ({
   hideStats,
   isDragging,
   isGhost,
+  disableAnimations,
 }: CardProps) => {
   const rarity = card.rarity || "common";
   const rarityStyle = rarityStyles[rarity];
@@ -62,11 +64,10 @@ export const Card = ({
         // Rarity Border
         rarityStyle,
         // Owner Glow (if placed)
-        isPlaced && (
-          owner === "player1"
+        isPlaced &&
+          (owner === "player1"
             ? "shadow-[0_0_20px_rgba(59,130,246,0.6)]"
-            : "shadow-[0_0_20px_rgba(239,68,68,0.6)]"
-        ),
+            : "shadow-[0_0_20px_rgba(239,68,68,0.6)]"),
         // Background
         "bg-gray-900/95",
         isGhost &&
@@ -74,10 +75,10 @@ export const Card = ({
         isDragging && "z-[1000] rotate-2 shadow-2xl pointer-events-none"
       )}
       onClick={onClick}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      initial={disableAnimations ? false : { opacity: 0, scale: 0.8 }}
+      animate={disableAnimations ? false : { opacity: 1, scale: 1 }}
+      whileHover={disableAnimations ? undefined : { scale: 1.05 }}
+      whileTap={disableAnimations ? undefined : { scale: 0.95 }}
       whileDrag={{
         scale: 1.1,
         zIndex: 100,
@@ -117,10 +118,14 @@ export const Card = ({
           >
             {hideStats ? "?" : card.stats.top}
             {!hideStats && card.stats.top > card.baseStats.top && (
-              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-green-400">▲</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-green-400">
+                ▲
+              </span>
             )}
             {!hideStats && card.stats.top < card.baseStats.top && (
-              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-red-400">▼</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-red-400">
+                ▼
+              </span>
             )}
           </div>
 
@@ -138,10 +143,14 @@ export const Card = ({
           >
             {hideStats ? "?" : card.stats.left}
             {!hideStats && card.stats.left > card.baseStats.left && (
-              <span className="absolute -left-1.5 -top-0.5 text-[8px] text-green-400">▲</span>
+              <span className="absolute -left-1.5 -top-0.5 text-[8px] text-green-400">
+                ▲
+              </span>
             )}
             {!hideStats && card.stats.left < card.baseStats.left && (
-              <span className="absolute -left-1.5 -top-0.5 text-[8px] text-red-400">▼</span>
+              <span className="absolute -left-1.5 -top-0.5 text-[8px] text-red-400">
+                ▼
+              </span>
             )}
           </div>
 
@@ -159,10 +168,14 @@ export const Card = ({
           >
             {hideStats ? "?" : card.stats.right}
             {!hideStats && card.stats.right > card.baseStats.right && (
-              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-green-400">▲</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-green-400">
+                ▲
+              </span>
             )}
             {!hideStats && card.stats.right < card.baseStats.right && (
-              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-red-400">▼</span>
+              <span className="absolute -right-1.5 -top-0.5 text-[8px] text-red-400">
+                ▼
+              </span>
             )}
           </div>
 
@@ -180,10 +193,14 @@ export const Card = ({
           >
             {hideStats ? "?" : card.stats.bottom}
             {!hideStats && card.stats.bottom > card.baseStats.bottom && (
-              <span className="absolute -right-1.5 -bottom-0.5 text-[8px] text-green-400">▲</span>
+              <span className="absolute -right-1.5 -bottom-0.5 text-[8px] text-green-400">
+                ▲
+              </span>
             )}
             {!hideStats && card.stats.bottom < card.baseStats.bottom && (
-              <span className="absolute -right-1.5 -bottom-0.5 text-[8px] text-red-400">▼</span>
+              <span className="absolute -right-1.5 -bottom-0.5 text-[8px] text-red-400">
+                ▼
+              </span>
             )}
           </div>
         </div>

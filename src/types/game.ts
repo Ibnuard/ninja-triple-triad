@@ -26,6 +26,8 @@ export interface Card {
   rarity?: CardRarity;
   activePassives?: string[]; // IDs or names of active passives
   isBuffed?: boolean;
+  isInit?: boolean;
+  cp?: number;
 }
 
 export interface Cell {
