@@ -12,6 +12,9 @@ export const TRANSLATIONS = {
       loginWithGithub: "Login with GitHub",
       loginWithGoogle: "Login with Google",
       logout: "Logout",
+      onlineBattle: "Online Battle",
+      shop: "Shop",
+      authenticated: "Authenticated",
     },
     game: {
       yourTurn: "Your Turn",
@@ -84,19 +87,19 @@ export const TRANSLATIONS = {
           subtitle: "Choose your advantage for the next battle",
           option1: {
             title: "Enemy Sabotage",
-            desc: "Swap one of your cards with a random card from the opponent's hand."
+            desc: "Swap one of your cards with a random card from the opponent's hand.",
           },
           option2: {
             title: "Swift Strike",
-            desc: "You will take the first turn in the next match."
+            desc: "You will take the first turn in the next match.",
           },
           option3: {
             title: "Reinforcement",
-            desc: "Swap one card in your hand with a card from your collection."
+            desc: "Swap one card in your hand with a card from your collection.",
           },
           select: "Select Art",
           pickHand: "Select a card from your hand to swap",
-          pickCollection: "Select a card from your collection"
+          pickCollection: "Select a card from your collection",
         },
         howToObtain: "How to Obtain",
         obtainDummy: "Obtained from Gauntlet Mode or Card Packs.",
@@ -168,7 +171,8 @@ export const TRANSLATIONS = {
         },
         custom: {
           title: "Custom Mode",
-          description: "Control both players locally to test cards and passives.",
+          description:
+            "Control both players locally to test cards and passives.",
         },
       },
       gauntletSub: {
@@ -288,6 +292,9 @@ export const TRANSLATIONS = {
       loginWithGithub: "Masuk dengan GitHub",
       loginWithGoogle: "Masuk dengan Google",
       logout: "Keluar",
+      onlineBattle: "Battle Online",
+      shop: "Toko",
+      authenticated: "Terautentikasi",
     },
     game: {
       yourTurn: "Giliranmu",
@@ -360,19 +367,19 @@ export const TRANSLATIONS = {
           subtitle: "Pilih keuntunganmu untuk pertempuran berikutnya",
           option1: {
             title: "Sabotase Musuh",
-            desc: "Tukar salah satu kartumu dengan kartu acak dari tangan lawan."
+            desc: "Tukar salah satu kartumu dengan kartu acak dari tangan lawan.",
           },
           option2: {
             title: "Serangan Kilat",
-            desc: "Kamu akan mengambil giliran pertama di pertandingan berikutnya."
+            desc: "Kamu akan mengambil giliran pertama di pertandingan berikutnya.",
           },
           option3: {
             title: "Bantuan Tempur",
-            desc: "Tukar satu kartu di tanganmu dengan kartu dari koleksimu."
+            desc: "Tukar satu kartu di tanganmu dengan kartu dari koleksimu.",
           },
           select: "Pilih Seni",
           pickHand: "Pilih kartu dari tanganmu untuk ditukar",
-          pickCollection: "Pilih kartu dari koleksimu"
+          pickCollection: "Pilih kartu dari koleksimu",
         },
         howToObtain: "Cara Mendapatkan",
         obtainDummy: "Didapatkan dari Mode Gauntlet atau Paket Kartu.",

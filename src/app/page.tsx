@@ -5,7 +5,19 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSettingsStore, useTranslation } from "../store/useSettingsStore";
 import { useAuthStore } from "../store/useAuthStore";
-import { Sword, Users, BookOpen, Globe, Zap, Shield, Github, LogOut } from "lucide-react";
+import {
+  Sword,
+  Users,
+  BookOpen,
+  Globe,
+  Zap,
+  Shield,
+  Github,
+  LogOut,
+  ShoppingBag,
+  Radio,
+  Layers,
+} from "lucide-react";
 import React from "react";
 import { CardListModal } from "../components/CardListModal";
 import { UserProfile } from "../components/UserProfile";
@@ -86,13 +98,8 @@ export default function Home() {
     []
   );
 
-  const { 
-    user, 
-    loading, 
-    signInWithGithub, 
-    signInWithGoogle, 
-    signOut 
-  } = useAuthStore();
+  const { user, loading, signInWithGithub, signInWithGoogle, signOut } =
+    useAuthStore();
 
   const menuItems = [
     {
@@ -103,26 +110,19 @@ export default function Home() {
       shadow: "shadow-red-900/40",
     },
     {
+      href: "/online-battle",
+      label: t.onlineBattle,
+      icon: Globe,
+      color: "from-blue-600 to-blue-900",
+      shadow: "shadow-blue-900/40",
+    },
+    {
       href: "/how-to-play",
       label: t.howToPlay,
       icon: BookOpen,
       color: "from-amber-500 to-amber-700",
       shadow: "shadow-amber-900/40",
     },
-    {
-      onClick: () => setShowCardList(true),
-      label: t.cardList,
-      icon: Globe,
-      color: "from-blue-500 to-blue-700",
-      shadow: "shadow-blue-900/40",
-    },
-    {
-      onClick: signOut,
-      label: t.logout,
-      icon: LogOut,
-      color: "from-gray-600 to-gray-800",
-      shadow: "shadow-gray-900/40",
-    }
   ];
 
   const loginItems = [
@@ -139,7 +139,7 @@ export default function Home() {
       icon: Globe,
       color: "from-blue-600 to-blue-800",
       shadow: "shadow-blue-900/40",
-    }
+    },
   ];
 
   if (!isMounted) return null;
@@ -165,31 +165,61 @@ export default function Home() {
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-50" />
       <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-900 to-transparent opacity-50" />
 
-      {/* User Profile */}
-      <UserProfile />
+      {/* Top Header - Consolidated */}
+      <div className="absolute top-0 w-full z-50 flex justify-between items-start p-4 md:p-6">
+        {/* Left: User Profile + Logout */}
+        <div className="flex items-center gap-2">
+          <UserProfile />
+          {user && (
+            <button
+              onClick={signOut}
+              className="w-10 h-10 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/40 hover:text-red-500 hover:bg-white/10 transition-colors group relative"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-black/80 border border-white/10 rounded text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                {t.logout}
+              </span>
+            </button>
+          )}
+        </div>
 
-      {/* Language Toggle - Refined */}
-      <div className="absolute top-6 right-6 z-50 flex bg-white/5 backdrop-blur-md rounded-full border border-white/10 p-1">
-        <button
-          onClick={() => setLanguage("id")}
-          className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${
-            language === "id"
-              ? "bg-red-600 text-white shadow-lg"
-              : "text-white/40 hover:text-white"
-          }`}
-        >
-          ID
-        </button>
-        <button
-          onClick={() => setLanguage("en")}
-          className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${
-            language === "en"
-              ? "bg-blue-600 text-white shadow-lg"
-              : "text-white/40 hover:text-white"
-          }`}
-        >
-          EN
-        </button>
+        {/* Right: Actions + Language */}
+        <div className="flex items-center gap-2">
+          {/* Card List Button */}
+          <button
+            onClick={() => setShowCardList(true)}
+            className="w-10 h-10 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/40 hover:text-blue-400 hover:bg-white/10 transition-colors group relative"
+          >
+            <Layers className="w-4 h-4" />
+            <span className="absolute top-full right-0 mt-2 px-2 py-1 bg-black/80 border border-white/10 rounded text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              {t.cardList}
+            </span>
+          </button>
+
+          {/* Language Toggle */}
+          <div className="flex bg-white/5 backdrop-blur-md rounded-full border border-white/10 p-1">
+            <button
+              onClick={() => setLanguage("id")}
+              className={`px-3 py-1 rounded-full text-[10px] font-black transition-all ${
+                language === "id"
+                  ? "bg-red-600 text-white shadow-lg"
+                  : "text-white/40 hover:text-white"
+              }`}
+            >
+              ID
+            </button>
+            <button
+              onClick={() => setLanguage("en")}
+              className={`px-3 py-1 rounded-full text-[10px] font-black transition-all ${
+                language === "en"
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-white/40 hover:text-white"
+              }`}
+            >
+              EN
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="relative z-10 w-full max-w-lg px-6 flex flex-col items-center">
@@ -198,13 +228,13 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="text-center mb-16 relative group"
+          className="text-center mb-6 md:mb-12 relative group"
         >
           {/* Shuriken Decoration */}
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-12 -left-12 w-24 h-24 opacity-40 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none hidden md:block"
+            className="absolute -top-12 -left-12 w-20 h-20 opacity-40 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none hidden md:block"
           >
             <img
               src="/images/shuriken.webp"
@@ -216,7 +246,7 @@ export default function Home() {
           <motion.div
             animate={{ rotate: -360 }}
             transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-            className="absolute -bottom-8 -right-16 w-20 h-20 opacity-30 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none hidden md:block"
+            className="absolute -bottom-8 -right-16 w-16 h-16 opacity-30 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none hidden md:block"
           >
             <img
               src="/images/shuriken.webp"
@@ -226,9 +256,9 @@ export default function Home() {
           </motion.div>
 
           {/* Subtle Glow Behind Title */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 bg-red-600/20 blur-[60px] rounded-full pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-24 md:w-64 md:h-32 bg-red-600/20 blur-[40px] md:blur-[60px] rounded-full pointer-events-none" />
 
-          <h1 className="text-7xl md:text-9xl font-black italic tracking-tighter leading-none select-none">
+          <h1 className="text-5xl md:text-9xl font-black italic tracking-tighter leading-none select-none">
             <span className="block text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
               TRIPLE
             </span>
@@ -236,69 +266,71 @@ export default function Home() {
               TRIAD
             </span>
           </h1>
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <div className="h-px w-8 bg-red-600/50" />
-            <p className="text-xs md:text-sm font-black tracking-[0.6em] text-red-500 uppercase italic">
+          <div className="mt-2 md:mt-4 flex items-center justify-center gap-3">
+            <div className="h-px w-6 md:w-8 bg-red-600/50" />
+            <p className="text-[10px] md:text-sm font-black tracking-[0.4em] md:tracking-[0.6em] text-red-500 uppercase italic">
               {t.subtitle}
             </p>
-            <div className="h-px w-8 bg-red-600/50" />
+            <div className="h-px w-6 md:w-8 bg-red-600/50" />
           </div>
         </motion.div>
 
-        {/* Menu Items */}
-        <div className="grid grid-cols-1 gap-4 w-full">
+        {/* Menu Items Stack */}
+        <div className="w-full space-y-3">
           {loading ? (
             <div className="flex justify-center py-10">
               <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : !user ? (
-            loginItems.map((item, idx) => (
-              <motion.div
-                key={item.label}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
-              >
-                <div onClick={item.onClick} className="block group cursor-pointer">
-                  <MenuButton item={item} />
-                </div>
-              </motion.div>
-            ))
+            <div className="space-y-3">
+              {loginItems.map((item, idx) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
+                >
+                  <div
+                    onClick={item.onClick}
+                    className="block group cursor-pointer"
+                  >
+                    <MenuButton item={item} isFullWidth />
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           ) : (
             menuItems.map((item, idx) => (
               <motion.div
                 key={item.label}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
               >
-                {item.href ? (
-                  <Link href={item.href} className="block group">
-                    <MenuButton item={item} />
-                  </Link>
-                ) : (
-                  <div onClick={item.onClick} className="block group cursor-pointer">
-                    <MenuButton item={item} />
-                  </div>
-                )}
+                <Link href={item.href} className="block group w-full">
+                  <MenuButton item={item} isFullWidth />
+                </Link>
               </motion.div>
             ))
           )}
         </div>
 
-        {/* Decorative corner accents */}
-        <div className="fixed top-0 left-0 p-8 pointer-events-none opacity-20">
-          <Shield className="w-12 h-12 text-red-600" />
+        {/* Decorative corner accents - Reduce Padding */}
+        <div className="fixed top-0 left-0 p-4 md:p-8 pointer-events-none opacity-20">
+          <Shield className="w-8 h-8 md:w-12 md:h-12 text-red-600" />
         </div>
-        <div className="fixed bottom-0 right-0 p-8 pointer-events-none opacity-20 rotate-180">
-          <Zap className="w-12 h-12 text-red-600" />
+        <div className="fixed bottom-0 right-0 p-4 md:p-8 pointer-events-none opacity-20 rotate-180">
+          <Zap className="w-8 h-8 md:w-12 md:h-12 text-red-600" />
         </div>
       </div>
 
-      <CardListModal isOpen={showCardList} onClose={() => setShowCardList(false)} />
+      <CardListModal
+        isOpen={showCardList}
+        onClose={() => setShowCardList(false)}
+      />
 
-      {/* Footer Decoration */}
-      <footer className="absolute bottom-8 w-full px-12 flex justify-between items-center z-10">
+      {/* Footer Decoration - Reduce Bottom Position */}
+      <footer className="absolute bottom-4 md:bottom-8 w-full px-6 md:px-12 flex justify-between items-center z-10">
         <div className="ml-auto">
           <p className="text-[10px] font-black tracking-widest text-gray-500 uppercase flex items-center gap-1.5">
             Develop with <span className="text-red-500 animate-pulse">❤️</span>{" "}
@@ -318,45 +350,53 @@ export default function Home() {
   );
 }
 
-function MenuButton({ item }: { item: any }) {
+function MenuButton({
+  item,
+  isFullWidth,
+}: {
+  item: any;
+  isFullWidth?: boolean;
+}) {
   return (
     <button
       className={cn(
-        "w-full h-16 relative overflow-hidden rounded-2xl border border-white/10 transition-all duration-300",
-        "bg-gradient-to-r from-white/5 to-transparent hover:to-white/5",
-        "flex items-center justify-between px-6 md:px-8",
+        "relative overflow-hidden rounded-xl border border-white/10 transition-all duration-300 w-full",
+        "bg-gradient-to-br from-white/5 to-transparent hover:to-white/5",
         "group-hover:border-white/20 group-hover:scale-[1.02] active:scale-[0.98]",
-        "group-hover:shadow-[0_0_30px_rgba(0,0,0,0.5)]"
+        "group-hover:shadow-[0_0_20px_rgba(0,0,0,0.5)]",
+        "h-14 md:h-16 flex items-center justify-between px-6"
       )}
     >
       {/* Hover Background Accent */}
       <div
         className={cn(
-          "absolute inset-y-0 left-0 w-1 transition-all duration-300 bg-gradient-to-b",
-          item.color,
-          "group-hover:w-full group-hover:opacity-10"
+          "absolute inset-0 transition-all duration-500 opacity-0 group-hover:opacity-10 bg-gradient-to-br",
+          item.color
         )}
       />
 
       <div className="flex items-center gap-4 relative z-10">
         <div
           className={cn(
-            "p-2.5 rounded-xl bg-black/40 border border-white/10 group-hover:scale-110 transition-transform duration-500",
-            "shadow-inner shadow-white/5"
+            "p-2 rounded-lg bg-black/40 border border-white/10 group-hover:scale-110 transition-transform duration-500 shadow-inner shadow-white/5",
+            item.shadow
           )}
         >
           <item.icon className="w-5 h-5 text-white" />
         </div>
-        <span className="font-black text-sm tracking-widest uppercase italic group-hover:translate-x-2 transition-transform duration-300">
-          {item.label}
-        </span>
+
+        <div className="flex flex-col items-start gap-0.5">
+          <span className="font-black text-xs md:text-sm tracking-widest uppercase italic text-white transition-colors">
+            {item.label}
+          </span>
+        </div>
       </div>
 
       <div className="relative z-10 flex items-center justify-center group-hover:translate-x-2 transition-transform">
         <div
           className={cn(
             "w-2 h-2 rounded-full",
-            item.color,
+            item.color.split(" ")[0].replace("from-", "bg-"),
             "shadow-[0_0_10px_currentColor]"
           )}
         />
