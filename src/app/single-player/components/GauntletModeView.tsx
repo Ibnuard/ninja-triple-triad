@@ -1,7 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Swords, BookOpen, ChevronLeft, Layers, Trophy, Medal, X } from "lucide-react";
+import {
+  Swords,
+  BookOpen,
+  ChevronLeft,
+  Layers,
+  Trophy,
+  Medal,
+  X,
+} from "lucide-react";
 import { useTranslation } from "../../../store/useSettingsStore";
 import { RANK_THRESHOLDS } from "../../../constants/gauntlet";
 import { cn } from "../../../lib/utils";
@@ -42,7 +50,7 @@ export function GauntletModeView({
   // Reusable Stats Component
   const StatsCard = ({ className = "" }: { className?: string }) => {
     const gauntletT = useTranslation().game.gauntlet;
-    
+
     // Calculate rank name based on score
     const getRankName = (score: number) => {
       if (score >= RANK_THRESHOLDS.Rikudo) return "Rikudo";
@@ -56,50 +64,68 @@ export function GauntletModeView({
     const rankName = getRankName(lastRunScore);
 
     return (
-      <div className={cn("relative w-full bg-black/40 rounded-3xl border border-white/5 p-4 md:p-6 flex flex-col gap-4 md:gap-6", className)}>
+      <div
+        className={cn(
+          "relative w-full bg-black/40 rounded-3xl border border-white/5 p-4 md:p-6 flex flex-col gap-4 md:gap-6",
+          className
+        )}
+      >
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <h3 className="text-lg md:text-xl font-black italic uppercase text-white/50">{gauntletT.lastJourney}</h3>
+          <h3 className="text-lg md:text-xl font-black italic uppercase text-white/50">
+            {gauntletT.lastJourney}
+          </h3>
         </div>
 
         <div className="grid grid-cols-2 gap-3 md:gap-4">
           <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
             <Trophy className="w-6 h-6 md:w-8 md:h-8 text-yellow-500" />
             <div className="text-center">
-              <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">{gauntletT.highScore}</div>
-              <div className="text-xl md:text-2xl font-black text-white">{lastRunScore}</div>
+              <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
+                {gauntletT.highScore}
+              </div>
+              <div className="text-xl md:text-2xl font-black text-white">
+                {lastRunScore}
+              </div>
             </div>
           </div>
           <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
             <Medal className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
             <div className="text-center">
-              <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">{gauntletT.rank}</div>
-              <div className="text-sm md:text-lg font-black text-white truncate max-w-[80px] md:max-w-[100px]">{rankName}</div>
+              <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
+                {gauntletT.rank}
+              </div>
+              <div className="text-sm md:text-lg font-black text-white truncate max-w-[80px] md:max-w-[100px]">
+                {rankName}
+              </div>
             </div>
           </div>
         </div>
 
         <div className="mt-auto pt-4 border-t border-white/10">
-            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 text-center">{t.gauntletSub.deckUsed}</div>
-            <div className="flex justify-center -space-x-3 md:-space-x-4">
-              {selectedDeck.length > 0 ? (
-                selectedDeck.map((card, i) => (
-                  <div key={i} className="w-10 h-14 md:w-12 md:h-16 rounded-lg border-2 border-gray-900 relative overflow-hidden shadow-lg transform hover:-translate-y-2 transition-transform duration-300" style={{ zIndex: i }}>
-                      <div className={`absolute inset-0 bg-gradient-to-br ${
-                        card.element === 'fire' ? 'from-red-600' :
-                        card.element === 'water' ? 'from-blue-600' :
-                        card.element === 'earth' ? 'from-amber-600' :
-                        card.element === 'wind' ? 'from-emerald-600' :
-                        'from-yellow-600'
-                      } to-black`} />
-                      <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white/50">
-                        {card.stats.top}
-                      </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-gray-600 italic">{t.gauntletSub.noDeckData}</div>
-              )}
-            </div>
+          <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 text-center">
+            {t.gauntletSub.deckUsed}
+          </div>
+          <div className="flex justify-center -space-x-3 md:-space-x-4">
+            {selectedDeck.length > 0 ? (
+              selectedDeck.map((card, i) => (
+                <div
+                  key={i}
+                  className="w-10 h-14 md:w-12 md:h-16 rounded-lg border-2 border-gray-900 relative overflow-hidden shadow-lg transform hover:-translate-y-2 transition-transform duration-300 bg-gray-900"
+                  style={{ zIndex: i }}
+                >
+                  <img
+                    src={card.image}
+                    alt={card.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-gray-600 italic">
+                {t.gauntletSub.noDeckData}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -123,7 +149,8 @@ export function GauntletModeView({
           <div className="flex flex-col gap-6 md:gap-8 text-center md:text-left">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest mb-4">
-                <Swords className="w-3 h-3" /> {t.modes.gauntlet.submenu.survivalMode}
+                <Swords className="w-3 h-3" />{" "}
+                {t.modes.gauntlet.submenu.survivalMode}
               </div>
               <h2 className="text-3xl md:text-5xl font-black italic uppercase text-white mb-2 md:mb-4 leading-none">
                 {t.modes.gauntlet.title}
@@ -142,11 +169,15 @@ export function GauntletModeView({
               <div className="flex items-center gap-4 justify-center md:justify-start">
                 <div className="bg-black/40 px-4 py-2 rounded-xl border border-white/10 flex items-center gap-3">
                   <BookOpen className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-bold text-gray-300">{t.modes.gauntlet.submenu.deckStatus}:</span>
-                  <span className={cn(
-                    "text-lg font-black",
-                    isDeckComplete() ? "text-green-400" : "text-yellow-400"
-                  )}>
+                  <span className="text-sm font-bold text-gray-300">
+                    {t.modes.gauntlet.submenu.deckStatus}:
+                  </span>
+                  <span
+                    className={cn(
+                      "text-lg font-black",
+                      isDeckComplete() ? "text-green-400" : "text-yellow-400"
+                    )}
+                  >
                     {selectedDeck.length}/5
                   </span>
                 </div>
@@ -158,13 +189,15 @@ export function GauntletModeView({
                   disabled={!isDeckComplete()}
                   className={cn(
                     "group relative px-8 py-4 font-black uppercase tracking-widest text-sm transition-all w-full sm:w-auto overflow-hidden rounded-xl flex items-center justify-center gap-2",
-                    isDeckComplete() 
-                      ? "bg-white text-black hover:bg-red-500 hover:text-white" 
+                    isDeckComplete()
+                      ? "bg-white text-black hover:bg-red-500 hover:text-white"
                       : "bg-gray-800 text-gray-500 cursor-not-allowed"
                   )}
                 >
                   {t.modes.gauntlet.submenu.startGauntlet}
-                  {isDeckComplete() && <ChevronLeft className="rotate-180 w-4 h-4 group-hover:translate-x-1 transition-transform" />}
+                  {isDeckComplete() && (
+                    <ChevronLeft className="rotate-180 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  )}
                 </button>
                 <button
                   onClick={onManageDeck}
@@ -176,25 +209,29 @@ export function GauntletModeView({
               </div>
             </div>
           </div>
-          
+
           {/* Right Column: Desktop Stats (Hidden on mobile) */}
           <div className="hidden md:flex justify-center">
-             <StatsCard className="max-w-sm" />
+            <StatsCard className="max-w-sm" />
           </div>
         </div>
       ) : (
         <div className="flex flex-col h-full relative z-10">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-black italic uppercase text-white">{t.modes.gauntlet.submenu.selectCards}</h3>
+            <h3 className="text-2xl font-black italic uppercase text-white">
+              {t.modes.gauntlet.submenu.selectCards}
+            </h3>
             <div className="flex items-center gap-4">
-              <span className={cn(
-                "text-xl font-black",
-                tempDeck.length === 5 ? "text-green-400" : "text-yellow-400"
-              )}>
+              <span
+                className={cn(
+                  "text-xl font-black",
+                  tempDeck.length === 5 ? "text-green-400" : "text-yellow-400"
+                )}
+              >
                 {tempDeck.length}/5
               </span>
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={onCancelSelection}
                   className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                 >
@@ -207,21 +244,27 @@ export function GauntletModeView({
           <div className="flex-1 overflow-y-auto pr-2 min-h-[400px] max-h-[500px] custom-scrollbar">
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 px-2 pb-2 pt-8">
               {cardPool.map((card) => {
-                const isSelected = tempDeck.some(c => c.id === card.id);
-                const selectionIndex = tempDeck.findIndex(c => c.id === card.id);
-                
+                const isSelected = tempDeck.some((c) => c.id === card.id);
+                const selectionIndex = tempDeck.findIndex(
+                  (c) => c.id === card.id
+                );
+
                 return (
-                  <div 
+                  <div
                     key={card.id}
                     className="relative group flex justify-center"
                   >
-                    <div className={cn(
-                      "transform transition-all duration-300",
-                      isSelected ? "z-20" : "hover:scale-110 hover:z-10",
-                      // Dim unselected cards if deck is full
-                      !isSelected && tempDeck.length === 5 && "opacity-50 grayscale-[0.5] scale-95"
-                    )}>
-                      <Card 
+                    <div
+                      className={cn(
+                        "transform transition-all duration-300",
+                        isSelected ? "z-20" : "hover:scale-110 hover:z-10",
+                        // Dim unselected cards if deck is full
+                        !isSelected &&
+                          tempDeck.length === 5 &&
+                          "opacity-50 grayscale-[0.5] scale-95"
+                      )}
+                    >
+                      <Card
                         card={card}
                         onClick={() => onToggleCard(card)}
                         isSelected={isSelected}
@@ -230,7 +273,7 @@ export function GauntletModeView({
                     </div>
 
                     {isSelected && (
-                      <motion.div 
+                      <motion.div
                         initial={{ scale: 0, rotate: -45 }}
                         animate={{ scale: 1, rotate: 0 }}
                         className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-600 rounded-lg rotate-3 flex items-center justify-center text-white font-black text-sm z-30 shadow-[0_0_15px_rgba(34,197,94,0.6)] border-2 border-white/20"

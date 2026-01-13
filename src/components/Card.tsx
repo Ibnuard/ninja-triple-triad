@@ -68,6 +68,11 @@ export const Card = ({
           (owner === "player1"
             ? "shadow-[0_0_20px_rgba(59,130,246,0.6)]"
             : "shadow-[0_0_20px_rgba(239,68,68,0.6)]"),
+
+        // Owner Border Override (Stronger visibility)
+        isPlaced && owner === "player1" && "border-blue-500",
+        isPlaced && owner === "player2" && "border-red-500",
+
         // Background
         "bg-gray-900/95",
         isGhost &&

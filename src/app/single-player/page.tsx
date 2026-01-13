@@ -4,21 +4,23 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "../../store/useSettingsStore";
-import { Swords, School, Zap, ChevronLeft } from "lucide-react";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useCardStore } from "../../store/useCardStore";
 import { useDeckStore } from "../../store/useDeckStore";
+import { useGameConfigStore } from "../../store/useGameConfigStore";
 import { useGauntletStore } from "../../store/useGauntletStore";
-import { CARD_POOL } from "../../data/cardPool";
 import { Card as CardType } from "../../types/game";
+import { CARD_POOL } from "../../data/cardPool";
+import { Swords, School, Zap, ChevronLeft } from "lucide-react";
 import { ModeSelectionGrid } from "./components/ModeSelectionGrid";
 import { TrainingSubMenu } from "./components/TrainingSubMenu";
 import { GauntletModeView } from "./components/GauntletModeView";
 import { CustomModeView } from "./components/CustomModeView";
-import { useGameConfigStore } from "../../store/useGameConfigStore";
-import { useCardStore } from "../../store/useCardStore";
 
 export default function SinglePlayerModes() {
   const router = useRouter();
   const t = useTranslation().spSelection;
+  const { user } = useAuthStore();
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [customMechanic, setCustomMechanic] = useState<string>("none");
   const [activeElement, setActiveElement] = useState<string>("random");
@@ -28,12 +30,24 @@ export default function SinglePlayerModes() {
     cards: dbCards,
     fetchCards,
     isLoading: isCardsLoading,
+    userCardIds,
+    fetchUserCards,
   } = useCardStore();
-  const displayCardPool = dbCards.length > 0 ? dbCards : CARD_POOL;
 
   useEffect(() => {
     fetchCards();
   }, [fetchCards]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserCards(user.id);
+    }
+  }, [user, fetchUserCards]);
+
+  const rawCards = dbCards.length > 0 ? dbCards : CARD_POOL;
+  const displayCardPool = user
+    ? rawCards.filter((c) => userCardIds.includes(c.id))
+    : rawCards;
 
   // Gauntlet Mode State
   const startGauntletRun = useGauntletStore((state) => state.startRun);
@@ -47,10 +61,6 @@ export default function SinglePlayerModes() {
   } = useDeckStore();
   const [showDeckSelection, setShowDeckSelection] = useState(false);
   const [tempDeck, setTempDeck] = useState<CardType[]>([]);
-
-  useEffect(() => {
-    loadDeck();
-  }, [loadDeck]);
 
   useEffect(() => {
     if (showDeckSelection) {
