@@ -12,6 +12,10 @@ interface CardState {
   addCard: (
     card: Omit<Card, "id" | "baseStats">
   ) => Promise<{ success: boolean; error?: string }>;
+  updateCard: (
+    id: string,
+    card: Omit<Card, "id" | "baseStats">
+  ) => Promise<{ success: boolean; error?: string }>;
   addStarterPack: (
     userId: string,
     cardIds: string[]
@@ -114,6 +118,37 @@ export const useCardStore = create<CardState>((set, get) => ({
       return { success: true };
     } catch (err: any) {
       console.error("Error adding card:", err);
+      return { success: false, error: err.message };
+    }
+  },
+  updateCard: async (id: string, card: Omit<Card, "id" | "baseStats">) => {
+    try {
+      const { data, error } = await supabase
+        .from("cards")
+        .update({
+          name: card.name,
+          element: card.element,
+          image_url: card.image,
+          description: card.description || "",
+          rarity: card.rarity || "common",
+          is_init: card.isInit || false,
+          cp: card.cp || 0,
+          stat_top: card.stats.top,
+          stat_right: card.stats.right,
+          stat_bottom: card.stats.bottom,
+          stat_left: card.stats.left,
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      // Refresh the card pool after successful update
+      const { fetchCards } = useCardStore.getState();
+      await fetchCards();
+
+      return { success: true };
+    } catch (err: any) {
+      console.error("Error updating card:", err);
       return { success: false, error: err.message };
     }
   },

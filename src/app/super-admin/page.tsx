@@ -32,12 +32,16 @@ const RARITIES: CardRarity[] = ["common", "rare", "epic", "legend", "special"];
 
 export default function SuperAdminPage() {
   const router = useRouter();
-  const { addCard } = useCardStore();
+  const { cards, fetchCards, addCard, updateCard } = useCardStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passcode, setPasscode] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Edit Mode State
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Form State
   const [formData, setFormData] = useState({
@@ -52,6 +56,12 @@ export default function SuperAdminPage() {
 
   const [previewData, setPreviewData] = useState(formData);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCards();
+    }
+  }, [isAuthenticated, fetchCards]);
+
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
     const secret = process.env.NEXT_PUBLIC_ADMIN_PASSCODE || "admin123";
@@ -63,13 +73,64 @@ export default function SuperAdminPage() {
     }
   };
 
+  const handleEdit = (card: CardType) => {
+    setEditingId(card.id);
+    setFormData({
+      name: card.name,
+      element: card.element,
+      rarity: card.rarity || "common",
+      image: card.image,
+      stats: { ...card.baseStats },
+      isInit: card.isInit || false,
+      cp: card.cp || 0,
+    });
+    setPreviewData({
+      name: card.name,
+      element: card.element,
+      rarity: card.rarity || "common",
+      image: card.image,
+      stats: { ...card.baseStats },
+      isInit: card.isInit || false,
+      cp: card.cp || 0,
+    });
+    setSuccess(false);
+    setError("");
+    // Scroll to form (optional)
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({
+      name: "New Ninja",
+      element: "fire" as ElementType,
+      rarity: "common" as CardRarity,
+      image: "",
+      stats: { top: 5, right: 5, bottom: 5, left: 5 },
+      isInit: false,
+      cp: 0,
+    });
+    setPreviewData({
+      name: "New Ninja",
+      element: "fire" as ElementType,
+      rarity: "common" as CardRarity,
+      image: "",
+      stats: { top: 5, right: 5, bottom: 5, left: 5 },
+      isInit: false,
+      cp: 0,
+    });
+    setSuccess(false);
+    setError("");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
     setSuccess(false);
 
-    const result = await addCard({
+    let result;
+
+    const cardPayload = {
       name: formData.name,
       element: formData.element,
       rarity: formData.rarity,
@@ -77,15 +138,22 @@ export default function SuperAdminPage() {
       stats: formData.stats,
       isInit: formData.isInit,
       cp: formData.cp,
-    });
+    };
+
+    if (editingId) {
+      result = await updateCard(editingId, cardPayload);
+    } else {
+      result = await addCard(cardPayload);
+    }
 
     if (result.success) {
       setSuccess(true);
-      // Reset form or redirect?
-      // Let's reset the name but keep other things for convenience
-      setFormData((prev) => ({ ...prev, name: "New Ninja" }));
+      if (!editingId) {
+        // If creating, reset name for next
+        setFormData((prev) => ({ ...prev, name: "New Ninja" }));
+      }
     } else {
-      setError(result.error || "Failed to add card");
+      setError(result.error || "Failed to save card");
     }
     setIsSubmitting(false);
   };
@@ -93,6 +161,10 @@ export default function SuperAdminPage() {
   const handleRefreshPreview = () => {
     setPreviewData(formData);
   };
+
+  const filteredCards = cards.filter((c) =>
+    c.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (!isAuthenticated) {
     return (
@@ -150,7 +222,7 @@ export default function SuperAdminPage() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col p-4 md:p-8 font-mono">
-      <div className="max-w-7xl mx-auto w-full">
+      <div className="max-w-[1400px] mx-auto w-full">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-6 mb-8">
           <div className="flex items-center gap-4">
@@ -172,13 +244,95 @@ export default function SuperAdminPage() {
           <div className="hidden md:block w-32 h-1 bg-white/10 skew-x-[-45deg]" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr_300px] gap-8 items-start">
+          {/* List Sidebar */}
+          <div className="space-y-4 h-[80vh] flex flex-col">
+            <div className="bg-gray-900/30 border border-white/5 p-4 rounded-xl">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-black uppercase text-gray-500">
+                  Database
+                </h3>
+                <button
+                  onClick={handleCancelEdit}
+                  className="p-1.5 bg-red-600 hover:bg-red-500 rounded-lg transition-colors shadow-lg shadow-red-900/20 group"
+                  title="Create New Card"
+                >
+                  <Plus className="w-4 h-4 text-white" />
+                </button>
+              </div>
+              <input
+                type="text"
+                placeholder="SEARCH CARD..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500/50"
+              />
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
+              {filteredCards.map((card) => (
+                <div
+                  key={card.id}
+                  onClick={() => handleEdit(card)}
+                  className={cn(
+                    "group p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3",
+                    editingId === card.id
+                      ? "bg-red-500/10 border-red-500/50"
+                      : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
+                  )}
+                >
+                  <div className="w-10 h-10 rounded overflow-hidden shrink-0 bg-black">
+                    <img
+                      src={card.image}
+                      alt={card.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p
+                      className={cn(
+                        "text-xs font-black uppercase truncate",
+                        editingId === card.id
+                          ? "text-red-400"
+                          : "text-gray-300 group-hover:text-white"
+                      )}
+                    >
+                      {card.name}
+                    </p>
+                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-wider">
+                      {card.element} • {card.rarity}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {filteredCards.length === 0 && (
+                <p className="text-center text-xs text-gray-600 py-4 italic">
+                  No cards found
+                </p>
+              )}
+            </div>
+          </div>
+
           {/* Form Side */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6 bg-gray-900/30 border border-white/5 p-6 rounded-[2rem]"
           >
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-black uppercase italic">
+                {editingId ? "Edit Protocol" : "New Entry Protocol"}
+              </h2>
+              {editingId && (
+                <button
+                  onClick={handleCancelEdit}
+                  className="text-[10px] font-bold uppercase text-red-500 hover:text-red-400 flex items-center gap-1"
+                >
+                  <X className="w-3 h-3" /> Cancel Edit
+                </button>
+              )}
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -362,7 +516,9 @@ export default function SuperAdminPage() {
                     className="flex items-center gap-2 text-green-500 text-[10px] font-black uppercase italic bg-green-500/10 p-3 rounded-xl border border-green-500/20"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    Card forged successfully!
+                    {editingId
+                      ? "Changes committed successfully!"
+                      : "Card forged successfully!"}
                   </motion.div>
                 )}
                 {error && (
@@ -391,7 +547,7 @@ export default function SuperAdminPage() {
                 ) : (
                   <>
                     <Save className="w-5 h-5" />
-                    Commit to Database
+                    {editingId ? "Update Data" : "Commit to Database"}
                   </>
                 )}
               </button>
