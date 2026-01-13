@@ -145,9 +145,8 @@ export const useGauntletStore = create<GauntletState>()(
             // Boss Failed! Punishment and End Run
             let finalScore = score;
             if (winner === "draw") {
-              finalScore = Math.floor(
-                score * GAUNTLET_SCORING.DRAW_PENALTY_MULTIPLIER
-              );
+              // No change for draw
+              finalScore = score;
             } else {
               finalScore = Math.floor(
                 score * GAUNTLET_SCORING.LOSS_PENALTY_MULTIPLIER
@@ -159,7 +158,11 @@ export const useGauntletStore = create<GauntletState>()(
         }
 
         // 2. Handle Normal Match Outcome
-        if (winner !== "player1") {
+        if (winner === "draw") {
+          return { scoreAdded: 0, newRank: null };
+        }
+
+        if (winner === "player2") {
           // Apply Loss Penalty based on Rank
           const penalty = GAUNTLET_SCORING.LOSS_PENALTY[rank];
           const newScore = Math.max(0, score - penalty);
@@ -228,8 +231,8 @@ export const useGauntletStore = create<GauntletState>()(
             activeElement:
               boss.mechanic === "random_elemental"
                 ? GAME_ELEMENTS[
-                    Math.floor(Math.random() * GAME_ELEMENTS.length)
-                  ]
+                Math.floor(Math.random() * GAME_ELEMENTS.length)
+                ]
                 : undefined,
           };
         }

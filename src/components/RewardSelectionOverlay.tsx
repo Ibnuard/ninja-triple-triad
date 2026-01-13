@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { Card } from "./Card";
@@ -11,9 +12,10 @@ interface RewardSelectionOverlayProps {
   title: string;
   subtitle?: string;
   cards: CardType[];
-  onSelect: (card: CardType) => void;
+  onSelect: (cards: CardType[]) => void;
   onCancel: () => void;
   isHidden?: boolean;
+  maxSelect?: number;
 }
 
 export function RewardSelectionOverlay({
@@ -24,7 +26,37 @@ export function RewardSelectionOverlay({
   onSelect,
   onCancel,
   isHidden,
+  maxSelect = 1,
 }: RewardSelectionOverlayProps) {
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedIds([]);
+    }
+  }, [isOpen]);
+
+  const handleCardClick = (card: CardType) => {
+    if (maxSelect === 1) {
+      onSelect([card]);
+      return;
+    }
+
+    setSelectedIds((prev) => {
+      if (prev.includes(card.id)) {
+        return prev.filter((id) => id !== card.id);
+      }
+      if (prev.length < maxSelect) {
+        return [...prev, card.id];
+      }
+      return prev;
+    });
+  };
+
+  const handleConfirm = () => {
+    const selectedCards = cards.filter((c) => selectedIds.includes(c.id));
+    onSelect(selectedCards);
+  };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -63,25 +95,56 @@ export function RewardSelectionOverlay({
             {/* Card Grid */}
             <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 justify-items-center">
-                {cards.map((card) => (
-                  <motion.div
-                    key={card.id}
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Card
-                      card={card}
-                      onClick={() => onSelect(card)}
-                      isPlaced={false}
-                      isHidden={isHidden}
-                    />
-                  </motion.div>
-                ))}
+                {cards.map((card) => {
+                  const isSelected = selectedIds.includes(card.id);
+                  const selectionIndex = selectedIds.indexOf(card.id);
+
+                  return (
+                    <motion.div
+                      key={card.id}
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="relative"
+                    >
+                      <Card
+                        card={card}
+                        onClick={() => handleCardClick(card)}
+                        isPlaced={false}
+                        isHidden={isHidden}
+                        isSelected={isSelected}
+                      />
+                      {isSelected && maxSelect > 1 && (
+                        <motion.div
+                          initial={{ scale: 0, rotate: -45 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg rotate-3 flex items-center justify-center text-white font-black text-sm z-30 shadow-[0_0_15px_rgba(59,130,246,0.6)] border-2 border-white/20"
+                        >
+                          {selectionIndex + 1}
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Footer Decoration */}
-            <div className="h-2 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+            {/* Footer / Confirm Button */}
+            <div className="p-6 border-t border-white/5 flex justify-end gap-4 bg-black/20">
+              {maxSelect > 1 && (
+                <button
+                  onClick={handleConfirm}
+                  disabled={selectedIds.length !== maxSelect}
+                  className={cn(
+                    "px-8 py-3 rounded-xl font-black uppercase tracking-widest text-sm transition-all",
+                    selectedIds.length === maxSelect
+                      ? "bg-blue-500 text-white hover:bg-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                      : "bg-gray-800 text-gray-500 cursor-not-allowed"
+                  )}
+                >
+                  Konfirmasi ({selectedIds.length}/{maxSelect})
+                </button>
+              )}
+            </div>
           </motion.div>
         </motion.div>
       )}

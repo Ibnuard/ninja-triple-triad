@@ -192,11 +192,11 @@ export default function GamePage() {
     | "pick_from_collection"
     | "pick_from_opponent"
   >("none");
-  const [selectedHandCard, setSelectedHandCard] = useState<Card | null>(null);
+  const [selectedHandCards, setSelectedHandCards] = useState<Card[]>([]);
   const [showSwapAnimation, setShowSwapAnimation] = useState(false);
   const [swapData, setSwapData] = useState<{
-    oldCard: Card;
-    newCard: Card;
+    oldCards: Card[];
+    newCards: Card[];
   } | null>(null);
   const [nextOpponentDeck, setNextOpponentDeck] = useState<Card[]>([]);
   const [swapCount, setSwapCount] = useState(0);
@@ -398,57 +398,54 @@ export default function GamePage() {
             setShowRewardModal(true);
           }
         }}
-        onSelect={(card) => {
-          setSelectedHandCard(card);
+        onSelect={(cards) => {
+          setSelectedHandCards(cards);
           if (selectionPhase === "pick_from_hand_sabotage") {
             setSelectionPhase("pick_from_opponent");
           } else {
             setSelectionPhase("pick_from_collection");
           }
         }}
+        maxSelect={selectionPhase === "pick_from_hand_reinforce" ? 2 : 1}
       />
 
       <RewardSelectionOverlay
         isOpen={selectionPhase === "pick_from_collection"}
         title={t.gauntlet.rewards.option3.title}
-        subtitle={
-          swapCount === 0
-            ? `${t.gauntlet.rewards.pickCollection} (1/2)`
-            : `${t.gauntlet.rewards.pickCollection} (2/2)`
-        }
+        subtitle={t.gauntlet.rewards.pickCollection}
         cards={allCards
           .filter((c) => userCardIds.includes(c.id)) // Owned cards
           .filter((c) => !gauntletDeck.some((dc) => dc.id === c.id))} // Not in deck
         onCancel={() => {
           setSelectionPhase("pick_from_hand_reinforce");
         }}
-        onSelect={(card) => {
-          // Perform Swap
-          const newHand = gauntletDeck.map((c) =>
-            c.id === selectedHandCard?.id ? card : c
-          );
+        onSelect={(cards) => {
+          // Perform Swap for multiple cards
+          let newHand = [...gauntletDeck];
+          
+          // We assume cards.length matches selectedHandCards.length (2)
+          cards.forEach((newCard, index) => {
+            const oldCard = selectedHandCards[index];
+            newHand = newHand.map((c) =>
+              c.id === oldCard.id ? newCard : c
+            );
+          });
 
-          // Update Gauntlet Deck in Store (to persist for next loop)
+          // Update Gauntlet Deck in Store
           useGauntletStore.setState({ deck: newHand });
 
-          setSwapData({ oldCard: selectedHandCard!, newCard: card });
+          // Show animation for both swaps
+          setSwapData({ oldCards: selectedHandCards, newCards: cards });
           setSelectionPhase("none");
           setShowSwapAnimation(true);
 
           setTimeout(() => {
             setShowSwapAnimation(false);
-
-            if (swapCount === 0) {
-              // Prepare for 2nd swap
-              setSwapCount(1);
-              setSelectionPhase("pick_from_hand_reinforce");
-            } else {
-              // Done
-              consumeReward();
-              startGame(false, newHand);
-            }
+            consumeReward();
+            startGame(false, newHand);
           }, 2500);
         }}
+        maxSelect={2}
       />
 
       <RewardSelectionOverlay
@@ -460,16 +457,17 @@ export default function GamePage() {
         onCancel={() => {
           setSelectionPhase("pick_from_hand_sabotage");
         }}
-        onSelect={(card) => {
-          const oppCard = card;
+        onSelect={(cards) => {
+          const oppCard = cards[0];
+          const oldCard = selectedHandCards[0];
           const newP1Hand = gauntletDeck.map((c) =>
-            c.id === selectedHandCard?.id ? oppCard : c
+            c.id === oldCard.id ? oppCard : c
           );
           const newP2Hand = nextOpponentDeck.map((c) =>
-            c.id === oppCard.id ? selectedHandCard! : c
+            c.id === oppCard.id ? oldCard : c
           );
 
-          setSwapData({ oldCard: selectedHandCard!, newCard: oppCard });
+          setSwapData({ oldCards: [oldCard], newCards: [oppCard] });
           setSelectionPhase("none");
           setShowSwapAnimation(true);
 
@@ -483,8 +481,8 @@ export default function GamePage() {
 
       <SwapAnimationOverlay
         isOpen={showSwapAnimation}
-        oldCard={swapData?.oldCard || null}
-        newCard={swapData?.newCard || null}
+        oldCards={swapData?.oldCards || []}
+        newCards={swapData?.newCards || []}
       />
 
       {!loadingMessage && (
@@ -1043,24 +1041,12 @@ export default function GamePage() {
 
                                 {isGauntletMode &&
                                   winner !== "player1" &&
-                                  winner !== null && (
+                                  winner !== null &&
+                                  oldGauntletScore > gauntletScore && (
                                     <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1 bg-red-500/10 p-2 rounded-lg">
                                       <div className="flex flex-col text-left">
                                         <span className="text-red-400 text-[8px] font-bold uppercase tracking-wider">
                                           {t.gauntlet.scoreReduction}
-                                        </span>
-                                        <span className="text-red-500 font-black">
-                                          {winner === "draw"
-                                            ? `-${Math.round(
-                                                (1 -
-                                                  GAUNTLET_SCORING.DRAW_PENALTY_MULTIPLIER) *
-                                                  100
-                                              )}%`
-                                            : `-${Math.round(
-                                                (1 -
-                                                  GAUNTLET_SCORING.LOSS_PENALTY_MULTIPLIER) *
-                                                  100
-                                              )}%`}
                                         </span>
                                       </div>
                                       <div className="flex flex-col text-right">
@@ -1170,7 +1156,7 @@ export default function GamePage() {
                             hidden: { opacity: 0, y: 20 },
                             visible: { opacity: 1, y: 0 },
                           }}
-                          className="flex flex-col gap-2 w-full relative z-10"
+                          className="flex flex-col gap-4 w-full relative z-10"
                         >
                           {isGauntletMode && winner === "player1" ? (
                             <button
