@@ -16,6 +16,7 @@ interface CardProps {
   isGhost?: boolean;
   disableAnimations?: boolean;
   isHidden?: boolean;
+  className?: string;
 }
 
 const elementGlows: Record<string, string> = {
@@ -47,6 +48,7 @@ export const Card = ({
   isGhost,
   disableAnimations,
   isHidden,
+  className,
 }: CardProps) => {
   const rarity = card.rarity || "common";
   const rarityStyle = rarityStyles[rarity];
@@ -79,7 +81,8 @@ export const Card = ({
         "bg-gray-900/95",
         isGhost &&
           "opacity-40 grayscale-[0.2] border-dashed border-blue-400/50",
-        isDragging && "z-[1000] rotate-2 shadow-2xl pointer-events-none"
+        isDragging && "z-[1000] rotate-2 shadow-2xl pointer-events-none",
+        className
       )}
       onClick={onClick}
       initial={disableAnimations ? false : { opacity: 0, scale: 0.8 }}

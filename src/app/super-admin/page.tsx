@@ -12,6 +12,9 @@ import {
   AlertCircle,
   CheckCircle2,
   RefreshCw,
+  ShoppingBag,
+  Settings,
+  Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card } from "../../components/Card";
@@ -19,6 +22,7 @@ import { useCardStore } from "../../store/useCardStore";
 import { ElementType, CardRarity, Card as CardType } from "../../types/game";
 import { cn } from "../../lib/utils";
 import { ImageUpload } from "./components/ImageUpload";
+import { useShopStore, PackRule, ShopPack } from "../../store/useShopStore";
 
 const ELEMENTS: ElementType[] = [
   "fire",
@@ -53,14 +57,29 @@ export default function SuperAdminPage() {
     isInit: false,
     cp: 0,
   });
+  const [activeTab, setActiveTab] = useState<"cards" | "shop">("cards");
+
+  // Shop Manager State
+  const { packs, fetchPacks, addPack, updatePack: updateShopPack, deletePack } = useShopStore();
+  const [editingPackId, setEditingPackId] = useState<string | null>(null);
+  const [packFormData, setPackFormData] = useState<Omit<ShopPack, "id" | "created_at">>({
+    name: "New Pack",
+    description: "Pack description",
+    price: 100,
+    icon: "Zap",
+    color: "from-blue-500 to-blue-700",
+    config: [],
+    is_active: true,
+  });
 
   const [previewData, setPreviewData] = useState(formData);
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchCards();
+      fetchPacks();
     }
-  }, [isAuthenticated, fetchCards]);
+  }, [isAuthenticated, fetchCards, fetchPacks]);
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,6 +185,60 @@ export default function SuperAdminPage() {
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handlePackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    let result;
+    if (editingPackId) {
+      result = await updateShopPack(editingPackId, packFormData);
+    } else {
+      result = await addPack(packFormData);
+    }
+    if (result.success) {
+      setSuccess(true);
+      if (!editingPackId) setPackFormData({ ...packFormData, name: "New Pack" });
+    } else {
+      setError(result.error || "Failed to save pack");
+    }
+    setIsSubmitting(false);
+  };
+
+  const addRule = () => {
+    setPackFormData({
+      ...packFormData,
+      config: [...packFormData.config, { type: "random", value: null, count: 1 }],
+    });
+  };
+
+  const updateRule = (index: number, rule: Partial<PackRule>) => {
+    const newConfig = [...packFormData.config];
+    const currentRule = newConfig[index];
+    
+    // Set defaults when type changes
+    if (rule.type && rule.type !== currentRule.type) {
+      let defaultValue: any = null;
+      switch (rule.type) {
+        case "rarity": defaultValue = "common"; break;
+        case "element": defaultValue = "fire"; break;
+        case "cp_range": defaultValue = [0, 1000]; break;
+        case "specific_card": defaultValue = ""; break;
+        case "random": defaultValue = null; break;
+      }
+      newConfig[index] = { ...currentRule, ...rule, value: defaultValue };
+    } else {
+      newConfig[index] = { ...currentRule, ...rule };
+    }
+    
+    setPackFormData({ ...packFormData, config: newConfig });
+  };
+
+  const removeRule = (index: number) => {
+    setPackFormData({
+      ...packFormData,
+      config: packFormData.config.filter((_, i) => i !== index),
+    });
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
@@ -236,15 +309,41 @@ export default function SuperAdminPage() {
               <h1 className="text-2xl font-black italic uppercase tracking-tighter">
                 Forge Console
               </h1>
-              <p className="text-[10px] text-red-500 font-black uppercase tracking-widest">
-                Card Creator Tool
-              </p>
+              <div className="flex items-center gap-4 mt-1">
+                <button
+                  onClick={() => setActiveTab("cards")}
+                  className={cn(
+                    "text-[10px] font-black uppercase tracking-widest transition-colors",
+                    activeTab === "cards" ? "text-red-500" : "text-gray-500 hover:text-white"
+                  )}
+                >
+                  Card Forge
+                </button>
+                <div className="w-1 h-1 rounded-full bg-white/10" />
+                <button
+                  onClick={() => setActiveTab("shop")}
+                  className={cn(
+                    "text-[10px] font-black uppercase tracking-widest transition-colors",
+                    activeTab === "shop" ? "text-red-500" : "text-gray-500 hover:text-white"
+                  )}
+                >
+                  Shop Manager
+                </button>
+              </div>
             </div>
           </div>
           <div className="hidden md:block w-32 h-1 bg-white/10 skew-x-[-45deg]" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr_300px] gap-8 items-start">
+        <AnimatePresence mode="wait">
+          {activeTab === "cards" ? (
+            <motion.div
+              key="cards-tab"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="grid grid-cols-1 lg:grid-cols-[250px_1fr_300px] gap-8 items-start"
+            >
           {/* List Sidebar */}
           <div className="space-y-4 h-[80vh] flex flex-col">
             <div className="bg-gray-900/30 border border-white/5 p-4 rounded-xl">
@@ -628,7 +727,318 @@ export default function SuperAdminPage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
+        ) : (
+          <motion.div
+            key="shop-tab"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start"
+          >
+            {/* Pack List Sidebar */}
+            <div className="space-y-4 h-[80vh] flex flex-col">
+              <div className="bg-gray-900/30 border border-white/5 p-4 rounded-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-black uppercase text-gray-500">
+                    Active Packs
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setEditingPackId(null);
+                      setPackFormData({
+                        name: "New Pack",
+                        description: "Pack description",
+                        price: 100,
+                        icon: "Zap",
+                        color: "from-blue-500 to-blue-700",
+                        config: [],
+                        is_active: true,
+                      });
+                    }}
+                    className="p-1.5 bg-red-600 hover:bg-red-500 rounded-lg transition-colors shadow-lg shadow-red-900/20"
+                  >
+                    <Plus className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
+                {packs.map((pack) => (
+                  <div
+                    key={pack.id}
+                    onClick={() => {
+                      setEditingPackId(pack.id);
+                      setPackFormData({
+                        name: pack.name,
+                        description: pack.description,
+                        price: pack.price,
+                        icon: pack.icon,
+                        color: pack.color,
+                        config: pack.config,
+                        is_active: pack.is_active,
+                      });
+                    }}
+                    className={cn(
+                      "group p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between",
+                      editingPackId === pack.id
+                        ? "bg-red-500/10 border-red-500/50"
+                        : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center">
+                        <ShoppingBag className="w-5 h-5 text-yellow-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black uppercase text-white">
+                          {pack.name}
+                        </p>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase">
+                          {pack.price} Coins • {pack.config.length} Rules
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm("Delete this pack?")) deletePack(pack.id);
+                      }}
+                      className="p-2 text-gray-600 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Pack Form */}
+            <div className="space-y-6 bg-gray-900/30 border border-white/5 p-6 rounded-[2rem]">
+              <h2 className="text-lg font-black uppercase italic">
+                {editingPackId ? "Edit Pack Configuration" : "New Pack Protocol"}
+              </h2>
+
+              <form onSubmit={handlePackSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                      Pack Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={packFormData.name}
+                      onChange={(e) =>
+                        setPackFormData({ ...packFormData, name: e.target.value })
+                      }
+                      className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-red-500/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                      Price (Coins)
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={packFormData.price}
+                      onChange={(e) =>
+                        setPackFormData({
+                          ...packFormData,
+                          price: parseInt(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-red-500/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                    Description
+                  </label>
+                  <textarea
+                    value={packFormData.description}
+                    onChange={(e) =>
+                      setPackFormData({
+                        ...packFormData,
+                        description: e.target.value,
+                      })
+                    }
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-red-500/50 h-20 resize-none"
+                  />
+                </div>
+
+                {/* Rule Builder */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                      Card Generation Rules
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addRule}
+                      className="flex items-center gap-1 text-[10px] font-black uppercase text-red-500 hover:text-red-400"
+                    >
+                      <Plus className="w-3 h-3" /> Add Rule
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {packFormData.config.map((rule, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-3 bg-black/40 p-3 rounded-xl border border-white/5"
+                      >
+                        <div className="flex-1 grid grid-cols-3 gap-3">
+                          <select
+                            value={rule.type}
+                            onChange={(e) =>
+                              updateRule(idx, { type: e.target.value as any })
+                            }
+                            className="bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-black uppercase"
+                          >
+                            <option value="random">Random</option>
+                            <option value="rarity">Rarity</option>
+                            <option value="cp_range">CP Range</option>
+                            <option value="element">Element</option>
+                            <option value="specific_card">Specific Card</option>
+                          </select>
+
+                          <div className="flex items-center gap-2">
+                            <label className="text-[8px] text-gray-600 font-black uppercase">
+                              Count
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={rule.count}
+                              onChange={(e) =>
+                                updateRule(idx, {
+                                  count: parseInt(e.target.value) || 1,
+                                })
+                              }
+                              className="w-12 bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {rule.type === "rarity" && (
+                              <select
+                                value={rule.value || "common"}
+                                onChange={(e) =>
+                                  updateRule(idx, { value: e.target.value })
+                                }
+                                className="w-full bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-black uppercase"
+                              >
+                                {RARITIES.map((r) => (
+                                  <option key={r} value={r}>
+                                    {r}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                            {rule.type === "element" && (
+                              <select
+                                value={rule.value || "fire"}
+                                onChange={(e) =>
+                                  updateRule(idx, { value: e.target.value })
+                                }
+                                className="w-full bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-black uppercase"
+                              >
+                                {ELEMENTS.map((el) => (
+                                  <option key={el} value={el}>
+                                    {el}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                            {rule.type === "cp_range" && (
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  placeholder="Min"
+                                  value={rule.value?.[0] || 0}
+                                  onChange={(e) =>
+                                    updateRule(idx, {
+                                      value: [
+                                        parseInt(e.target.value) || 0,
+                                        rule.value?.[1] || 1000,
+                                      ],
+                                    })
+                                  }
+                                  className="w-14 bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px]"
+                                />
+                                <span className="text-gray-600">-</span>
+                                <input
+                                  type="number"
+                                  placeholder="Max"
+                                  value={rule.value?.[1] || 1000}
+                                  onChange={(e) =>
+                                    updateRule(idx, {
+                                      value: [
+                                        rule.value?.[0] || 0,
+                                        parseInt(e.target.value) || 1000,
+                                      ],
+                                    })
+                                  }
+                                  className="w-14 bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px]"
+                                />
+                              </div>
+                            )}
+                            {rule.type === "specific_card" && (
+                              <select
+                                value={rule.value || ""}
+                                onChange={(e) =>
+                                  updateRule(idx, { value: e.target.value })
+                                }
+                                className="w-full bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-black uppercase"
+                              >
+                                <option value="">Select Card</option>
+                                {cards.map((c) => (
+                                  <option key={c.id} value={c.id}>
+                                    {c.name}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeRule(idx)}
+                          className="p-1.5 text-gray-600 hover:text-red-500 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={cn(
+                    "w-full bg-red-600 hover:bg-red-500 text-white font-black italic uppercase py-4 rounded-2xl transition-all shadow-xl shadow-red-900/20 flex items-center justify-center gap-2",
+                    isSubmitting && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  {isSubmitting ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      {editingPackId ? "Update Pack" : "Create Pack"}
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       </div>
     </div>
   );
