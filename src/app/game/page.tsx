@@ -82,6 +82,12 @@ export default function GamePage() {
   const [showBoardIntro, setShowBoardIntro] = useState(true);
   const [showBossIntro, setShowBossIntro] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
+  const [gauntletResult, setGauntletResult] = useState<{
+    scoreAdded: number;
+    newRank: GauntletRank | null;
+    coinsEarned?: number;
+    isWinStreakBonus?: boolean;
+  } | null>(null);
 
   const { showFPS: userShowFPS, showBoardAnimation: userShowBoardAnimation } =
     useSettingsStore();
@@ -325,11 +331,12 @@ export default function GamePage() {
         );
         setOldGauntletScore(gauntletScore);
         setJustFinishedBoss(isBossBattle);
-        processMatchResult(
+        const result = processMatchResult(
           winner || "draw",
           player1.totalFlips || 0,
           boardCardCount
         );
+        setGauntletResult(result);
       }
       const timer = setTimeout(() => {
         setShowResult(true);
@@ -1001,7 +1008,7 @@ export default function GamePage() {
 
                             {isGauntletMode && (
                               <>
-                                <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1">
+                                <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-2">
                                   <div className="flex flex-col text-left">
                                     <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">
                                       Win Points
@@ -1012,6 +1019,7 @@ export default function GamePage() {
                                         : "0"}
                                     </span>
                                   </div>
+
                                   <div className="flex flex-col text-right">
                                     <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">
                                       {t.gauntlet.boardBonus}
@@ -1038,6 +1046,34 @@ export default function GamePage() {
                                     </span>
                                   </div>
                                 </div>
+
+                                {/* Coins Earned - Dedicated Row */}
+                                {gauntletResult?.coinsEarned !== undefined && (
+                                  <div className="flex flex-col items-center py-2 border-b border-white/5 mb-2 bg-yellow-500/5 rounded-lg">
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                      <div className="w-4 h-4 rounded-full bg-gradient-to-b from-yellow-300 to-yellow-600 flex items-center justify-center shadow-[0_0_8px_rgba(255,215,0,0.4)]">
+                                        <span className="text-[9px] font-black text-yellow-900">C</span>
+                                      </div>
+                                      <span className="text-[9px] uppercase tracking-[0.2em] text-yellow-500/80 font-black italic">
+                                        {t.gauntlet.coinsEarned}
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                      <span className="text-lg font-black text-yellow-500 drop-shadow-[0_0_10px_rgba(255,215,0,0.3)]">
+                                        +{gauntletResult.coinsEarned}
+                                      </span>
+                                      {gauntletResult.isWinStreakBonus && (
+                                        <motion.span 
+                                          initial={{ opacity: 0, y: 5 }}
+                                          animate={{ opacity: 1, y: 0 }}
+                                          className="text-[8px] font-black text-yellow-400 uppercase tracking-widest animate-pulse"
+                                        >
+                                          {t.gauntlet.winStreakBonus}
+                                        </motion.span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
 
                                 {isGauntletMode &&
                                   winner !== "player1" &&

@@ -31,7 +31,7 @@ import { loadSlim } from "@tsparticles/slim";
 export default function Home() {
   const { language, setLanguage } = useSettingsStore();
   const t = useTranslation().home;
-  const { user, loading, signInWithGithub, signInWithGoogle, signOut } =
+  const { user, profile, loading, signInWithGithub, signInWithGoogle, signOut } =
     useAuthStore();
   const { fetchUserCards } = useCardStore();
   const [isMounted, setIsMounted] = useState(false);
@@ -135,6 +135,13 @@ export default function Home() {
       shadow: "shadow-emerald-900/40",
     },
     {
+      href: "/shop",
+      label: t.shop,
+      icon: ShoppingBag,
+      color: "from-yellow-500 to-yellow-700",
+      shadow: "shadow-yellow-900/40",
+    },
+    {
       href: "/how-to-play",
       label: t.howToPlay,
       icon: BookOpen,
@@ -201,20 +208,8 @@ export default function Home() {
           )}
         </div>
 
-        {/* Right: Actions + Language */}
+        {/* Right: Language Toggle */}
         <div className="flex items-center gap-2">
-          {/* Card List Button - Global Archive */}
-          <button
-            onClick={() => setShowCardList(true)}
-            className="w-10 h-10 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/40 hover:text-blue-400 hover:bg-white/10 transition-colors group relative"
-          >
-            <FolderOpen className="w-4 h-4" />
-            <span className="absolute top-full right-0 mt-2 px-2 py-1 bg-black/80 border border-white/10 rounded text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              {t.cardList}
-            </span>
-          </button>
-
-          {/* Language Toggle */}
           <div className="flex bg-white/5 backdrop-blur-md rounded-full border border-white/10 p-1">
             <button
               onClick={() => setLanguage("id")}
@@ -352,13 +347,8 @@ export default function Home() {
       </div>
 
       <CardListModal
-        isOpen={showCardList}
-        onClose={() => setShowCardList(false)}
-      />
-      <CardListModal
         isOpen={showMyCollection}
         onClose={() => setShowMyCollection(false)}
-        title={t.myCollection}
         showOwnedOnly={true}
       />
 

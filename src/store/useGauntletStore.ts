@@ -22,6 +22,7 @@ interface GauntletState {
   pendingRank: GauntletRank | null;
   pendingReward: boolean;
   cardPool: Card[];
+  winStreak: number;
   setCardPool: (cards: Card[]) => void;
 
   // Actions
@@ -31,7 +32,12 @@ interface GauntletState {
     winner: "player1" | "player2" | "draw",
     flips: number,
     boardCardCount?: number
-  ) => { scoreAdded: number; newRank: GauntletRank | null };
+  ) => {
+    scoreAdded: number;
+    newRank: GauntletRank | null;
+    coinsEarned?: number;
+    isWinStreakBonus?: boolean;
+  };
   getOpponentConfig: () => {
     deck: Card[];
     mechanic: BoardMechanicType;
@@ -85,6 +91,7 @@ Object.keys(BOSS_CONFIGS).forEach((rank) => {
 });
 
 import { useDeckStore } from "./useDeckStore";
+import { useAuthStore } from "./useAuthStore";
 
 export const useGauntletStore = create<GauntletState>()(
   persist(
@@ -100,6 +107,7 @@ export const useGauntletStore = create<GauntletState>()(
       pendingRank: null,
       pendingReward: false,
       cardPool: [],
+      winStreak: 0,
 
       setCardPool: (cards) => set({ cardPool: cards }),
 
@@ -115,13 +123,14 @@ export const useGauntletStore = create<GauntletState>()(
           isBossBattle: false,
           pendingRank: null,
           pendingReward: false,
+          winStreak: 0,
         });
       },
 
       endRun: () => {
         const { score, lastBoss } = get();
         useDeckStore.getState().setLastRunStats(score, lastBoss);
-        set({ isActive: false });
+        set({ isActive: false, winStreak: 0 });
       },
 
       processMatchResult: (winner, flips, boardCardCount = 0) => {
@@ -152,7 +161,12 @@ export const useGauntletStore = create<GauntletState>()(
                 score * GAUNTLET_SCORING.LOSS_PENALTY_MULTIPLIER
               );
             }
-            set({ score: finalScore, isActive: false, isBossBattle: false });
+            set({
+              score: finalScore,
+              isActive: false,
+              isBossBattle: false,
+              winStreak: 0
+            });
             return { scoreAdded: 0, newRank: null };
           }
         }
@@ -170,6 +184,7 @@ export const useGauntletStore = create<GauntletState>()(
           set({
             isActive: false,
             score: newScore,
+            winStreak: 0,
           });
           return { scoreAdded: -penalty, newRank: null };
         }
@@ -191,6 +206,14 @@ export const useGauntletStore = create<GauntletState>()(
         else if (newScore >= RANK_THRESHOLDS.Jounin) nextRank = "Jounin";
         else if (newScore >= RANK_THRESHOLDS.Chunin) nextRank = "Chunin";
 
+        // Win Streak Logic
+        const newWinStreak = get().winStreak + 1;
+        const isWinStreakBonus = newWinStreak >= 3;
+        const coinsEarned = 5 + (isWinStreakBonus ? 2 : 0);
+
+        // Award Coins
+        useAuthStore.getState().addCoins(coinsEarned);
+
         // Trigger Boss Battle if rank threshold crossed
         if (nextRank !== rank) {
           set({
@@ -198,8 +221,14 @@ export const useGauntletStore = create<GauntletState>()(
             isBossBattle: true,
             pendingRank: nextRank,
             lastBoss: BOSS_CONFIGS[rank].name, // Current rank's boss to advance
+            winStreak: newWinStreak,
           });
-          return { scoreAdded, newRank: null }; // No rank up yet!
+          return {
+            scoreAdded,
+            newRank: null,
+            coinsEarned,
+            isWinStreakBonus
+          };
         }
 
         // Normal progression
@@ -213,9 +242,15 @@ export const useGauntletStore = create<GauntletState>()(
           wins: wins + 1,
           lastBoss: nextBoss,
           pendingReward: (wins + 1) % 3 === 0,
+          winStreak: newWinStreak,
         });
 
-        return { scoreAdded, newRank: null };
+        return {
+          scoreAdded,
+          newRank: nextRank !== rank ? nextRank : null,
+          coinsEarned,
+          isWinStreakBonus
+        };
       },
 
       getOpponentConfig: () => {

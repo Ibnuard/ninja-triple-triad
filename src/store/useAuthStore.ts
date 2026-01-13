@@ -7,6 +7,7 @@ interface UserProfile {
   is_onboarded: boolean;
   full_name?: string;
   avatar_url?: string;
+  coins: number;
 }
 
 interface AuthState {
@@ -20,6 +21,7 @@ interface AuthState {
   signOut: () => Promise<void>;
   initialize: () => void;
   refreshProfile: () => Promise<void>;
+  addCoins: (amount: number) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -75,6 +77,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               full_name: user.user_metadata?.full_name,
               avatar_url: user.user_metadata?.avatar_url,
               is_onboarded: false,
+              coins: 0,
             })
             .select()
             .single();
@@ -95,6 +98,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ profile: data });
     } catch (error) {
       console.error("Error refreshing profile:", error);
+    }
+  },
+
+  addCoins: async (amount: number) => {
+    const { user, profile } = get();
+    if (!user || !profile) return;
+
+    const newCoins = (profile.coins || 0) + amount;
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ coins: newCoins })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      set({ profile: { ...profile, coins: newCoins } });
+    } catch (error) {
+      console.error("Error adding coins:", error);
     }
   },
 

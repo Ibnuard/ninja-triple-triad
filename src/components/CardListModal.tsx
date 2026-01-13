@@ -20,16 +20,27 @@ export function CardListModal({
   isOpen,
   onClose,
   title,
-  showOwnedOnly,
+  showOwnedOnly: initialShowOwnedOnly,
 }: CardListModalProps) {
   const t = useTranslation();
   const { cards: dbCards, fetchCards, userCardIds } = useCardStore();
+  const [activeTab, setActiveTab] = useState<"collection" | "all">(
+    initialShowOwnedOnly ? "collection" : "all"
+  );
 
-  // Filter cards if showOwnedOnly is true
+  // Sync activeTab with initialShowOwnedOnly when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialShowOwnedOnly ? "collection" : "all");
+    }
+  }, [isOpen, initialShowOwnedOnly]);
+
+  // Filter cards based on activeTab
   const rawCards = dbCards.length > 0 ? dbCards : CARD_POOL;
-  const displayCardPool = showOwnedOnly
-    ? rawCards.filter((card) => userCardIds.includes(card.id))
-    : rawCards;
+  const displayCardPool =
+    activeTab === "collection"
+      ? rawCards.filter((card) => userCardIds.includes(card.id))
+      : rawCards;
 
   useEffect(() => {
     if (isOpen) {
@@ -53,19 +64,68 @@ export function CardListModal({
             className="w-full max-w-6xl h-full max-h-[90vh] flex flex-col bg-gray-900/50 border border-white/10 rounded-[2.5rem] overflow-hidden relative shadow-2xl"
           >
             {/* Header */}
-            <div className="p-4 md:p-6 flex items-center justify-between gap-4 border-b border-white/5 bg-white/5">
-              <div>
-                <h2 className="text-red-500 text-[10px] font-black tracking-[0.4em] mb-0.5 uppercase italic">
-                  NINJA ARCHIVE
-                </h2>
-                <h1 className="text-white text-xl md:text-2xl font-black italic uppercase tracking-tight">
-                  {title || t.home.cardList}
-                </h1>
+            <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 bg-white/5">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-12">
+                <div className="flex items-center justify-between md:justify-start gap-4">
+                  <div>
+                    <h2 className="text-red-500 text-[10px] font-black tracking-[0.4em] mb-0.5 uppercase italic">
+                      NINJA ARCHIVE
+                    </h2>
+                    <h1 className="text-white text-xl md:text-2xl font-black italic uppercase tracking-tight">
+                      {activeTab === "collection"
+                        ? t.home.myCollectionTab
+                        : t.home.allCardsTab}
+                    </h1>
+                  </div>
+
+                  <button
+                    onClick={onClose}
+                    className="md:hidden p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Tab Switcher */}
+                <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 self-start md:self-center relative">
+                  <button
+                    onClick={() => setActiveTab("collection")}
+                    className={cn(
+                      "relative px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all z-10",
+                      activeTab === "collection" ? "text-white" : "text-gray-500 hover:text-white"
+                    )}
+                  >
+                    {activeTab === "collection" && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 bg-red-600 rounded-lg shadow-lg shadow-red-600/20"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <span className="relative z-10">{t.home.myCollectionTab}</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("all")}
+                    className={cn(
+                      "relative px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all z-10",
+                      activeTab === "all" ? "text-white" : "text-gray-500 hover:text-white"
+                    )}
+                  >
+                    {activeTab === "all" && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 bg-red-600 rounded-lg shadow-lg shadow-red-600/20"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <span className="relative z-10">{t.home.allCardsTab}</span>
+                  </button>
+                </div>
               </div>
 
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+                className="hidden md:block p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -74,22 +134,27 @@ export function CardListModal({
             {/* Card Grid */}
             <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-black/20">
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                {displayCardPool.map((card) => (
-                  <div
-                    key={card.id}
-                    className="group bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl p-3 flex items-center gap-4 transition-all duration-300 hover:scale-[1.02]"
-                  >
-                    {/* Left: Card Component */}
-                    <div className="w-20 md:w-24 shrink-0 scale-[0.8] md:scale-[0.9] origin-left -my-2">
-                      <Card
-                        card={card}
-                        isPlaced={false}
-                        disableAnimations={true}
-                      />
-                    </div>
+                {displayCardPool.map((card) => {
+                  const isOwned = userCardIds.includes(card.id);
+                  return (
+                    <div
+                      key={card.id}
+                      className={cn(
+                        "group bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl p-3 flex items-center gap-4 transition-all duration-300 hover:scale-[1.02]",
+                        !isOwned && activeTab === "all" && "opacity-60 grayscale-[0.5]"
+                      )}
+                    >
+                      {/* Left: Card Component */}
+                      <div className="w-20 md:w-24 shrink-0 scale-[0.8] md:scale-[0.9] origin-left -my-2">
+                        <Card
+                          card={card}
+                          isPlaced={false}
+                          disableAnimations={true}
+                        />
+                      </div>
 
-                    {/* Right: Info */}
-                    <div className="flex-1 min-w-0">
+                      {/* Right: Info */}
+                      <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <div
                           className={`w-2 h-2 rounded-full ${
@@ -135,9 +200,15 @@ export function CardListModal({
                       <h3 className="text-white text-sm md:text-base font-black italic uppercase truncate group-hover:text-red-500 transition-colors">
                         {card.name}
                       </h3>
+                      {!isOwned && activeTab === "all" && (
+                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">
+                          NOT OWNED
+                        </span>
+                      )}
                     </div>
                   </div>
-                ))}
+                );
+              })}
               </div>
             </div>
 
