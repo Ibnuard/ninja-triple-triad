@@ -116,7 +116,7 @@ export default function Home() {
     {
       href: "/single-player",
       label: t.singlePlayer,
-      description: "Conquer the Gauntlet and rise through the ranks.",
+      description: t.singlePlayerDesc,
       icon: Sword,
       color: "from-red-600 to-red-900",
       shadow: "shadow-red-900/40",
@@ -125,7 +125,7 @@ export default function Home() {
     {
       href: "/online-battle",
       label: t.onlineBattle,
-      description: "Challenge other ninjas in real-time.",
+      description: t.onlineBattleDesc,
       icon: Globe,
       color: "from-blue-600 to-blue-900",
       shadow: "shadow-blue-900/40",
@@ -134,7 +134,7 @@ export default function Home() {
     {
       onClick: () => setShowMyCollection(true),
       label: t.myCollection,
-      description: "Manage your ninja arts and deck.",
+      description: t.myCollectionDesc,
       icon: Layers,
       color: "from-emerald-600 to-emerald-900",
       shadow: "shadow-emerald-900/40",
@@ -143,7 +143,7 @@ export default function Home() {
     {
       href: "/shop",
       label: t.shop,
-      description: "Acquire new packs and items.",
+      description: t.shopDesc,
       icon: ShoppingBag,
       color: "from-yellow-500 to-yellow-700",
       shadow: "shadow-yellow-900/40",
@@ -152,7 +152,7 @@ export default function Home() {
     {
       href: "/how-to-play",
       label: t.howToPlay,
-      description: "Master the rules of Triple Triad.",
+      description: t.howToPlayDesc,
       icon: BookOpen,
       color: "from-amber-500 to-amber-700",
       shadow: "shadow-amber-900/40",

@@ -202,7 +202,7 @@ export function CardListModal({
                       </h3>
                       {!isOwned && activeTab === "all" && (
                         <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">
-                          NOT OWNED
+                          {t.home.notOwned}
                         </span>
                       )}
                     </div>
