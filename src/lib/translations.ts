@@ -158,6 +158,34 @@ export const TRANSLATIONS = {
         off: "OFF",
         close: "Close",
       },
+      gauntletTutorial: {
+        title: "Gauntlet Mastery",
+        next: "Next",
+        back: "Back",
+        finish: "Got it!",
+        slides: {
+          overview: {
+            title: "Endless Survival",
+            desc: "Gauntlet mode is a test of endurance. Battle through infinite rounds, where each victory brings you closer to legendary status.",
+          },
+          scoring: {
+            title: "Score & Ranks",
+            desc: "Earn points by winning matches and capturing cards. Reach score thresholds to climb from Genin to Rikudo rank.",
+          },
+          mechanics: {
+            title: "Board Hazards",
+            desc: "The battlefield is unpredictable. Watch out for Elemental, Poison, Foggy, and Joker board effects that change every match.",
+          },
+          arts: {
+            title: "Ninja Arts",
+            desc: "Every 3 wins, you can choose a powerful Ninja Art. These perks can swap cards or give you the first turn advantage.",
+          },
+          bosses: {
+            title: "Boss Encounters",
+            desc: "At the end of each rank threshold, a legendary Boss Ninja will challenge you. Defeat them to earn massive bonus points and coins.",
+          },
+        },
+      },
     },
     lobby: {
       title: "Multiplayer Lobby",
@@ -476,6 +504,34 @@ export const TRANSLATIONS = {
         on: "AKTIF",
         off: "MATI",
         close: "Tutup",
+      },
+      gauntletTutorial: {
+        title: "Masteri Gauntlet",
+        next: "Lanjut",
+        back: "Kembali",
+        finish: "Mengerti!",
+        slides: {
+          overview: {
+            title: "Survival Tanpa Akhir",
+            desc: "Mode Gauntlet adalah ujian ketahanan. Bertarunglah melalui ronde tak terbatas, di mana setiap kemenangan membawamu lebih dekat ke status legendaris.",
+          },
+          scoring: {
+            title: "Skor & Peringkat",
+            desc: "Dapatkan poin dengan memenangkan pertandingan dan menangkap kartu. Capai ambang skor untuk naik dari peringkat Genin ke Rikudo.",
+          },
+          mechanics: {
+            title: "Bahaya Papan",
+            desc: "Medan perang tidak terduga. Waspadai efek papan Elemental, Racun, Berkabut, dan Joker yang berubah setiap pertandingan.",
+          },
+          arts: {
+            title: "Seni Ninja",
+            desc: "Setiap 3 kemenangan, kamu bisa memilih Seni Ninja yang kuat. Perk ini bisa menukar kartu atau memberimu keuntungan giliran pertama.",
+          },
+          bosses: {
+            title: "Pertemuan Boss",
+            desc: "Di akhir setiap ambang peringkat, Boss Ninja legendaris akan menantangmu. Kalahkan mereka untuk mendapatkan poin bonus besar dan koin.",
+          },
+        },
       },
     },
     lobby: {

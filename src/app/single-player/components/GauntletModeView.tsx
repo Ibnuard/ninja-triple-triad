@@ -9,12 +9,15 @@ import {
   Trophy,
   Medal,
   X,
+  HelpCircle,
 } from "lucide-react";
 import { useTranslation } from "../../../store/useSettingsStore";
 import { RANK_THRESHOLDS } from "../../../constants/gauntlet";
 import { cn } from "../../../lib/utils";
 import { Card } from "../../../components/Card";
 import { Card as CardType } from "../../../types/game";
+import { GauntletTutorialModal } from "../../../components/GauntletTutorialModal";
+import { useState } from "react";
 
 interface GauntletModeViewProps {
   t: any;
@@ -47,6 +50,7 @@ export function GauntletModeView({
   onSaveDeck,
   onCancelSelection,
 }: GauntletModeViewProps) {
+  const [showTutorial, setShowTutorial] = useState(false);
   // Reusable Stats Component
   const StatsCard = ({ className = "" }: { className?: string }) => {
     const gauntletT = useTranslation().game.gauntlet;
@@ -148,9 +152,20 @@ export function GauntletModeView({
           {/* Left Column: Info & Actions */}
           <div className="flex flex-col gap-6 md:gap-8 text-center md:text-left">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest mb-4">
-                <Swords className="w-3 h-3" />{" "}
-                {t.modes.gauntlet.submenu.survivalMode}
+              <div className="flex items-center justify-center md:justify-start mb-4">
+                <div className="inline-flex items-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-l-xl bg-red-500/10 border border-red-500/20 border-r-0 text-red-400 text-[10px] font-black uppercase tracking-widest">
+                    <Swords className="w-3 h-3" />{" "}
+                    {t.modes.gauntlet.submenu.survivalMode}
+                  </div>
+                  <button
+                    onClick={() => setShowTutorial(true)}
+                    className="px-2 py-1.5 rounded-r-xl bg-yellow-500 text-black hover:bg-yellow-400 transition-all group/help shadow-[5px_0_15px_rgba(234,179,8,0.2)] border border-yellow-500/50"
+                    title="How to Play"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 group-hover/help:scale-110 transition-transform" />
+                  </button>
+                </div>
               </div>
               <h2 className="text-3xl md:text-5xl font-black italic uppercase text-white mb-2 md:mb-4 leading-none">
                 {t.modes.gauntlet.title}
@@ -309,6 +324,10 @@ export function GauntletModeView({
           </div>
         </div>
       )}
+      <GauntletTutorialModal
+        isOpen={showTutorial}
+        onClose={() => setShowTutorial(false)}
+      />
     </motion.div>
   );
 }

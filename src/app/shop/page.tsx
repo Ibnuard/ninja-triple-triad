@@ -90,34 +90,43 @@ export default function ShopPage() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.1 }}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-5 md:p-6 hover:border-yellow-500/50 transition-all duration-500"
+                className="group relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/10 bg-white/5 p-3 md:p-6 hover:border-yellow-500/50 transition-all duration-500"
               >
                 <div className={cn(
                   "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-br",
                   item.color
                 )} />
                 
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                      <item.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                    </div>
-                    <div className="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1 rounded-lg">
-                      <div className="w-3 h-3 rounded-full bg-yellow-500 flex items-center justify-center">
-                        <span className="text-[7px] font-black text-yellow-900">C</span>
+                <div className="relative z-10 flex flex-col gap-3 md:gap-0">
+                  <div className="flex items-center md:items-start justify-between md:mb-6">
+                    <div className="flex items-center gap-3 md:block">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                        <item.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                       </div>
-                      <span className="text-xs font-black text-yellow-500">{item.price}</span>
+                      <div className="md:hidden">
+                        <h3 className="text-sm font-black italic uppercase group-hover:text-yellow-500 transition-colors leading-tight">
+                          {item.name}
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 md:px-2.5 md:py-1 rounded-lg">
+                      <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-yellow-500 flex items-center justify-center">
+                        <span className="text-[6px] md:text-[7px] font-black text-yellow-900">C</span>
+                      </div>
+                      <span className="text-[10px] md:text-xs font-black text-yellow-500">{item.price}</span>
                     </div>
                   </div>
                   
-                  <h3 className="text-lg md:text-xl font-black italic uppercase mb-1.5 group-hover:text-yellow-500 transition-colors">
-                    {item.name}
-                  </h3>
-                  <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-6 leading-relaxed line-clamp-2">
-                    {item.desc}
-                  </p>
+                  <div className="hidden md:block">
+                    <h3 className="text-lg md:text-xl font-black italic uppercase mb-1.5 group-hover:text-yellow-500 transition-colors">
+                      {item.name}
+                    </h3>
+                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-6 leading-relaxed line-clamp-2">
+                      {item.desc}
+                    </p>
+                  </div>
                   
-                  <button className="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+                  <button className="w-full py-2 md:py-2.5 rounded-lg md:rounded-xl bg-white/5 border border-white/10 text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">
                     {t.shop.comingSoon}
                   </button>
                 </div>
