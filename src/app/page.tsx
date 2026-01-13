@@ -116,37 +116,47 @@ export default function Home() {
     {
       href: "/single-player",
       label: t.singlePlayer,
+      description: "Conquer the Gauntlet and rise through the ranks.",
       icon: Sword,
       color: "from-red-600 to-red-900",
       shadow: "shadow-red-900/40",
+      size: "large",
     },
     {
       href: "/online-battle",
       label: t.onlineBattle,
+      description: "Challenge other ninjas in real-time.",
       icon: Globe,
       color: "from-blue-600 to-blue-900",
       shadow: "shadow-blue-900/40",
+      size: "medium",
     },
     {
       onClick: () => setShowMyCollection(true),
       label: t.myCollection,
+      description: "Manage your ninja arts and deck.",
       icon: Layers,
       color: "from-emerald-600 to-emerald-900",
       shadow: "shadow-emerald-900/40",
+      size: "small",
     },
     {
       href: "/shop",
       label: t.shop,
+      description: "Acquire new packs and items.",
       icon: ShoppingBag,
       color: "from-yellow-500 to-yellow-700",
       shadow: "shadow-yellow-900/40",
+      size: "small",
     },
     {
       href: "/how-to-play",
       label: t.howToPlay,
+      description: "Master the rules of Triple Triad.",
       icon: BookOpen,
       color: "from-amber-500 to-amber-700",
       shadow: "shadow-amber-900/40",
+      size: "small",
     },
   ];
 
@@ -235,36 +245,36 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-lg px-6 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-5xl px-6 flex flex-col items-center">
         {/* Logo Section */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="text-center mb-6 md:mb-12 relative group"
+          className="text-center mb-8 md:mb-16 relative group"
         >
-          {/* Shuriken Decoration */}
+          {/* Shuriken Decorations */}
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-12 -left-12 w-20 h-20 opacity-40 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none hidden md:block"
+            className="absolute -top-16 -left-20 w-24 h-24 opacity-40 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none hidden md:block"
           >
             <img
               src="/images/shuriken.webp"
               alt="Shuriken"
-              className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]"
+              className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(255,0,0,0.6)]"
             />
           </motion.div>
 
           <motion.div
             animate={{ rotate: -360 }}
             transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-            className="absolute -bottom-8 -right-16 w-16 h-16 opacity-30 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none hidden md:block"
+            className="absolute -bottom-12 -right-24 w-20 h-20 opacity-30 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none hidden md:block"
           >
             <img
               src="/images/shuriken.webp"
               alt="Shuriken"
-              className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]"
+              className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(255,0,0,0.6)]"
             />
           </motion.div>
 
@@ -281,21 +291,21 @@ export default function Home() {
           </h1>
           <div className="mt-2 md:mt-4 flex items-center justify-center gap-3">
             <div className="h-px w-6 md:w-8 bg-red-600/50" />
-            <p className="text-[10px] md:text-sm font-black tracking-[0.4em] md:tracking-[0.6em] text-red-500 uppercase italic">
+            <p className="text-[8px] md:text-sm font-black tracking-[0.3em] md:tracking-[0.6em] text-red-500 uppercase italic">
               {t.subtitle}
             </p>
             <div className="h-px w-6 md:w-8 bg-red-600/50" />
           </div>
         </motion.div>
 
-        {/* Menu Items Stack */}
-        <div className="w-full space-y-3">
+        {/* Dashboard Menu */}
+        <div className="w-full">
           {loading ? (
             <div className="flex justify-center py-10">
               <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : !user ? (
-            <div className="space-y-3">
+            <div className="max-w-md mx-auto space-y-3">
               {loginItems.map((item, idx) => (
                 <motion.div
                   key={item.label}
@@ -307,33 +317,41 @@ export default function Home() {
                     onClick={item.onClick}
                     className="block group cursor-pointer"
                   >
-                    <MenuButton item={item} isFullWidth />
+                    <MenuCard item={item} />
                   </div>
                 </motion.div>
               ))}
             </div>
           ) : (
-            menuItems.map((item, idx) => (
-              <motion.div
-                key={item.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
-              >
-                {item.href ? (
-                  <Link href={item.href} className="block group w-full">
-                    <MenuButton item={item} isFullWidth />
-                  </Link>
-                ) : (
-                  <div
-                    onClick={item.onClick}
-                    className="block group cursor-pointer w-full"
-                  >
-                    <MenuButton item={item} isFullWidth />
-                  </div>
-                )}
-              </motion.div>
-            ))
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+              {menuItems.map((item, idx) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
+                  className={cn(
+                    "group",
+                    item.size === "large" ? "md:col-span-4" : 
+                    item.size === "medium" ? "md:col-span-2" : 
+                    "md:col-span-2"
+                  )}
+                >
+                  {item.href ? (
+                    <Link href={item.href} className="block w-full h-full">
+                      <MenuCard item={item} />
+                    </Link>
+                  ) : (
+                    <div
+                      onClick={item.onClick}
+                      className="block cursor-pointer w-full h-full"
+                    >
+                      <MenuCard item={item} />
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
           )}
         </div>
 
@@ -376,58 +394,69 @@ export default function Home() {
   );
 }
 
-function MenuButton({
+function MenuCard({
   item,
-  isFullWidth,
 }: {
   item: any;
-  isFullWidth?: boolean;
 }) {
   return (
-    <button
+    <div
       className={cn(
-        "relative overflow-hidden rounded-xl border border-white/10 transition-all duration-300 w-full",
-        "bg-gradient-to-br from-white/5 to-transparent hover:to-white/5",
+        "relative overflow-hidden rounded-2xl border border-white/10 transition-all duration-500 w-full h-full min-h-[64px] md:min-h-[120px]",
+        "bg-gradient-to-br from-white/5 to-transparent hover:to-white/10",
         "group-hover:border-white/20 group-hover:scale-[1.02] active:scale-[0.98]",
-        "group-hover:shadow-[0_0_20px_rgba(0,0,0,0.5)]",
-        "h-14 md:h-16 flex items-center justify-between px-6"
+        "group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]",
+        "flex flex-row md:flex-col items-center md:items-stretch justify-start md:justify-between p-3 md:p-6 gap-4 md:gap-0"
       )}
     >
       {/* Hover Background Accent */}
       <div
         className={cn(
-          "absolute inset-0 transition-all duration-500 opacity-0 group-hover:opacity-10 bg-gradient-to-br",
+          "absolute inset-0 transition-all duration-700 opacity-0 group-hover:opacity-20 bg-gradient-to-br",
           item.color
         )}
       />
 
-      <div className="flex items-center gap-4 relative z-10">
+      {/* Large Background Icon */}
+      <div className="absolute -right-2 -bottom-2 md:-right-4 md:-bottom-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-700 group-hover:scale-125 group-hover:-rotate-12 pointer-events-none">
+        <item.icon className="w-20 h-20 md:w-32 md:h-32 text-white" />
+      </div>
+
+      <div className="flex items-center md:items-start justify-between relative z-10">
         <div
           className={cn(
-            "p-2 rounded-lg bg-black/40 border border-white/10 group-hover:scale-110 transition-transform duration-500 shadow-inner shadow-white/5",
+            "p-2 md:p-3 rounded-xl bg-black/60 border border-white/10 group-hover:scale-110 transition-transform duration-500 shadow-xl",
             item.shadow
           )}
         >
-          <item.icon className="w-5 h-5 text-white" />
+          <item.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
         </div>
 
-        <div className="flex flex-col items-start gap-0.5">
-          <span className="font-black text-xs md:text-sm tracking-widest uppercase italic text-white transition-colors">
-            {item.label}
-          </span>
+        <div className="hidden md:flex items-center justify-center group-hover:translate-x-1 transition-transform">
+          <div
+            className={cn(
+              "w-2 h-2 rounded-full",
+              item.color.split(" ")[0].replace("from-", "bg-"),
+              "shadow-[0_0_10px_currentColor]"
+            )}
+          />
         </div>
       </div>
 
-      <div className="relative z-10 flex items-center justify-center group-hover:translate-x-2 transition-transform">
-        <div
-          className={cn(
-            "w-2 h-2 rounded-full",
-            item.color.split(" ")[0].replace("from-", "bg-"),
-            "shadow-[0_0_10px_currentColor]"
-          )}
-        />
+      <div className="relative z-10 md:mt-4">
+        <h3 className="font-black text-sm md:text-lg tracking-wider uppercase italic text-white transition-colors group-hover:text-red-500">
+          {item.label}
+        </h3>
+        {item.description && (
+          <p className="hidden md:block text-[8px] md:text-xs font-medium text-gray-500 mt-0.5 md:mt-1 line-clamp-1 group-hover:text-gray-300 transition-colors">
+            {item.description}
+          </p>
+        )}
       </div>
-    </button>
+
+      {/* Decorative Line */}
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    </div>
   );
 }
 
