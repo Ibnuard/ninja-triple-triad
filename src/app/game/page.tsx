@@ -1041,7 +1041,7 @@ export default function GamePage() {
                                   </div>
                                 </div>
 
-                                {(justFinishedBoss || isBossBattle) &&
+                                {isGauntletMode &&
                                   winner !== "player1" &&
                                   winner !== null && (
                                     <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1 bg-red-500/10 p-2 rounded-lg">
@@ -1209,9 +1209,9 @@ export default function GamePage() {
                               resetGame();
                               router.push("/");
                             }}
-                            className="w-full py-3 bg-gray-800 text-gray-400 font-black text-xs tracking-[0.2em] hover:bg-gray-700 hover:text-white transition-all rounded-xl uppercase italic"
+                            className="w-full py-3 bg-red-600/10 text-red-500 border border-red-500/30 font-black text-xs tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all rounded-xl uppercase italic"
                           >
-                            {t.exit}
+                            MENYERAH
                           </button>
                         </motion.div>
                       </motion.div>
