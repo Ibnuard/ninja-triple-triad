@@ -1,10 +1,11 @@
 import { create } from "zustand";
 import { Card } from "../types/game";
+import { supabase } from "../lib/supabase";
 
 interface DeckStore {
     selectedDeck: Card[];
-    loadDeck: () => void;
-    saveDeck: (deck: Card[]) => void;
+    loadDeck: (userId?: string) => Promise<void>;
+    saveDeck: (deck: Card[], userId?: string) => Promise<void>;
     isDeckComplete: () => boolean;
     // Stats
     lastRunScore: number;
@@ -20,7 +21,8 @@ export const useDeckStore = create<DeckStore>((set, get) => ({
     lastRunScore: 0,
     lastBoss: "-",
 
-    loadDeck: () => {
+    loadDeck: async (userId?: string) => {
+        // 1. Load from local storage first (fast fallback)
         if (typeof window !== "undefined") {
             const storedDeck = localStorage.getItem(STORAGE_KEY);
             if (storedDeck) {
@@ -28,7 +30,7 @@ export const useDeckStore = create<DeckStore>((set, get) => ({
                     const deck = JSON.parse(storedDeck);
                     set({ selectedDeck: deck });
                 } catch (error) {
-                    console.error("Failed to load deck:", error);
+                    console.error("Failed to load deck from local storage:", error);
                 }
             }
 
@@ -45,13 +47,53 @@ export const useDeckStore = create<DeckStore>((set, get) => ({
                 }
             }
         }
+
+        // 2. If userId is provided, sync from Supabase
+        if (userId) {
+            try {
+                const { data, error } = await supabase
+                    .from("profiles")
+                    .select("selected_deck")
+                    .eq("id", userId)
+                    .single();
+
+                if (error) throw error;
+
+                if (data?.selected_deck && Array.isArray(data.selected_deck) && data.selected_deck.length > 0) {
+                    const deck = data.selected_deck as Card[];
+                    set({ selectedDeck: deck });
+                    // Update local storage to match DB
+                    if (typeof window !== "undefined") {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(deck));
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load deck from database:", error);
+            }
+        }
     },
 
-    saveDeck: (deck: Card[]) => {
+    saveDeck: async (deck: Card[], userId?: string) => {
         if (deck.length === 5) {
             set({ selectedDeck: deck });
+
+            // 1. Save to local storage
             if (typeof window !== "undefined") {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(deck));
+            }
+
+            // 2. If userId is provided, save to Supabase
+            if (userId) {
+                try {
+                    const { error } = await supabase
+                        .from("profiles")
+                        .update({ selected_deck: deck })
+                        .eq("id", userId);
+
+                    if (error) throw error;
+                } catch (error) {
+                    console.error("Failed to save deck to database:", error);
+                }
             }
         }
     },

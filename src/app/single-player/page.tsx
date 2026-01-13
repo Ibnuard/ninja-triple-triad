@@ -36,6 +36,17 @@ export default function SinglePlayerModes() {
 
   const setCardPool = useGauntletStore((state) => state.setCardPool);
 
+  // Gauntlet Mode State
+  const startGauntletRun = useGauntletStore((state) => state.startRun);
+  const {
+    selectedDeck,
+    loadDeck,
+    saveDeck,
+    isDeckComplete,
+    lastRunScore,
+    lastBoss,
+  } = useDeckStore();
+
   useEffect(() => {
     fetchCards();
   }, [fetchCards]);
@@ -49,24 +60,17 @@ export default function SinglePlayerModes() {
   useEffect(() => {
     if (user) {
       fetchUserCards(user.id);
+      loadDeck(user.id);
+    } else {
+      loadDeck();
     }
-  }, [user, fetchUserCards]);
+  }, [user, fetchUserCards, loadDeck]);
 
   const rawCards = dbCards.length > 0 ? dbCards : CARD_POOL;
   const displayCardPool = user
     ? rawCards.filter((c) => userCardIds.includes(c.id))
     : rawCards;
 
-  // Gauntlet Mode State
-  const startGauntletRun = useGauntletStore((state) => state.startRun);
-  const {
-    selectedDeck,
-    loadDeck,
-    saveDeck,
-    isDeckComplete,
-    lastRunScore,
-    lastBoss,
-  } = useDeckStore();
   const [showDeckSelection, setShowDeckSelection] = useState(false);
   const [tempDeck, setTempDeck] = useState<CardType[]>([]);
 
@@ -140,7 +144,7 @@ export default function SinglePlayerModes() {
 
   const saveGauntletDeck = () => {
     if (tempDeck.length === 5) {
-      saveDeck(tempDeck);
+      saveDeck(tempDeck, user?.id);
       setShowDeckSelection(false);
     }
   };
