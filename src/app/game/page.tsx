@@ -18,6 +18,7 @@ import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
 import { useGauntletStore } from "../../store/useGauntletStore";
+import { useCardStore } from "../../store/useCardStore";
 import { RANK_THRESHOLDS, GauntletRank } from "../../constants/gauntlet";
 import { animate } from "framer-motion";
 import { CARD_POOL } from "../../data/cardPool";
@@ -82,10 +83,8 @@ export default function GamePage() {
   const [showBossIntro, setShowBossIntro] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
 
-  const {
-    showFPS: userShowFPS,
-    showBoardAnimation: userShowBoardAnimation,
-  } = useSettingsStore();
+  const { showFPS: userShowFPS, showBoardAnimation: userShowBoardAnimation } =
+    useSettingsStore();
 
   // Active Settings (Respect devMode)
   const activeSettings = useMemo(() => {
@@ -184,13 +183,29 @@ export default function GamePage() {
   const isCustomMode = configMode === "custom";
 
   const [showRewardModal, setShowRewardModal] = useState(false);
+  const { cards: allCards, userCardIds } = useCardStore();
   const [activeReward, setActiveReward] = useState<number | null>(null);
-  const [selectionPhase, setSelectionPhase] = useState<"none" | "pick_from_hand" | "pick_from_collection">("none");
+  const [selectionPhase, setSelectionPhase] = useState<
+    | "none"
+    | "pick_from_hand_sabotage"
+    | "pick_from_hand_reinforce"
+    | "pick_from_collection"
+    | "pick_from_opponent"
+  >("none");
   const [selectedHandCard, setSelectedHandCard] = useState<Card | null>(null);
   const [showSwapAnimation, setShowSwapAnimation] = useState(false);
-  const [swapData, setSwapData] = useState<{ oldCard: Card; newCard: Card } | null>(null);
+  const [swapData, setSwapData] = useState<{
+    oldCard: Card;
+    newCard: Card;
+  } | null>(null);
+  const [nextOpponentDeck, setNextOpponentDeck] = useState<Card[]>([]);
+  const [swapCount, setSwapCount] = useState(0);
 
-  const startGame = async (isRestart = false, overrideP1Hand?: Card[]) => {
+  const startGame = async (
+    isRestart = false,
+    overrideP1Hand?: Card[],
+    overrideP2Hand?: Card[]
+  ) => {
     setLoadingMessage(isRestart ? t.cleaning : t.preparing);
 
     // Artificial delay for cleanup/prep
@@ -219,22 +234,30 @@ export default function GamePage() {
         },
         player1: {
           ...state.player1,
-          hand: overrideP1Hand ? overrideP1Hand.map(c => ({ ...c, id: c.id + Math.random() })) : [...gauntletDeck].map((c) => ({
-            ...c,
-            id: c.id + Math.random(),
-          })), // Refresh IDs
+          hand: overrideP1Hand
+            ? overrideP1Hand.map((c) => ({ ...c, id: c.id + Math.random() }))
+            : [...gauntletDeck].map((c) => ({
+                ...c,
+                id: c.id + Math.random(),
+              })), // Refresh IDs
           totalFlips: 0,
         },
         player2: {
           ...state.player2,
-          hand: config.deck,
-          name: isBossBattle && config.bossKey 
-            ? (t.gauntlet.bosses as any)[config.bossKey] 
-            : t.gauntlet.enemy,
+          hand: overrideP2Hand ? overrideP2Hand : config.deck,
+          name:
+            isBossBattle && config.bossKey
+              ? (t.gauntlet.bosses as any)[config.bossKey]
+              : t.gauntlet.enemy,
           totalFlips: 0,
         },
         // Apply Swift Strike (Option 2)
-        currentPlayerId: activeReward === 2 ? "player1" : (Math.random() > 0.5 ? "player1" : "player2"),
+        currentPlayerId:
+          activeReward === 2
+            ? "player1"
+            : Math.random() > 0.5
+            ? "player1"
+            : "player2",
       }));
 
       // Reward logic is now handled by the selection flow before calling startGame
@@ -272,7 +295,6 @@ export default function GamePage() {
     }
   };
 
-
   // Auto-skip intro if animation disabled
   useEffect(() => {
     if (!activeSettings.showBoardAnimation) {
@@ -282,11 +304,10 @@ export default function GamePage() {
   }, [showBossIntro, showBoardIntro, activeSettings.showBoardAnimation]);
 
   // Use AI Hook with Pause
-  useComputerAI({ 
+  useComputerAI({
     isPaused: showBoardIntro || showBossIntro,
-    rank: isGauntletMode ? gauntletRank : "Chunin" // Default to Chunin for non-gauntlet
+    rank: isGauntletMode ? gauntletRank : "Chunin", // Default to Chunin for non-gauntlet
   });
-
 
   const [showResult, setShowResult] = useState(false);
   const [justFinishedBoss, setJustFinishedBoss] = useState(false);
@@ -334,13 +355,18 @@ export default function GamePage() {
     <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
       {loadingMessage && <LoadingOverlay message={loadingMessage} />}
 
-      <GauntletRewardModal 
+      <GauntletRewardModal
         isOpen={showRewardModal}
         onSelect={(id) => {
           setActiveReward(id);
           setShowRewardModal(false);
-          if (id === 1 || id === 3) {
-            setSelectionPhase("pick_from_hand");
+          if (id === 1) {
+            const config = getOpponentConfig();
+            setNextOpponentDeck(config.deck);
+            setSelectionPhase("pick_from_hand_sabotage");
+          } else if (id === 3) {
+            setSwapCount(0);
+            setSelectionPhase("pick_from_hand_reinforce");
           } else {
             consumeReward();
             startGame();
@@ -349,35 +375,33 @@ export default function GamePage() {
       />
 
       <RewardSelectionOverlay
-        isOpen={selectionPhase === "pick_from_hand"}
-        title={activeReward === 1 ? t.gauntlet.rewards.option1.title : t.gauntlet.rewards.option3.title}
+        isOpen={
+          selectionPhase === "pick_from_hand_sabotage" ||
+          selectionPhase === "pick_from_hand_reinforce"
+        }
+        title={
+          selectionPhase === "pick_from_hand_sabotage"
+            ? t.gauntlet.rewards.option1.title
+            : t.gauntlet.rewards.option3.title
+        }
         subtitle={t.gauntlet.rewards.pickHand}
         cards={gauntletDeck}
         onCancel={() => {
-          setSelectionPhase("none");
-          setActiveReward(null);
-          setShowRewardModal(true);
+          if (swapCount > 0) {
+            // If we already swapped once, we can't just cancel back to modal (exploit)
+            // Instead, we treat it as finishing early
+            consumeReward();
+            startGame();
+          } else {
+            setSelectionPhase("none");
+            setActiveReward(null);
+            setShowRewardModal(true);
+          }
         }}
         onSelect={(card) => {
           setSelectedHandCard(card);
-          if (activeReward === 1) {
-            // Reward 1: Swap with random opponent card
-            const config = getOpponentConfig();
-            const oppDeck = [...config.deck];
-            const oppIdx = Math.floor(Math.random() * oppDeck.length);
-            const oppCard = oppDeck[oppIdx];
-            
-            const newHand = gauntletDeck.map(c => c.id === card.id ? oppCard : c);
-            
-            setSwapData({ oldCard: card, newCard: oppCard });
-            setSelectionPhase("none");
-            setShowSwapAnimation(true);
-            
-            setTimeout(() => {
-              setShowSwapAnimation(false);
-              consumeReward();
-              startGame(false, newHand);
-            }, 2500);
+          if (selectionPhase === "pick_from_hand_sabotage") {
+            setSelectionPhase("pick_from_opponent");
           } else {
             setSelectionPhase("pick_from_collection");
           }
@@ -387,24 +411,72 @@ export default function GamePage() {
       <RewardSelectionOverlay
         isOpen={selectionPhase === "pick_from_collection"}
         title={t.gauntlet.rewards.option3.title}
-        subtitle={t.gauntlet.rewards.pickCollection}
-        cards={CARD_POOL.filter(c => !gauntletDeck.some(dc => dc.id === c.id))}
+        subtitle={
+          swapCount === 0
+            ? `${t.gauntlet.rewards.pickCollection} (1/2)`
+            : `${t.gauntlet.rewards.pickCollection} (2/2)`
+        }
+        cards={allCards
+          .filter((c) => userCardIds.includes(c.id)) // Owned cards
+          .filter((c) => !gauntletDeck.some((dc) => dc.id === c.id))} // Not in deck
         onCancel={() => {
-          setSelectionPhase("none");
-          setActiveReward(null);
-          setShowRewardModal(true);
+          setSelectionPhase("pick_from_hand_reinforce");
         }}
         onSelect={(card) => {
-          const newHand = gauntletDeck.map(c => c.id === selectedHandCard?.id ? card : c);
-          
+          // Perform Swap
+          const newHand = gauntletDeck.map((c) =>
+            c.id === selectedHandCard?.id ? card : c
+          );
+
+          // Update Gauntlet Deck in Store (to persist for next loop)
+          useGauntletStore.setState({ deck: newHand });
+
           setSwapData({ oldCard: selectedHandCard!, newCard: card });
           setSelectionPhase("none");
           setShowSwapAnimation(true);
-          
+
+          setTimeout(() => {
+            setShowSwapAnimation(false);
+
+            if (swapCount === 0) {
+              // Prepare for 2nd swap
+              setSwapCount(1);
+              setSelectionPhase("pick_from_hand_reinforce");
+            } else {
+              // Done
+              consumeReward();
+              startGame(false, newHand);
+            }
+          }, 2500);
+        }}
+      />
+
+      <RewardSelectionOverlay
+        isOpen={selectionPhase === "pick_from_opponent"}
+        title={t.gauntlet.rewards.option1.title}
+        subtitle={t.gauntlet.rewards.pickOpponent}
+        cards={nextOpponentDeck}
+        isHidden={true}
+        onCancel={() => {
+          setSelectionPhase("pick_from_hand_sabotage");
+        }}
+        onSelect={(card) => {
+          const oppCard = card;
+          const newP1Hand = gauntletDeck.map((c) =>
+            c.id === selectedHandCard?.id ? oppCard : c
+          );
+          const newP2Hand = nextOpponentDeck.map((c) =>
+            c.id === oppCard.id ? selectedHandCard! : c
+          );
+
+          setSwapData({ oldCard: selectedHandCard!, newCard: oppCard });
+          setSelectionPhase("none");
+          setShowSwapAnimation(true);
+
           setTimeout(() => {
             setShowSwapAnimation(false);
             consumeReward();
-            startGame(false, newHand);
+            startGame(false, newP1Hand, newP2Hand);
           }, 2500);
         }}
       />
@@ -432,16 +504,19 @@ export default function GamePage() {
           )}
 
           {/* Board Intro Animation */}
-          {showBoardIntro && activeSettings.showBoardAnimation && !showBossIntro && (
-            <BoardIntroAnimation
-              mechanicType={mechanic.type}
-              activeElement={mechanic.activeElement}
-              onComplete={() => setShowBoardIntro(false)}
-            />
-          )}
+          {showBoardIntro &&
+            activeSettings.showBoardAnimation &&
+            !showBossIntro && (
+              <BoardIntroAnimation
+                mechanicType={mechanic.type}
+                activeElement={mechanic.activeElement}
+                onComplete={() => setShowBoardIntro(false)}
+              />
+            )}
 
           {/* Main Game UI - Only render after Intro OR if animation is disabled/skipped */}
-          {((!showBoardIntro && !showBossIntro) || !activeSettings.showBoardAnimation) && (
+          {((!showBoardIntro && !showBossIntro) ||
+            !activeSettings.showBoardAnimation) && (
             <>
               {/* Full-Screen Effects */}
               {activeSettings.showFullScreenEffect && (
@@ -597,7 +672,9 @@ export default function GamePage() {
                   <button
                     onClick={async () => {
                       setLoadingMessage(t.cleaning);
-                      await new Promise((resolve) => setTimeout(resolve, DELAYS.GAME_CLEANUP));
+                      await new Promise((resolve) =>
+                        setTimeout(resolve, DELAYS.GAME_CLEANUP)
+                      );
                       resetGame();
                       router.push("/");
                     }}
@@ -646,8 +723,10 @@ export default function GamePage() {
                 <div className="order-2 w-full h-full flex flex-col items-center justify-center relative min-h-0 min-w-0 gap-2 lg:gap-6">
                   <div className="relative w-full h-full max-h-[50vh] sm:max-h-[55vh] lg:max-h-[75vh] aspect-square flex items-center justify-center">
                     <div className="scale-85 sm:scale-75 lg:scale-95 transition-transform duration-500">
-                      <Board 
-                        showCardPlaceAnimation={activeSettings.showCardPlaceAnimation} 
+                      <Board
+                        showCardPlaceAnimation={
+                          activeSettings.showCardPlaceAnimation
+                        }
                         showBoardEffect={activeSettings.showBoardEffect}
                       />
                     </div>
@@ -664,16 +743,16 @@ export default function GamePage() {
                         animate="visible"
                         variants={{
                           hidden: { opacity: 0, scale: 0.8 },
-                          visible: { 
-                            opacity: 1, 
+                          visible: {
+                            opacity: 1,
                             scale: 1,
-                            transition: { 
+                            transition: {
                               type: "spring",
                               duration: ANIMATION_DURATIONS.RESULT_MODAL_SPRING,
                               bounce: 0.4,
-                              staggerChildren: 0.15
-                            }
-                          }
+                              staggerChildren: 0.15,
+                            },
+                          },
                         }}
                         className="bg-gray-900 border-2 border-white/10 p-6 md:p-8 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,1)] flex flex-col items-center max-w-[95vw] w-[400px] text-center relative overflow-hidden"
                       >
@@ -690,15 +769,29 @@ export default function GamePage() {
                         />
 
                         {/* Title Section (Top) */}
-                        <motion.div variants={{ hidden: { opacity: 0, y: -20 }, visible: { opacity: 1, y: 0 } }} className="mb-6 relative z-10">
+                        <motion.div
+                          variants={{
+                            hidden: { opacity: 0, y: -20 },
+                            visible: { opacity: 1, y: 0 },
+                          }}
+                          className="mb-6 relative z-10"
+                        >
                           <h2 className="text-gray-500 text-[10px] font-black tracking-[0.4em] mb-2 uppercase italic">
                             {isGauntletMode
-                              ? (justFinishedBoss ? t.gauntlet.roundCleared : (isBossBattle ? t.gauntlet.thresholdReached : t.gauntlet.roundCleared))
+                              ? justFinishedBoss
+                                ? t.gauntlet.roundCleared
+                                : isBossBattle
+                                ? t.gauntlet.thresholdReached
+                                : t.gauntlet.roundCleared
                               : t.matchFinished}
                           </h2>
                           <motion.h1
                             animate={{ scale: [1, 1.1, 1] }}
-                            transition={{ duration: ANIMATION_DURATIONS.BOARD_INTRO, repeat: 0, delay: 0.5 }}
+                            transition={{
+                              duration: ANIMATION_DURATIONS.BOARD_INTRO,
+                              repeat: 0,
+                              delay: 0.5,
+                            }}
                             className={cn(
                               "text-5xl md:text-6xl font-black tracking-tighter drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] italic",
                               winner === "player1"
@@ -711,27 +804,43 @@ export default function GamePage() {
                             )}
                           >
                             {winner === "draw"
-                              ? (justFinishedBoss ? t.gauntlet.rankUpFailed : t.draw)
+                              ? justFinishedBoss
+                                ? t.gauntlet.rankUpFailed
+                                : t.draw
                               : winner === "player1"
-                              ? (justFinishedBoss ? t.gauntlet.bossDefeated : t.victory)
+                              ? justFinishedBoss
+                                ? t.gauntlet.bossDefeated
+                                : t.victory
                               : winner === "player2"
-                              ? (justFinishedBoss ? t.gauntlet.rankUpFailed : t.defeat)
-                              : (isBossBattle ? t.gauntlet.bossChallenge : t.victory)}
+                              ? justFinishedBoss
+                                ? t.gauntlet.rankUpFailed
+                                : t.defeat
+                              : isBossBattle
+                              ? t.gauntlet.bossChallenge
+                              : t.victory}
                           </motion.h1>
                           {justFinishedBoss && winner !== null && (
-                            <motion.p 
+                            <motion.p
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               transition={{ delay: 1 }}
                               className="text-[10px] text-red-400 font-bold mt-2 tracking-widest uppercase"
                             >
-                              {winner === "player1" ? "You have proven your worth!" : "The Boss was too strong..."}
+                              {winner === "player1"
+                                ? "You have proven your worth!"
+                                : "The Boss was too strong..."}
                             </motion.p>
                           )}
                         </motion.div>
 
                         {/* Stats Section (Middle) */}
-                        <motion.div variants={{ hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1 } }} className="flex items-center justify-between w-full gap-4 mb-8 relative z-10">
+                        <motion.div
+                          variants={{
+                            hidden: { opacity: 0, scale: 0.9 },
+                            visible: { opacity: 1, scale: 1 },
+                          }}
+                          className="flex items-center justify-between w-full gap-4 mb-8 relative z-10"
+                        >
                           {/* Player Stat */}
                           <div className="flex flex-col items-center flex-1">
                             <div className="relative mb-2">
@@ -798,153 +907,271 @@ export default function GamePage() {
 
                         {/* Gauntlet Specific Info */}
                         {isGauntletMode && (
-                          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="w-full bg-black/40 rounded-2xl p-4 border border-white/5 mb-6 relative z-10 flex flex-col gap-3">
+                          <motion.div
+                            variants={{
+                              hidden: { opacity: 0, y: 20 },
+                              visible: { opacity: 1, y: 0 },
+                            }}
+                            className="w-full bg-black/40 rounded-2xl p-4 border border-white/5 mb-6 relative z-10 flex flex-col gap-3"
+                          >
                             <div className="flex justify-between items-end border-b border-white/5 pb-3">
-                                <div className="text-left relative">
+                              <div className="text-left relative">
                                 <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">
-                                    {t.gauntlet.rank}
+                                  {t.gauntlet.rank}
                                 </div>
                                 <div className="text-yellow-400 font-black text-base relative h-6 w-24">
-                                    {/* Rank Text Animation */}
-                                    {(() => {
-                                        if (isBossBattle && pendingRank) {
-                                            return (
-                                                <div className="absolute top-0 left-0 flex flex-col">
-                                                    <span className="text-yellow-400">{gauntletRank}</span>
-                                                    <motion.span 
-                                                        animate={{ opacity: [0.5, 1, 0.5] }}
-                                                        transition={{ repeat: Infinity, duration: 1.5 }}
-                                                        className="text-[8px] text-red-500 font-black"
-                                                    >
-                                                        BOSS CHALLENGE!
-                                                    </motion.span>
-                                                </div>
-                                            );
-                                        }
+                                  {/* Rank Text Animation */}
+                                  {(() => {
+                                    if (isBossBattle && pendingRank) {
+                                      return (
+                                        <div className="absolute top-0 left-0 flex flex-col">
+                                          <span className="text-yellow-400">
+                                            {gauntletRank}
+                                          </span>
+                                          <motion.span
+                                            animate={{ opacity: [0.5, 1, 0.5] }}
+                                            transition={{
+                                              repeat: Infinity,
+                                              duration: 1.5,
+                                            }}
+                                            className="text-[8px] text-red-500 font-black"
+                                          >
+                                            BOSS CHALLENGE!
+                                          </motion.span>
+                                        </div>
+                                      );
+                                    }
 
-                                        const ranks: GauntletRank[] = ["Genin", "Chunin", "Jounin", "Anbu", "Kage", "Rikudo"];
-                                        const currentRankIndex = ranks.indexOf(gauntletRank as GauntletRank);
-                                        
-                                        // Calculate if rank up happened (this logic might need refinement if we want to show the animation ONLY after boss)
-                                        // For now, if we are in boss battle, we show the "Boss Challenge" text instead of the animation.
-                                        
-                                        return <div className="absolute top-0 left-0">{gauntletRank}</div>;
-                                    })()}
+                                    const ranks: GauntletRank[] = [
+                                      "Genin",
+                                      "Chunin",
+                                      "Jounin",
+                                      "Anbu",
+                                      "Kage",
+                                      "Rikudo",
+                                    ];
+                                    const currentRankIndex = ranks.indexOf(
+                                      gauntletRank as GauntletRank
+                                    );
+
+                                    // Calculate if rank up happened (this logic might need refinement if we want to show the animation ONLY after boss)
+                                    // For now, if we are in boss battle, we show the "Boss Challenge" text instead of the animation.
+
+                                    return (
+                                      <div className="absolute top-0 left-0">
+                                        {gauntletRank}
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
-                                </div>
-                                <div className="text-right">
+                              </div>
+                              <div className="text-right">
                                 <div className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">
-                                    {t.gauntlet.totalScore}
+                                  {t.gauntlet.totalScore}
                                 </div>
-                                <motion.div 
-                                    className="text-white font-black text-xl"
-                                >
-                                    {(() => {
-                                        return (
-                                            <motion.span
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                ref={(node) => {
-                                                    if (node) {
-                                                        animate(oldGauntletScore, gauntletScore, {
-                                                            duration: ANIMATION_DURATIONS.SCORE_COUNTUP,
-                                                            delay: 0.5,
-                                                            onUpdate: (latest) => {
-                                                                node.textContent = Math.round(latest).toString();
-                                                            }
-                                                        });
-                                                    }
-                                                }}
-                                            />
-                                        );
-                                    })()}
+                                <motion.div className="text-white font-black text-xl">
+                                  {(() => {
+                                    return (
+                                      <motion.span
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        ref={(node) => {
+                                          if (node) {
+                                            animate(
+                                              oldGauntletScore,
+                                              gauntletScore,
+                                              {
+                                                duration:
+                                                  ANIMATION_DURATIONS.SCORE_COUNTUP,
+                                                delay: 0.5,
+                                                onUpdate: (latest) => {
+                                                  node.textContent =
+                                                    Math.round(
+                                                      latest
+                                                    ).toString();
+                                                },
+                                              }
+                                            );
+                                          }
+                                        }}
+                                      />
+                                    );
+                                  })()}
                                 </motion.div>
-                                </div>
+                              </div>
                             </div>
-                            
-                             {isGauntletMode && (
-                                <>
-                                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1">
-                                        <div className="flex flex-col text-left">
-                                            <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">Win Points</span>
-                                            <span className="text-white font-black">{winner === "player1" ? `+${GAUNTLET_SCORING.BASE_WIN}` : "0"}</span>
-                                        </div>
-                                        <div className="flex flex-col text-right">
-                                            <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">{t.gauntlet.boardBonus}</span>
-                                            <span className="text-green-400 font-black">
-                                                +{winner === "player1" ? (() => {
-                                                    const board = useGameStore.getState().board;
-                                                    let boardCardCount = 0;
-                                                    board.forEach((row) =>
-                                                      row.forEach((cell) => {
-                                                        if (cell.owner === "player1") boardCardCount++;
-                                                      })
-                                                    );
-                                                    return boardCardCount * GAUNTLET_SCORING.BOARD_BONUS_PER_CARD;
-                                                })() : "0"}
-                                            </span>
-                                        </div>
-                                    </div>
 
-                                    {(justFinishedBoss || isBossBattle) && winner !== "player1" && winner !== null && (
-                                        <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1 bg-red-500/10 p-2 rounded-lg">
-                                            <div className="flex flex-col text-left">
-                                                <span className="text-red-400 text-[8px] font-bold uppercase tracking-wider">{t.gauntlet.scoreReduction}</span>
-                                                <span className="text-red-500 font-black">
-                                                    {winner === "draw" ? `-${Math.round((1 - GAUNTLET_SCORING.DRAW_PENALTY_MULTIPLIER) * 100)}%` : `-${Math.round((1 - GAUNTLET_SCORING.LOSS_PENALTY_MULTIPLIER) * 100)}%`}
-                                                </span>
-                                            </div>
-                                            <div className="flex flex-col text-right">
-                                                <span className="text-red-400 text-[8px] font-bold uppercase tracking-wider">Penalty</span>
-                                                <span className="text-red-500 font-black">
-                                                    -{Math.round(oldGauntletScore - gauntletScore)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
+                            {isGauntletMode && (
+                              <>
+                                <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1">
+                                  <div className="flex flex-col text-left">
+                                    <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">
+                                      Win Points
+                                    </span>
+                                    <span className="text-white font-black">
+                                      {winner === "player1"
+                                        ? `+${GAUNTLET_SCORING.BASE_WIN}`
+                                        : "0"}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-col text-right">
+                                    <span className="text-gray-500 text-[8px] font-bold uppercase tracking-wider">
+                                      {t.gauntlet.boardBonus}
+                                    </span>
+                                    <span className="text-green-400 font-black">
+                                      +
+                                      {winner === "player1"
+                                        ? (() => {
+                                            const board =
+                                              useGameStore.getState().board;
+                                            let boardCardCount = 0;
+                                            board.forEach((row) =>
+                                              row.forEach((cell) => {
+                                                if (cell.owner === "player1")
+                                                  boardCardCount++;
+                                              })
+                                            );
+                                            return (
+                                              boardCardCount *
+                                              GAUNTLET_SCORING.BOARD_BONUS_PER_CARD
+                                            );
+                                          })()
+                                        : "0"}
+                                    </span>
+                                  </div>
+                                </div>
 
-                                    {/* Rank Progress Bar */}
-                                    <div className="w-full mt-1">
-                                        <div className="flex justify-between text-[8px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
-                                            <span>{t.gauntlet.progress}</span>
-                                            <span>
-                                                {(() => {
-                                                    const ranks: GauntletRank[] = ["Genin", "Chunin", "Jounin", "Anbu", "Kage", "Rikudo"];
-                                                    const currentRankIndex = ranks.indexOf(gauntletRank as GauntletRank);
-                                                    if (currentRankIndex === ranks.length - 1) return "MAX";
-                                                    return ranks[currentRankIndex + 1];
-                                                })()}
-                                            </span>
-                                        </div>
-                                        <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden relative">
-                                            <motion.div 
-                                                initial={{ width: "0%" }}
-                                                animate={{ 
-                                                    width: (() => {
-                                                        const ranks: GauntletRank[] = ["Genin", "Chunin", "Jounin", "Anbu", "Kage", "Rikudo"];
-                                                        const currentRankIndex = ranks.indexOf(gauntletRank as GauntletRank);
-                                                        
-                                                        if (currentRankIndex === ranks.length - 1) return "100%"; // Max rank
-                                                        
-                                                        const currentThreshold = RANK_THRESHOLDS[gauntletRank as GauntletRank];
-                                                        const nextThreshold = RANK_THRESHOLDS[ranks[currentRankIndex + 1]];
-                                                        
-                                                        const progress = Math.min(100, Math.max(0, ((gauntletScore - currentThreshold) / (nextThreshold - currentThreshold)) * 100));
-                                                        return `${progress}%`;
-                                                    })() 
-                                                }}
-                                                transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
-                                                className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400"
-                                            />
-                                        </div>
+                                {(justFinishedBoss || isBossBattle) &&
+                                  winner !== "player1" &&
+                                  winner !== null && (
+                                    <div className="flex justify-between items-center text-xs border-b border-white/5 pb-2 mb-1 bg-red-500/10 p-2 rounded-lg">
+                                      <div className="flex flex-col text-left">
+                                        <span className="text-red-400 text-[8px] font-bold uppercase tracking-wider">
+                                          {t.gauntlet.scoreReduction}
+                                        </span>
+                                        <span className="text-red-500 font-black">
+                                          {winner === "draw"
+                                            ? `-${Math.round(
+                                                (1 -
+                                                  GAUNTLET_SCORING.DRAW_PENALTY_MULTIPLIER) *
+                                                  100
+                                              )}%`
+                                            : `-${Math.round(
+                                                (1 -
+                                                  GAUNTLET_SCORING.LOSS_PENALTY_MULTIPLIER) *
+                                                  100
+                                              )}%`}
+                                        </span>
+                                      </div>
+                                      <div className="flex flex-col text-right">
+                                        <span className="text-red-400 text-[8px] font-bold uppercase tracking-wider">
+                                          Penalty
+                                        </span>
+                                        <span className="text-red-500 font-black">
+                                          -
+                                          {Math.round(
+                                            oldGauntletScore - gauntletScore
+                                          )}
+                                        </span>
+                                      </div>
                                     </div>
-                                </>
-                             )}
+                                  )}
+
+                                {/* Rank Progress Bar */}
+                                <div className="w-full mt-1">
+                                  <div className="flex justify-between text-[8px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+                                    <span>{t.gauntlet.progress}</span>
+                                    <span>
+                                      {(() => {
+                                        const ranks: GauntletRank[] = [
+                                          "Genin",
+                                          "Chunin",
+                                          "Jounin",
+                                          "Anbu",
+                                          "Kage",
+                                          "Rikudo",
+                                        ];
+                                        const currentRankIndex = ranks.indexOf(
+                                          gauntletRank as GauntletRank
+                                        );
+                                        if (
+                                          currentRankIndex ===
+                                          ranks.length - 1
+                                        )
+                                          return "MAX";
+                                        return ranks[currentRankIndex + 1];
+                                      })()}
+                                    </span>
+                                  </div>
+                                  <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden relative">
+                                    <motion.div
+                                      initial={{ width: "0%" }}
+                                      animate={{
+                                        width: (() => {
+                                          const ranks: GauntletRank[] = [
+                                            "Genin",
+                                            "Chunin",
+                                            "Jounin",
+                                            "Anbu",
+                                            "Kage",
+                                            "Rikudo",
+                                          ];
+                                          const currentRankIndex =
+                                            ranks.indexOf(
+                                              gauntletRank as GauntletRank
+                                            );
+
+                                          if (
+                                            currentRankIndex ===
+                                            ranks.length - 1
+                                          )
+                                            return "100%"; // Max rank
+
+                                          const currentThreshold =
+                                            RANK_THRESHOLDS[
+                                              gauntletRank as GauntletRank
+                                            ];
+                                          const nextThreshold =
+                                            RANK_THRESHOLDS[
+                                              ranks[currentRankIndex + 1]
+                                            ];
+
+                                          const progress = Math.min(
+                                            100,
+                                            Math.max(
+                                              0,
+                                              ((gauntletScore -
+                                                currentThreshold) /
+                                                (nextThreshold -
+                                                  currentThreshold)) *
+                                                100
+                                            )
+                                          );
+                                          return `${progress}%`;
+                                        })(),
+                                      }}
+                                      transition={{
+                                        duration: 1,
+                                        ease: "easeOut",
+                                        delay: 0.5,
+                                      }}
+                                      className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400"
+                                    />
+                                  </div>
+                                </div>
+                              </>
+                            )}
                           </motion.div>
                         )}
 
                         {/* Buttons Section (Bottom) */}
-                        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="flex flex-col gap-2 w-full relative z-10">
+                        <motion.div
+                          variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0 },
+                          }}
+                          className="flex flex-col gap-2 w-full relative z-10"
+                        >
                           {isGauntletMode && winner === "player1" ? (
                             <button
                               onClick={() => {
@@ -957,7 +1184,9 @@ export default function GamePage() {
                               }}
                               className="w-full py-3 bg-blue-500 text-white font-black text-xs tracking-[0.2em] hover:bg-blue-400 transition-all rounded-xl shadow-[0_4px_0_rgb(30,64,175)] active:translate-y-1 active:shadow-none uppercase italic"
                             >
-                              {isBossBattle ? t.gauntlet.bossChallenge : t.gauntlet.nextBattle}
+                              {isBossBattle
+                                ? t.gauntlet.bossChallenge
+                                : t.gauntlet.nextBattle}
                             </button>
                           ) : (
                             <button

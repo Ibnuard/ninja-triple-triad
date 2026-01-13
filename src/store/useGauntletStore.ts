@@ -160,8 +160,15 @@ export const useGauntletStore = create<GauntletState>()(
 
         // 2. Handle Normal Match Outcome
         if (winner !== "player1") {
-          set({ isActive: false }); // End run on loss or draw
-          return { scoreAdded: 0, newRank: null };
+          // Apply Loss Penalty based on Rank
+          const penalty = GAUNTLET_SCORING.LOSS_PENALTY[rank];
+          const newScore = Math.max(0, score - penalty);
+
+          set({
+            isActive: false,
+            score: newScore,
+          });
+          return { scoreAdded: -penalty, newRank: null };
         }
 
         // Scoring Logic

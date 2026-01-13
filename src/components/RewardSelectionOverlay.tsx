@@ -13,6 +13,7 @@ interface RewardSelectionOverlayProps {
   cards: CardType[];
   onSelect: (card: CardType) => void;
   onCancel: () => void;
+  isHidden?: boolean;
 }
 
 export function RewardSelectionOverlay({
@@ -22,6 +23,7 @@ export function RewardSelectionOverlay({
   cards,
   onSelect,
   onCancel,
+  isHidden,
 }: RewardSelectionOverlayProps) {
   return (
     <AnimatePresence>
@@ -71,6 +73,7 @@ export function RewardSelectionOverlay({
                       card={card}
                       onClick={() => onSelect(card)}
                       isPlaced={false}
+                      isHidden={isHidden}
                     />
                   </motion.div>
                 ))}

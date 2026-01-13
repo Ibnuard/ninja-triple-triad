@@ -15,6 +15,7 @@ interface CardProps {
   isDragging?: boolean;
   isGhost?: boolean;
   disableAnimations?: boolean;
+  isHidden?: boolean;
 }
 
 const elementGlows: Record<string, string> = {
@@ -45,6 +46,7 @@ export const Card = ({
   isDragging,
   isGhost,
   disableAnimations,
+  isHidden,
 }: CardProps) => {
   const rarity = card.rarity || "common";
   const rarityStyle = rarityStyles[rarity];
@@ -93,6 +95,18 @@ export const Card = ({
     >
       {/* Background Pattern / Texture */}
       <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+
+      {/* HIDDEN / CARD BACK STATE */}
+      {isHidden && (
+        <div className="absolute inset-0 z-[20] bg-gray-950 border border-white/10 flex items-center justify-center bg-[url('/images/card-back.png')] bg-cover bg-center">
+          {/* Fallback pattern if image fails or isn't there */}
+          <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black opacity-90 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full border-4 border-red-900/50 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full border-2 border-red-500/20 bg-red-500/10" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Owner Overlay (Visible when placed on board) */}
       {isPlaced && (
