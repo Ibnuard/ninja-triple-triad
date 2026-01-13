@@ -12,12 +12,24 @@ import { cn } from "../lib/utils";
 interface CardListModalProps {
   isOpen: boolean;
   onClose: () => void;
+  title?: string;
+  showOwnedOnly?: boolean;
 }
 
-export function CardListModal({ isOpen, onClose }: CardListModalProps) {
+export function CardListModal({
+  isOpen,
+  onClose,
+  title,
+  showOwnedOnly,
+}: CardListModalProps) {
   const t = useTranslation();
   const { cards: dbCards, fetchCards } = useCardStore();
-  const displayCardPool = dbCards.length > 0 ? dbCards : CARD_POOL;
+
+  // Filter cards if showOwnedOnly is true
+  const rawCards = dbCards.length > 0 ? dbCards : CARD_POOL;
+  const displayCardPool = showOwnedOnly
+    ? rawCards.filter((card) => card.isInit)
+    : rawCards;
 
   useEffect(() => {
     if (isOpen) {
@@ -47,7 +59,7 @@ export function CardListModal({ isOpen, onClose }: CardListModalProps) {
                   NINJA ARCHIVE
                 </h2>
                 <h1 className="text-white text-xl md:text-2xl font-black italic uppercase tracking-tight">
-                  {t.home.cardList}
+                  {title || t.home.cardList}
                 </h1>
               </div>
 

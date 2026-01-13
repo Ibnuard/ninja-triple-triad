@@ -17,6 +17,7 @@ import {
   ShoppingBag,
   Radio,
   Layers,
+  FolderOpen,
 } from "lucide-react";
 import React from "react";
 import { CardListModal } from "../components/CardListModal";
@@ -31,6 +32,7 @@ export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
   const [pInit, setPInit] = useState(false);
   const [showCardList, setShowCardList] = useState(false);
+  const [showMyCollection, setShowMyCollection] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -117,6 +119,13 @@ export default function Home() {
       shadow: "shadow-blue-900/40",
     },
     {
+      onClick: () => setShowMyCollection(true),
+      label: t.myCollection,
+      icon: Layers,
+      color: "from-emerald-600 to-emerald-900",
+      shadow: "shadow-emerald-900/40",
+    },
+    {
       href: "/how-to-play",
       label: t.howToPlay,
       icon: BookOpen,
@@ -185,12 +194,12 @@ export default function Home() {
 
         {/* Right: Actions + Language */}
         <div className="flex items-center gap-2">
-          {/* Card List Button */}
+          {/* Card List Button - Global Archive */}
           <button
             onClick={() => setShowCardList(true)}
             className="w-10 h-10 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/40 hover:text-blue-400 hover:bg-white/10 transition-colors group relative"
           >
-            <Layers className="w-4 h-4" />
+            <FolderOpen className="w-4 h-4" />
             <span className="absolute top-full right-0 mt-2 px-2 py-1 bg-black/80 border border-white/10 rounded text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
               {t.cardList}
             </span>
@@ -307,9 +316,18 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
               >
-                <Link href={item.href} className="block group w-full">
-                  <MenuButton item={item} isFullWidth />
-                </Link>
+                {item.href ? (
+                  <Link href={item.href} className="block group w-full">
+                    <MenuButton item={item} isFullWidth />
+                  </Link>
+                ) : (
+                  <div
+                    onClick={item.onClick}
+                    className="block group cursor-pointer w-full"
+                  >
+                    <MenuButton item={item} isFullWidth />
+                  </div>
+                )}
               </motion.div>
             ))
           )}
@@ -327,6 +345,12 @@ export default function Home() {
       <CardListModal
         isOpen={showCardList}
         onClose={() => setShowCardList(false)}
+      />
+      <CardListModal
+        isOpen={showMyCollection}
+        onClose={() => setShowMyCollection(false)}
+        title={t.myCollection}
+        showOwnedOnly={true}
       />
 
       {/* Footer Decoration - Reduce Bottom Position */}

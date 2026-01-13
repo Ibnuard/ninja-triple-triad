@@ -14,6 +14,7 @@ export const TRANSLATIONS = {
       logout: "Logout",
       onlineBattle: "Online Battle",
       shop: "Shop",
+      myCollection: "My Collection",
       authenticated: "Authenticated",
     },
     game: {
@@ -294,6 +295,7 @@ export const TRANSLATIONS = {
       logout: "Keluar",
       onlineBattle: "Battle Online",
       shop: "Toko",
+      myCollection: "Koleksi Saya",
       authenticated: "Terautentikasi",
     },
     game: {
