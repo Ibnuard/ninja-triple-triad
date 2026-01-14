@@ -164,6 +164,12 @@ export const TRANSLATIONS = {
           kaguya: "Kaguya Otsutsuki",
         },
       },
+      exitConfirmation: {
+        title: "Quit Game?",
+        desc: "Are you sure you want to quit? Your current progress will be lost.",
+        confirm: "Quit",
+        cancel: "Cancel",
+      },
       settings: {
         title: "Game Settings",
         fpsCounter: "FPS Counter",
@@ -524,6 +530,12 @@ export const TRANSLATIONS = {
           madara: "Madara Uchiha",
           kaguya: "Kaguya Otsutsuki",
         },
+      },
+      exitConfirmation: {
+        title: "Keluar Permainan?",
+        desc: "Yakin ingin menyerah? Progres saat ini akan hilang.",
+        confirm: "Keluar",
+        cancel: "Batal",
       },
       settings: {
         title: "Pengaturan Game",

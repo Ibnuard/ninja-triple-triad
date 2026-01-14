@@ -17,7 +17,8 @@ import { cn } from "../../../lib/utils";
 import { Card } from "../../../components/Card";
 import { Card as CardType } from "../../../types/game";
 import { GauntletTutorialModal } from "../../../components/GauntletTutorialModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useBossDeckStore } from "../../../store/useBossDeckStore";
 
 interface GauntletModeViewProps {
   t: any;
@@ -51,6 +52,12 @@ export function GauntletModeView({
   onCancelSelection,
 }: GauntletModeViewProps) {
   const [showTutorial, setShowTutorial] = useState(false);
+  const { fetchBossDecks } = useBossDeckStore();
+
+  useEffect(() => {
+    fetchBossDecks();
+  }, [fetchBossDecks]);
+
   // Reusable Stats Component
   const StatsCard = ({ className = "" }: { className?: string }) => {
     const gauntletT = useTranslation().game.gauntlet;

@@ -2,5 +2,6 @@
   "showBoardEffect": true,
   "showAnimation": true,
   "showFullScreenEffect": true,
-  "devMode": false
+  "devMode": false,
+  "multiPoin": true
 }

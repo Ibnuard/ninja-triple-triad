@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Info, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -77,6 +77,7 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
 
 export default function GamePage() {
   const [showInfo, setShowInfo] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showMechanicModal, setShowMechanicModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showBoardIntro, setShowBoardIntro] = useState(true);
@@ -429,13 +430,11 @@ export default function GamePage() {
         onSelect={(cards) => {
           // Perform Swap for multiple cards
           let newHand = [...gauntletDeck];
-          
+
           // We assume cards.length matches selectedHandCards.length (2)
           cards.forEach((newCard, index) => {
             const oldCard = selectedHandCards[index];
-            newHand = newHand.map((c) =>
-              c.id === oldCard.id ? newCard : c
-            );
+            newHand = newHand.map((c) => (c.id === oldCard.id ? newCard : c));
           });
 
           // Update Gauntlet Deck in Store
@@ -675,14 +674,7 @@ export default function GamePage() {
                   </button>
 
                   <button
-                    onClick={async () => {
-                      setLoadingMessage(t.cleaning);
-                      await new Promise((resolve) =>
-                        setTimeout(resolve, DELAYS.GAME_CLEANUP)
-                      );
-                      resetGame();
-                      router.push("/");
-                    }}
+                    onClick={() => setShowExitConfirm(true)}
                     className="p-2 lg:p-3 rounded-full border border-red-500/30 bg-red-500/10 text-red-500/70 hover:text-red-400 hover:border-red-400 transition-colors pointer-events-auto shadow-lg backdrop-blur-sm"
                     title={t.exit}
                   >
@@ -1052,7 +1044,9 @@ export default function GamePage() {
                                   <div className="flex flex-col items-center py-2 border-b border-white/5 mb-2 bg-yellow-500/5 rounded-lg">
                                     <div className="flex items-center gap-2 mb-0.5">
                                       <div className="w-4 h-4 rounded-full bg-gradient-to-b from-yellow-300 to-yellow-600 flex items-center justify-center shadow-[0_0_8px_rgba(255,215,0,0.4)]">
-                                        <span className="text-[9px] font-black text-yellow-900">C</span>
+                                        <span className="text-[9px] font-black text-yellow-900">
+                                          C
+                                        </span>
                                       </div>
                                       <span className="text-[9px] uppercase tracking-[0.2em] text-yellow-500/80 font-black italic">
                                         {t.gauntlet.coinsEarned}
@@ -1063,7 +1057,7 @@ export default function GamePage() {
                                         +{gauntletResult.coinsEarned}
                                       </span>
                                       {gauntletResult.isWinStreakBonus && (
-                                        <motion.span 
+                                        <motion.span
                                           initial={{ opacity: 0, y: 5 }}
                                           animate={{ opacity: 1, y: 0 }}
                                           className="text-[8px] font-black text-yellow-400 uppercase tracking-widest animate-pulse"
@@ -1280,6 +1274,62 @@ export default function GamePage() {
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
       />
+
+      {/* Exit Confirmation Modal */}
+      <AnimatePresence>
+        {showExitConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <div
+              className="absolute inset-0"
+              onClick={() => setShowExitConfirm(false)}
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center relative z-20"
+            >
+              <h3 className="text-xl font-black text-white mb-2 uppercase italic tracking-wider">
+                {t.exitConfirmation.title}
+              </h3>
+              <p className="text-gray-400 mb-8 text-sm leading-relaxed">
+                {t.exitConfirmation.desc}
+              </p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowExitConfirm(false)}
+                  className="flex-1 py-3 rounded-xl bg-gray-800 text-gray-300 font-bold hover:bg-gray-700 transition-colors uppercase tracking-widest text-xs"
+                >
+                  {t.exitConfirmation.cancel}
+                </button>
+                <button
+                  onClick={async () => {
+                    setShowExitConfirm(false);
+                    if (isGauntletMode) {
+                      useGauntletStore.getState().endRun();
+                    }
+                    setLoadingMessage(t.cleaning);
+                    await new Promise((resolve) =>
+                      setTimeout(resolve, DELAYS.GAME_CLEANUP)
+                    );
+                    resetGame();
+                    router.push("/");
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-500 transition-colors uppercase tracking-widest text-xs shadow-lg shadow-red-900/20"
+                >
+                  {t.exitConfirmation.confirm}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {activeSettings.showFPS && <FPSCounter />}
     </div>
   );

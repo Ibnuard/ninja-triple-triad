@@ -9,6 +9,7 @@ import {
   GAUNTLET_SCORING,
 } from "../constants/gauntlet";
 import { GAME_ELEMENTS } from "../constants/game";
+import gameConfig from "../gameConfig.json";
 
 interface GauntletState {
   isActive: boolean;
@@ -190,8 +191,10 @@ export const useGauntletStore = create<GauntletState>()(
         // Scoring Logic
         const baseWin = GAUNTLET_SCORING.BASE_WIN;
         // Bonus: points per card on board
-        const boardBonus =
-          boardCardCount * GAUNTLET_SCORING.BOARD_BONUS_PER_CARD;
+        const bonusMultiplier = gameConfig.multiPoin
+          ? 5
+          : GAUNTLET_SCORING.BOARD_BONUS_PER_CARD;
+        const boardBonus = boardCardCount * bonusMultiplier;
 
         const scoreAdded = baseWin + boardBonus;
         const newScore = score + scoreAdded;
