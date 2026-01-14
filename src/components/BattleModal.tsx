@@ -36,7 +36,7 @@ export function BattleModal({ isOpen, onClose }: BattleModalProps) {
       shadow: "shadow-red-900/40",
     },
     {
-      href: "/online-battle",
+      href: "/online",
       label: t.onlineBattle,
       description: t.onlineBattleDesc,
       icon: Globe,

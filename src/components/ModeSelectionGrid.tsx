@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { cn } from "../../../lib/utils";
+import { cn } from "../lib/utils";
 import { LucideIcon } from "lucide-react";
 
 interface Mode {
@@ -21,12 +21,15 @@ interface ModeSelectionGridProps {
   t: any;
   modes: Mode[];
   onModeClick: (modeId: string) => void;
+  // Optional override for button text
+  selectText?: string;
 }
 
 export function ModeSelectionGrid({
   t,
   modes,
   onModeClick,
+  selectText,
 }: ModeSelectionGridProps) {
   return (
     <motion.div
@@ -34,7 +37,7 @@ export function ModeSelectionGrid({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="w-full flex flex-col md:grid md:grid-cols-3 gap-3 md:gap-4 lg:gap-8 px-4"
+      className="w-full flex flex-col md:grid md:grid-cols-2 gap-3 md:gap-4 lg:gap-8 px-4 justify-center max-w-4xl mx-auto"
     >
       {modes.map((mode, index) => (
         <motion.button
@@ -75,7 +78,7 @@ export function ModeSelectionGrid({
             {/* CTA - Desktop only */}
             <div className="hidden md:block mt-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <span className="text-xs font-bold tracking-[0.2em] uppercase text-white border border-white/20 px-4 py-2 rounded-full backdrop-blur-md">
-                {t.selectMode}
+                {selectText || (t.selectMode ?? "Select")}
               </span>
             </div>
           </div>

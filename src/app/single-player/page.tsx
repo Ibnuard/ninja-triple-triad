@@ -12,7 +12,7 @@ import { useGauntletStore } from "../../store/useGauntletStore";
 import { Card as CardType } from "../../types/game";
 import { CARD_POOL } from "../../data/cardPool";
 import { Swords, School, Zap, ChevronLeft } from "lucide-react";
-import { ModeSelectionGrid } from "./components/ModeSelectionGrid";
+import { ModeSelectionGrid } from "../../components/ModeSelectionGrid";
 import { TrainingSubMenu } from "./components/TrainingSubMenu";
 import { GauntletModeView } from "./components/GauntletModeView";
 import { CustomModeView } from "./components/CustomModeView";

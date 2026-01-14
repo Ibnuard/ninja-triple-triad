@@ -219,6 +219,22 @@ export const TRANSLATIONS = {
       joinButton: "JOIN",
       back: "← Back to Main Menu",
     },
+    onlineSelection: {
+      title: "Online Battle",
+      back: "Back",
+      mainMenu: "Main Menu",
+      selectMode: "Select Lobby",
+      modes: {
+        ranked: {
+          title: "Ranked Match",
+          description: "Compete for global leaderboard dominance.",
+        },
+        custom: {
+          title: "Custom Lobby",
+          description: "Create or join specific rooms to play with friends.",
+        },
+      },
+    },
     spSelection: {
       title: "Select Mode",
       back: "Back",
@@ -232,6 +248,7 @@ export const TRANSLATIONS = {
         select: "Select",
         ownDeckError: "Please create a deck with 5 cards first!",
       },
+
       modes: {
         gauntlet: {
           title: "Gauntlet Mode",
@@ -587,6 +604,23 @@ export const TRANSLATIONS = {
       joinButton: "GABUNG",
       back: "← Kembali ke Menu Utama",
     },
+    onlineSelection: {
+      title: "Pertarungan Online",
+      back: "Kembali",
+      mainMenu: "Menu Utama",
+      selectMode: "Pilih Lobi",
+      modes: {
+        ranked: {
+          title: "Pertandingan Peringkat",
+          description: "Bersaing untuk dominasi papan peringkat global.",
+        },
+        custom: {
+          title: "Lobi Kustom",
+          description:
+            "Buat atau gabung ruangan khusus untuk bermain dengan teman.",
+        },
+      },
+    },
     spSelection: {
       title: "Pilih Mode",
       back: "Kembali",
@@ -600,6 +634,7 @@ export const TRANSLATIONS = {
         select: "Pilih",
         ownDeckError: "Harap buat deck dengan 5 kartu terlebih dahulu!",
       },
+
       modes: {
         gauntlet: {
           title: "Mode Gauntlet",
