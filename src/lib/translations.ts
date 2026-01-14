@@ -230,6 +230,7 @@ export const TRANSLATIONS = {
         randomDeck: "Random Deck",
         randomDeckDesc: "Challenge yourself with randomized cards.",
         select: "Select",
+        ownDeckError: "Please create a deck with 5 cards first!",
       },
       modes: {
         gauntlet: {
@@ -597,6 +598,7 @@ export const TRANSLATIONS = {
         randomDeck: "Dek Acak",
         randomDeckDesc: "Tantang dirimu dengan kartu acak.",
         select: "Pilih",
+        ownDeckError: "Harap buat deck dengan 5 kartu terlebih dahulu!",
       },
       modes: {
         gauntlet: {

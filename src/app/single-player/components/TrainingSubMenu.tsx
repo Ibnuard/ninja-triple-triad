@@ -5,7 +5,7 @@ import { Disc, Layers, ChevronLeft } from "lucide-react";
 
 interface TrainingSubMenuProps {
   t: any;
-  onNavigate: () => void;
+  onNavigate: (type: "own" | "random") => void;
 }
 
 export function TrainingSubMenu({ t, onNavigate }: TrainingSubMenuProps) {
@@ -19,7 +19,7 @@ export function TrainingSubMenu({ t, onNavigate }: TrainingSubMenuProps) {
     >
       {/* Training Option 1 */}
       <button
-        onClick={onNavigate}
+        onClick={() => onNavigate("own")}
         className="flex-1 group relative bg-gray-900/80 border border-blue-500/30 p-8 rounded-3xl hover:bg-blue-900/20 transition-all hover:-translate-y-2 overflow-hidden text-left"
       >
         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -33,19 +33,18 @@ export function TrainingSubMenu({ t, onNavigate }: TrainingSubMenuProps) {
             <h3 className="text-3xl font-black italic uppercase text-white mb-2">
               {t.trainingSub.ownDeck}
             </h3>
-            <p className="text-sm text-gray-400">
-              {t.trainingSub.ownDeckDesc}
-            </p>
+            <p className="text-sm text-gray-400">{t.trainingSub.ownDeckDesc}</p>
           </div>
           <div className="flex items-center gap-2 text-blue-400 font-bold uppercase tracking-widest text-xs mt-8 group-hover:translate-x-2 transition-transform">
-            {t.trainingSub.select} <ChevronLeft className="rotate-180 w-4 h-4" />
+            {t.trainingSub.select}{" "}
+            <ChevronLeft className="rotate-180 w-4 h-4" />
           </div>
         </div>
       </button>
 
       {/* Training Option 2 */}
       <button
-        onClick={onNavigate}
+        onClick={() => onNavigate("random")}
         className="flex-1 group relative bg-gray-900/80 border border-cyan-500/30 p-8 rounded-3xl hover:bg-cyan-900/20 transition-all hover:-translate-y-2 overflow-hidden text-left"
       >
         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -64,7 +63,8 @@ export function TrainingSubMenu({ t, onNavigate }: TrainingSubMenuProps) {
             </p>
           </div>
           <div className="flex items-center gap-2 text-cyan-400 font-bold uppercase tracking-widest text-xs mt-8 group-hover:translate-x-2 transition-transform">
-            {t.trainingSub.select} <ChevronLeft className="rotate-180 w-4 h-4" />
+            {t.trainingSub.select}{" "}
+            <ChevronLeft className="rotate-180 w-4 h-4" />
           </div>
         </div>
       </button>

@@ -19,6 +19,7 @@ import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
 import { useGauntletStore } from "../../store/useGauntletStore";
 import { useCardStore } from "../../store/useCardStore";
+import { useDeckStore } from "../../store/useDeckStore";
 import { RANK_THRESHOLDS, GauntletRank } from "../../constants/gauntlet";
 import { animate } from "framer-motion";
 import { CARD_POOL } from "../../data/cardPool";
@@ -190,7 +191,13 @@ export default function GamePage() {
   const isCustomMode = configMode === "custom";
 
   const [showRewardModal, setShowRewardModal] = useState(false);
-  const { cards: allCards, userCardIds } = useCardStore();
+  const { cards: allCards, userCardIds, fetchCards } = useCardStore();
+
+  useEffect(() => {
+    if (allCards.length === 0) {
+      fetchCards();
+    }
+  }, [allCards.length, fetchCards]);
   const [activeReward, setActiveReward] = useState<number | null>(null);
   const [selectionPhase, setSelectionPhase] = useState<
     | "none"
@@ -278,6 +285,12 @@ export default function GamePage() {
           ...state.player1,
           hand: isCustom
             ? generateDiverseHand("p1")
+            : configMode === "training" &&
+              useDeckStore.getState().selectedDeck.length === 5
+            ? [...useDeckStore.getState().selectedDeck].map((c) => ({
+                ...c,
+                id: `${c.id}-${Math.random()}`,
+              }))
             : [...MOCK_CARDS].sort(() => Math.random() - 0.5),
           totalFlips: 0,
         },
@@ -285,8 +298,20 @@ export default function GamePage() {
           ...state.player2,
           hand: isCustom
             ? generateDiverseHand("p2")
+            : configMode === "training"
+            ? (useCardStore.getState().cards.length > 0
+                ? useCardStore.getState().cards
+                : CARD_POOL
+              )
+                .sort((a, b) => (a.cp || 0) - (b.cp || 0))
+                .slice(0, 5)
+                .map((c) => ({ ...c, id: `${c.id}-${Math.random()}` }))
             : [...OPPONENT_CARDS].sort(() => Math.random() - 0.5),
-          name: isCustom ? "Player 2" : "Computer",
+          name: isCustom
+            ? "Player 2"
+            : configMode === "training"
+            ? "Dummy (Easy)"
+            : "Computer",
           totalFlips: 0,
         },
       }));
@@ -313,7 +338,11 @@ export default function GamePage() {
   // Use AI Hook with Pause
   useComputerAI({
     isPaused: showBoardIntro || showBossIntro,
-    rank: isGauntletMode ? gauntletRank : "Chunin", // Default to Chunin for non-gauntlet
+    rank: isGauntletMode
+      ? gauntletRank
+      : configMode === "training"
+      ? "Genin"
+      : "Chunin",
   });
 
   const [showResult, setShowResult] = useState(false);

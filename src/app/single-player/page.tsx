@@ -80,6 +80,50 @@ export default function SinglePlayerModes() {
     }
   }, [showDeckSelection, selectedDeck]);
 
+  const handleTrainingNavigate = (type: "own" | "random") => {
+    if (type === "random") {
+      // 1. Get owned cards
+      const rawCards = dbCards.length > 0 ? dbCards : CARD_POOL;
+      const ownedCards = user
+        ? rawCards.filter((c) => userCardIds.includes(c.id))
+        : rawCards;
+
+      // 2. Select 5 random distinct cards
+      const randomDeck: CardType[] = [];
+      // Clone array to pick from
+      const pool = [...ownedCards];
+
+      // If pool is too small, we might need to allow duplicates or fill with rawCards
+      const sourcePool = pool.length >= 5 ? pool : [...rawCards];
+
+      for (let i = 0; i < 5; i++) {
+        const randomIndex = Math.floor(Math.random() * sourcePool.length);
+        const card = sourcePool[randomIndex];
+        // Create unique instance
+        randomDeck.push({ ...card, id: `${card.id}-${Math.random()}` });
+        // Remove from pool if we want distinct cards (if pool large enough)
+        if (sourcePool.length > 5) {
+          sourcePool.splice(randomIndex, 1);
+        }
+      }
+
+      // 3. Set deck to store (Transient, don't save to DB)
+      useDeckStore.setState({ selectedDeck: randomDeck });
+    } else {
+      // "own" deck -> ensure we use the loaded deck
+      if (selectedDeck.length !== 5) {
+        alert(
+          t.trainingSub?.ownDeckError ||
+            "Please create a deck with 5 cards first!"
+        );
+        return;
+      }
+    }
+
+    useGameConfigStore.setState({ mode: "training" });
+    router.push("/game");
+  };
+
   const modes = [
     {
       id: "gauntlet",
@@ -200,13 +244,7 @@ export default function SinglePlayerModes() {
                 onModeClick={handleModeClick}
               />
             ) : selectedMode === "training" ? (
-              <TrainingSubMenu
-                t={t}
-                onNavigate={() => {
-                  setConfig({ mode: "training" });
-                  router.push("/game");
-                }}
-              />
+              <TrainingSubMenu t={t} onNavigate={handleTrainingNavigate} />
             ) : selectedMode === "gauntlet" ? (
               <GauntletModeView
                 t={t}
