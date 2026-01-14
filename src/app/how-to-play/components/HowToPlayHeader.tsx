@@ -1,6 +1,8 @@
+"use client";
+
 import React from "react";
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 interface HowToPlayHeaderProps {
   backText: string;
@@ -8,22 +10,25 @@ interface HowToPlayHeaderProps {
 }
 
 export function HowToPlayHeader({ backText, title }: HowToPlayHeaderProps) {
+  const router = useRouter();
+
   return (
-    <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-md border-b border-white/10 px-4 py-4">
-      <div className="max-w-5xl mx-auto flex items-center justify-between">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
+    <header className="sticky top-0 z-50 p-4 md:p-6 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-md">
+      <div className="flex items-center gap-3 md:gap-4">
+        <button
+          onClick={() => router.push("/")}
+          className="p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
         >
-          <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          <span className="font-bold tracking-wider text-xs uppercase">
-            {backText}
-          </span>
-        </Link>
-        <h1 className="text-xl font-black tracking-tighter italic uppercase underline decoration-red-500 decoration-2 underline-offset-4">
-          {title}
-        </h1>
-        <div className="w-16" /> {/* Spacer */}
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div>
+          <h2 className="text-blue-500 text-[8px] md:text-[10px] font-black tracking-[0.4em] mb-0.5 uppercase italic">
+            GUIDE
+          </h2>
+          <h1 className="text-white text-lg md:text-2xl font-black italic uppercase tracking-tight">
+            {title}
+          </h1>
+        </div>
       </div>
     </header>
   );

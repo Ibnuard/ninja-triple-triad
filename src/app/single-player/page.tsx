@@ -158,39 +158,40 @@ export default function SinglePlayerModes() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-mono">
+    <div className="h-[100dvh] md:min-h-screen bg-black text-white flex flex-col relative overflow-hidden md:overflow-auto font-mono">
       {/* Dynamic Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 via-black to-black z-0" />
-      <div className="absolute inset-0 opacity-20 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 via-black to-black z-0" />
+      <div className="fixed inset-0 opacity-20 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative z-10 w-full max-w-7xl flex flex-col gap-8"
-      >
-        {/* Compact Header */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4 mx-4 lg:mx-0">
+      {/* Header - Sticky */}
+      <header className="shrink-0 z-50 p-4 md:p-6 flex items-center justify-between border-b border-white/5 bg-black/80 backdrop-blur-md">
+        <div className="flex items-center gap-3 md:gap-4">
           <button
             onClick={() =>
               selectedMode ? setSelectedMode(null) : router.push("/")
             }
-            className="group flex items-center gap-2 text-gray-500 hover:text-white transition-colors"
+            className="p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
           >
-            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-bold tracking-widest text-xs uppercase">
-              {selectedMode ? t.back : t.mainMenu}
-            </span>
+            <ChevronLeft className="w-5 h-5" />
           </button>
-
-          <h1 className="text-3xl lg:text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 uppercase">
-            {t.title}
-          </h1>
-
-          <div className="hidden lg:block w-32 h-1 bg-white/10 skew-x-[-45deg]" />
+          <div>
+            <h2 className="text-red-500 text-[8px] md:text-[10px] font-black tracking-[0.4em] mb-0.5 uppercase italic">
+              {selectedMode ? t.back : t.mainMenu}
+            </h2>
+            <h1 className="text-white text-lg md:text-2xl font-black italic uppercase tracking-tight">
+              {t.title}
+            </h1>
+          </div>
         </div>
+      </header>
 
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative z-10 w-full max-w-7xl mx-auto flex flex-col flex-1 p-4 overflow-hidden md:overflow-auto"
+      >
         {/* Content Area */}
-        <div className="min-h-[400px] flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center flex-1 overflow-hidden md:overflow-auto">
           <AnimatePresence mode="wait">
             {!selectedMode ? (
               <ModeSelectionGrid
