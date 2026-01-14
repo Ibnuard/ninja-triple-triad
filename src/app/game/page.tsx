@@ -82,8 +82,33 @@ export default function GamePage() {
   const searchParams = useSearchParams();
   const isOnline = searchParams.get("mode") === "online";
   useOnlineGameLogic();
+  const user = useAuthStore((state) => state.user);
+
+  const {
+    player1,
+    player2,
+    currentPlayerId,
+    phase,
+    winner,
+    initGame,
+    resetGame,
+    mechanic,
+    draggingCardId,
+  } = useGameStore();
 
   const [showInfo, setShowInfo] = useState(false);
+
+  const isPOVPlayer2 = isOnline && user?.id === player2.id;
+
+  // "Bottom/Left" Player (Me)
+  const bottomPlayer = isPOVPlayer2 ? player2 : player1;
+  const bottomOwnerId = isPOVPlayer2 ? "player2" : "player1";
+  const bottomVisualId = "player1"; // Always Blue
+
+  // "Top/Right" Player (Enemy)
+  const topPlayer = isPOVPlayer2 ? player1 : player2;
+  const topOwnerId = isPOVPlayer2 ? "player1" : "player2";
+  const topVisualId = "player2"; // Always Red
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showMechanicModal, setShowMechanicModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -136,14 +161,8 @@ export default function GamePage() {
   }, [activeSettings.showBoardAnimation, showBossIntro, showBoardIntro]);
 
   // Use selective subscriptions to prevent re-renders on drag state changes
-  const initGame = useGameStore((state) => state.initGame);
-  const player1 = useGameStore((state) => state.player1);
-  const player2 = useGameStore((state) => state.player2);
-  const currentPlayerId = useGameStore((state) => state.currentPlayerId);
-  const phase = useGameStore((state) => state.phase);
-  const winner = useGameStore((state) => state.winner);
-  const resetGame = useGameStore((state) => state.resetGame);
-  const mechanic = useGameStore((state) => state.mechanic);
+  // Use selective subscriptions to prevent re-renders on drag state changes
+  // Moved to top for POV logic
 
   const t = useTranslation().game;
   const { language } = useSettingsStore();
@@ -392,13 +411,15 @@ export default function GamePage() {
     }
   }, []);
 
-  const user = useAuthStore((state) => state.user);
   const canInteract =
     !isOnline ||
     (currentPlayerId === "player1" && player1.id === user?.id) ||
     (currentPlayerId === "player2" && player2.id === user?.id);
 
-  const isMyTurn = currentPlayerId === "player1";
+  const isMyTurn = isOnline
+    ? (currentPlayerId === "player1" && player1.id === user?.id) ||
+      (currentPlayerId === "player2" && player2.id === user?.id)
+    : currentPlayerId === "player1";
 
   return (
     <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
@@ -739,9 +760,11 @@ export default function GamePage() {
                   {/* Mobile View (Horizontal) */}
                   <div className="lg:hidden w-full flex justify-center items-center">
                     <Hand
-                      cards={player1.hand}
-                      ownerId="player1"
-                      isCurrentPlayer={isMyTurn}
+                      cards={bottomPlayer.hand}
+                      ownerId={bottomOwnerId}
+                      visualOwnerId={bottomVisualId}
+                      isInteractive={true}
+                      isCurrentPlayer={currentPlayerId === bottomOwnerId}
                       orientation="horizontal"
                       isCustom={isCustomMode}
                       gauntletRank={isGauntletMode ? gauntletRank : undefined}
@@ -750,9 +773,11 @@ export default function GamePage() {
                   {/* Desktop View (Vertical) */}
                   <div className="hidden lg:flex w-full h-full items-center justify-center">
                     <Hand
-                      cards={player1.hand}
-                      ownerId="player1"
-                      isCurrentPlayer={isMyTurn}
+                      cards={bottomPlayer.hand}
+                      ownerId={bottomOwnerId}
+                      visualOwnerId={bottomVisualId}
+                      isInteractive={true}
+                      isCurrentPlayer={currentPlayerId === bottomOwnerId}
                       orientation="vertical"
                       isCustom={isCustomMode}
                       gauntletRank={isGauntletMode ? gauntletRank : undefined}
@@ -769,6 +794,8 @@ export default function GamePage() {
                           activeSettings.showCardPlaceAnimation
                         }
                         showBoardEffect={activeSettings.showBoardEffect}
+                        isFlipped={isPOVPlayer2}
+                        swapOwners={isPOVPlayer2}
                       />
                     </div>
                   </div>
@@ -1284,28 +1311,32 @@ export default function GamePage() {
                   {/* Mobile View (Horizontal Compact) */}
                   <div className={cn("lg:hidden w-full flex justify-center")}>
                     <Hand
-                      cards={player2.hand}
-                      ownerId="player2"
-                      isCurrentPlayer={currentPlayerId === "player2"}
+                      cards={topPlayer.hand}
+                      ownerId={topOwnerId}
+                      visualOwnerId={topVisualId}
+                      isInteractive={false}
+                      isCurrentPlayer={currentPlayerId === topOwnerId}
                       orientation="horizontal"
                       compact
                       minimal={isCustomMode ? false : true}
                       isHidden={isCustomMode ? false : true}
                       isCustom={isCustomMode}
-                      name={player2.name}
+                      name={topPlayer.name}
                     />
                   </div>
                   {/* Desktop View (Vertical Compact) */}
                   <div className="hidden lg:flex w-full h-full items-center justify-center">
                     <Hand
-                      cards={player2.hand}
-                      ownerId="player2"
-                      isCurrentPlayer={currentPlayerId === "player2"}
+                      cards={topPlayer.hand}
+                      ownerId={topOwnerId}
+                      visualOwnerId={topVisualId}
+                      isInteractive={false}
+                      isCurrentPlayer={currentPlayerId === topOwnerId}
                       orientation="vertical"
                       compact
                       isHidden={isCustomMode ? false : true}
                       isCustom={isCustomMode}
-                      name={player2.name}
+                      name={topPlayer.name}
                     />
                   </div>
                 </div>

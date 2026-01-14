@@ -21,6 +21,8 @@ interface HandProps {
   minimal?: boolean; // New prop for mobile indicator
   name?: string; // New prop for dynamic name
   gauntletRank?: string; // New prop for Gauntlet Rank
+  visualOwnerId?: "player1" | "player2"; // Support POV color swap
+  isInteractive?: boolean; // Control interaction independent of turn
 }
 
 export const Hand = ({
@@ -34,10 +36,15 @@ export const Hand = ({
   minimal = false,
   name,
   gauntletRank,
+  visualOwnerId,
+  isInteractive = true,
 }: HandProps) => {
   const { selectCard, selectedCardId, currentPlayerId, draggingCardId, phase } =
     useGameStore();
   const t = useTranslation().game;
+
+  // Use visualOwnerId for styling/display, ownerId for logic
+  const displayOwner = visualOwnerId || ownerId;
 
   const isMyTurn = currentPlayerId === ownerId;
   const isAnyCardDragging = !!draggingCardId;
@@ -49,9 +56,7 @@ export const Hand = ({
       <div className="flex flex-col items-center gap-1 mt-14 lg:mt-0">
         <motion.div
           animate={
-            isGameOver
-              ? { scale: 0, opacity: 0 }
-              : { scale: 1, opacity: 1 }
+            isGameOver ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }
           }
           transition={{ duration: 0.4, ease: "circIn" }}
           className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/80 rounded-xl border border-white/10 shadow-lg"
@@ -102,7 +107,8 @@ export const Hand = ({
           "font-black tracking-[0.2em] text-shadow-sm px-4 py-1 rounded-full border bg-black/60 shadow-xl transition-all",
           "hidden lg:block", // Hide on mobile for both players
           compact ? "text-[10px]" : "text-xs lg:text-sm",
-          ownerId === "player1"
+          compact ? "text-[10px]" : "text-xs lg:text-sm",
+          displayOwner === "player1"
             ? "text-blue-400 border-blue-500/30 shadow-blue-900/20"
             : "text-red-400 border-red-500/30 shadow-red-900/20",
           isMyTurn && "scale-105 border-opacity-80 animate-pulse"
@@ -110,7 +116,12 @@ export const Hand = ({
       >
         <div className="flex items-center gap-3">
           <span>
-            {ownerId === "player1"
+            {/* Note: logic for name display might need adjustment if roles are swapped contextually 
+                 But typically P1 is Host/Me for local, P2 is Opponent.
+                 For Online POV, we swap positions.
+                 If I am P2 (Blue now), displaying 'Me' is fine.
+             */}
+            {displayOwner === "player1"
               ? t.player
               : name || (isCustom ? "Player 2" : t.opponent)}
           </span>
@@ -210,62 +221,70 @@ export const Hand = ({
                       card={
                         {
                           ...card,
-                          dragProps: isMyTurn
-                            ? {
-                                drag: true,
-                                dragSnapToOrigin: true,
-                                dragElastic: 0,
-                                dragTransition: {
-                                  bounceStiffness: 10000,
-                                  bounceDamping: 100,
-                                },
-                                onDragStart: () => {
-                                  selectCard(card.id);
-                                  useGameStore
-                                    .getState()
-                                    .setDraggingCardId(card.id);
-                                },
-                                onDrag: (_: any, info: any) => {
-                                  const x = info.point.x;
-                                  const y = info.point.y;
-                                  const element = document.elementFromPoint(
-                                    x,
-                                    y
-                                  );
-                                  const cellData = element
-                                    ?.closest("[data-cell-index]")
-                                    ?.getAttribute("data-cell-index");
-                                  if (cellData) {
-                                    const [r, c] = cellData
-                                      .split("-")
-                                      .map(Number);
+                          dragProps:
+                            isMyTurn && isInteractive
+                              ? {
+                                  drag: true,
+                                  dragSnapToOrigin: true,
+                                  dragElastic: 0,
+                                  dragTransition: {
+                                    bounceStiffness: 10000,
+                                    bounceDamping: 100,
+                                  },
+                                  onDragStart: () => {
+                                    selectCard(card.id);
                                     useGameStore
                                       .getState()
-                                      .setHoveredCell({ row: r, col: c });
-                                  } else {
+                                      .setDraggingCardId(card.id);
+                                  },
+                                  onDrag: (_: any, info: any) => {
+                                    const x = info.point.x;
+                                    const y = info.point.y;
+                                    const element = document.elementFromPoint(
+                                      x,
+                                      y
+                                    );
+                                    const cellData = element
+                                      ?.closest("[data-cell-index]")
+                                      ?.getAttribute("data-cell-index");
+                                    if (cellData) {
+                                      const [r, c] = cellData
+                                        .split("-")
+                                        .map(Number);
+                                      useGameStore
+                                        .getState()
+                                        .setHoveredCell({ row: r, col: c });
+                                    } else {
+                                      useGameStore
+                                        .getState()
+                                        .setHoveredCell(null);
+                                    }
+                                  },
+                                  onDragEnd: () => {
+                                    const { hoveredCell, placeCard } =
+                                      useGameStore.getState();
+                                    if (hoveredCell) {
+                                      placeCard(
+                                        hoveredCell.row,
+                                        hoveredCell.col
+                                      );
+                                    }
+                                    useGameStore
+                                      .getState()
+                                      .setDraggingCardId(null);
                                     useGameStore
                                       .getState()
                                       .setHoveredCell(null);
-                                  }
-                                },
-                                onDragEnd: () => {
-                                  const { hoveredCell, placeCard } =
-                                    useGameStore.getState();
-                                  if (hoveredCell) {
-                                    placeCard(hoveredCell.row, hoveredCell.col);
-                                  }
-                                  useGameStore
-                                    .getState()
-                                    .setDraggingCardId(null);
-                                  useGameStore.getState().setHoveredCell(null);
-                                },
-                                whileDrag: { scale: 1.1, zIndex: 1000 },
-                              }
-                            : undefined,
+                                  },
+                                  whileDrag: { scale: 1.1, zIndex: 1000 },
+                                }
+                              : undefined,
                         } as any
                       }
-                      owner={ownerId}
-                      onClick={() => isMyTurn && selectCard(card.id)}
+                      owner={displayOwner}
+                      onClick={() =>
+                        isMyTurn && isInteractive && selectCard(card.id)
+                      }
                       isSelected={isSelected && !isAnyCardDragging}
                       isPlaced={false}
                       isDragging={isDraggingThisCard}

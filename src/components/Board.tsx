@@ -54,10 +54,12 @@ const BoardCell = ({
         isLastMove && "ring-2 ring-yellow-400/50",
         isHovered && !cell.card && "ring-2 ring-blue-500 bg-blue-500/20"
       )}
-      onClick={() => placeCard(rIndex, cIndex)}
-      initial={showAnimation ? { opacity: 0, scale: 0.8 } : false}
-      animate={showAnimation ? { opacity: 1, scale: 1 } : false}
-      transition={showAnimation ? { delay: (rIndex * 3 + cIndex) * 0.05 } : { duration: 0 }}
+      transition={
+        showAnimation
+          ? { delay: (rIndex * 3 + cIndex) * 0.05 }
+          : { duration: 0 }
+      }
+      onClick={() => placeCard(cell.row, cell.col)}
     >
       {cell.card ? (
         <Card
@@ -86,9 +88,13 @@ const BoardCell = ({
 export const Board = ({
   showCardPlaceAnimation = true,
   showBoardEffect = true,
+  isFlipped = false,
+  swapOwners = false,
 }: {
   showCardPlaceAnimation?: boolean;
   showBoardEffect?: boolean;
+  isFlipped?: boolean;
+  swapOwners?: boolean;
 }) => {
   // Use selective subscriptions to prevent unnecessary re-renders
   const board = useGameStore((state) => state.board);
@@ -97,6 +103,13 @@ export const Board = ({
   const mechanic = useGameStore((state) => state.mechanic);
   const phase = useGameStore((state) => state.phase);
   const isGameOver = phase === "game_over";
+
+  // Transform Board for POV
+  // If isFlipped, we reverse rows and cols.
+  // Note: cell.row/cell.col properties remain LOGICAL, so click handler works.
+  const displayBoard = isFlipped
+    ? [...board].map((row) => [...row].reverse()).reverse()
+    : board;
 
   // Calculate if we are in the first 2 turns (<= 4 cards placed)
   const occupiedCount = board.flat().filter((cell) => cell.card).length;
@@ -193,17 +206,27 @@ export const Board = ({
           />
         )}
         <div className="grid grid-cols-3 gap-1 lg:gap-4 relative z-10">
-          {board.map((row, rIndex) =>
+          {displayBoard.map((row, rIndex) =>
             row.map((cell, cIndex) => {
               const isLastMove =
-                lastMove?.row === rIndex && lastMove?.col === cIndex;
+                lastMove?.row === cell.row && lastMove?.col === cell.col;
 
               return (
                 <BoardCell
                   key={`${rIndex}-${cIndex}`}
                   rIndex={rIndex}
                   cIndex={cIndex}
-                  cell={cell}
+                  cell={{
+                    ...cell,
+                    // Swap visual owner if needed (P2 looking at P2 card sees Blue)
+                    owner: swapOwners
+                      ? cell.owner === "player1"
+                        ? "player2"
+                        : cell.owner === "player2"
+                        ? "player1"
+                        : cell.owner
+                      : cell.owner,
+                  }}
                   isLastMove={isLastMove}
                   isFirstTwoTurns={isFirstTwoTurns}
                   mechanic={mechanic}
