@@ -2,7 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Info, LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useOnlineGameLogic } from "../../lib/useOnlineGameLogic";
 import { useEffect, useMemo, useState } from "react";
 import { Board } from "../../components/Board";
 import { BoardIntroAnimation } from "../../components/BoardIntroAnimation";
@@ -17,6 +18,7 @@ import { SwapAnimationOverlay } from "../../components/SwapAnimationOverlay";
 import { useComputerAI } from "../../lib/useComputerAI";
 import { cn } from "../../lib/utils";
 import { useGameStore } from "../../store/useGameStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import { useGauntletStore } from "../../store/useGauntletStore";
 import { useCardStore } from "../../store/useCardStore";
 import { useDeckStore } from "../../store/useDeckStore";
@@ -77,6 +79,10 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
 });
 
 export default function GamePage() {
+  const searchParams = useSearchParams();
+  const isOnline = searchParams.get("mode") === "online";
+  useOnlineGameLogic();
+
   const [showInfo, setShowInfo] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showMechanicModal, setShowMechanicModal] = useState(false);
@@ -337,7 +343,7 @@ export default function GamePage() {
 
   // Use AI Hook with Pause
   useComputerAI({
-    isPaused: showBoardIntro || showBossIntro,
+    isPaused: showBoardIntro || showBossIntro || isOnline,
     rank: isGauntletMode
       ? gauntletRank
       : configMode === "training"
@@ -381,15 +387,24 @@ export default function GamePage() {
   useEffect(() => {
     // Always start game if in Gauntlet mode to ensure correct opponent name/config
     // Or if hand is empty (standard flow)
-    if (isGauntletMode || player1.hand.length === 0) {
+    if ((isGauntletMode || player1.hand.length === 0) && !isOnline) {
       startGame();
     }
   }, []);
+
+  const user = useAuthStore((state) => state.user);
+  const canInteract =
+    !isOnline ||
+    (currentPlayerId === "player1" && player1.id === user?.id) ||
+    (currentPlayerId === "player2" && player2.id === user?.id);
 
   const isMyTurn = currentPlayerId === "player1";
 
   return (
     <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
+      {isOnline && !canInteract && (
+        <div className="absolute inset-0 z-40 bg-transparent cursor-not-allowed" />
+      )}
       {loadingMessage && <LoadingOverlay message={loadingMessage} />}
 
       <GauntletRewardModal

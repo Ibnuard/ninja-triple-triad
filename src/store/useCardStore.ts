@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "../lib/supabase";
 import { Card, CardStats, ElementType, CardRarity } from "../types/game";
+import { useAuthStore } from "./useAuthStore";
 
 interface CardState {
   cards: Card[];
@@ -28,6 +29,12 @@ export const useCardStore = create<CardState>((set, get) => ({
   isLoading: false,
   error: null,
   fetchCards: async () => {
+    // Skip fetching if not logged in (Guest Mode) to avoid RLS warnings
+    // The game will fallback to local CARD_POOL
+    if (!useAuthStore.getState().user) {
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const { data, error } = await supabase

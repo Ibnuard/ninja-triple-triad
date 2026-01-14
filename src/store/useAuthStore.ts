@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "../lib/supabase";
 import { User } from "@supabase/supabase-js";
+import { useCardStore } from "./useCardStore";
 
 interface UserProfile {
   id: string;
@@ -8,6 +9,9 @@ interface UserProfile {
   full_name?: string;
   avatar_url?: string;
   coins: number;
+  rank_points?: number;
+  wins?: number;
+  losses?: number;
 }
 
 interface AuthState {
@@ -22,6 +26,7 @@ interface AuthState {
   initialize: () => void;
   refreshProfile: () => Promise<void>;
   addCoins: (amount: number) => Promise<void>;
+  verifyOnboarding: (userId: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -55,11 +60,56 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user: null, profile: null });
   },
 
+  verifyOnboarding: async (userId: string) => {
+    // Check if cards are loaded
+    let allCards = useCardStore.getState().cards;
+    if (allCards.length === 0) {
+      await useCardStore.getState().fetchCards();
+      allCards = useCardStore.getState().cards;
+    }
+
+    if (allCards.length === 0) {
+      console.error("Cannot onboard: Card pool is empty.");
+      return;
+    }
+
+    // Pick 5 random cards (preferably common)
+    const commons = allCards.filter((c) => c.rarity === "common" || !c.rarity);
+    const pool = commons.length >= 5 ? commons : allCards;
+
+    // Deterministic or Random? Random for starter.
+    const starterPack: string[] = [];
+    const poolCopy = [...pool];
+    for (let i = 0; i < 5; i++) {
+      if (poolCopy.length === 0) break;
+      const idx = Math.floor(Math.random() * poolCopy.length);
+      starterPack.push(poolCopy[idx].id);
+      poolCopy.splice(idx, 1);
+    }
+
+    console.log("Granting Starter Pack:", starterPack);
+    const { success, error } = await useCardStore
+      .getState()
+      .addStarterPack(userId, starterPack);
+
+    if (success) {
+      // Update local profile
+      set((state) => ({
+        profile: state.profile
+          ? { ...state.profile, is_onboarded: true }
+          : null,
+      }));
+    } else {
+      console.error("Failed to add starter pack:", error);
+    }
+  },
+
   refreshProfile: async () => {
     const { user } = get();
     if (!user) return;
 
     try {
+      let finalProfile: UserProfile | null = null;
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -70,32 +120,54 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // PGRST116: JSON object requested, multiple (or no) rows returned
         if (error.code === "PGRST116") {
           console.log("Profile missing (legacy user), creating one...");
+
+          // Use Upsert to handle race conditions safely
           const { data: newProfile, error: createError } = await supabase
             .from("profiles")
-            .insert({
-              id: user.id,
-              full_name: user.user_metadata?.full_name,
-              avatar_url: user.user_metadata?.avatar_url,
-              is_onboarded: false,
-              coins: 0,
-            })
+            .upsert(
+              {
+                id: user.id,
+                full_name: user.user_metadata?.full_name,
+                avatar_url: user.user_metadata?.avatar_url,
+                is_onboarded: false,
+                coins: 0,
+              },
+              { onConflict: "id", ignoreDuplicates: true }
+            )
             .select()
             .single();
 
           if (createError) {
             console.error("Error creating profile:", createError);
-            return;
+            // Try to fetch again in case it was created concurrently
+            const { data: retryData } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", user.id)
+              .single();
+            if (retryData) finalProfile = retryData;
+          } else if (newProfile) {
+            finalProfile = newProfile;
+          } else {
+            // Duplicate ignored (upsert returned null). Fetch existing.
+            const { data: existing } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", user.id)
+              .single();
+            finalProfile = existing;
           }
-
-          set({ profile: newProfile });
+        } else {
+          console.error("Error fetching profile:", error);
           return;
         }
-
-        console.error("Error fetching profile:", error);
-        return;
+      } else {
+        finalProfile = data;
       }
 
-      set({ profile: data });
+      if (finalProfile) {
+        set({ profile: finalProfile });
+      }
     } catch (error) {
       console.error("Error refreshing profile:", error);
     }
@@ -125,7 +197,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       const user = session?.user ?? null;
-      set({ user, loading: !!user, initialized: true }); // Keep loading true if user exists to wait for profile
+      set({ user, loading: !!user, initialized: true });
 
       if (user) {
         get()
@@ -139,8 +211,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Listen for auth changes
     supabase.auth.onAuthStateChange((event, session) => {
       const user = session?.user ?? null;
-      // Only trigger state updates if user ID changes to avoid loops
       const currentUser = get().user;
+
       if (user?.id !== currentUser?.id) {
         set({ user, loading: !!user });
         if (user) {
@@ -151,7 +223,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({ profile: null, loading: false });
         }
       } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        // Refresh profile on explicit sign in just in case
         if (user) get().refreshProfile();
       }
     });
