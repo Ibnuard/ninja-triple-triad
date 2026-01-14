@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 import React from "react";
 import { CardListModal } from "../components/CardListModal";
-import { StarterPackModal } from "../components/StarterPackModal"; // Added this import
+import { StarterPackModal } from "../components/StarterPackModal";
+import { BattleModal } from "../components/BattleModal";
 import { UserProfile } from "../components/UserProfile";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { type Engine } from "@tsparticles/engine";
@@ -31,13 +32,20 @@ import { loadSlim } from "@tsparticles/slim";
 export default function Home() {
   const { language, setLanguage } = useSettingsStore();
   const t = useTranslation().home;
-  const { user, profile, loading, signInWithGithub, signInWithGoogle, signOut } =
-    useAuthStore();
+  const {
+    user,
+    profile,
+    loading,
+    signInWithGithub,
+    signInWithGoogle,
+    signOut,
+  } = useAuthStore();
   const { fetchUserCards } = useCardStore();
   const [isMounted, setIsMounted] = useState(false);
   const [pInit, setPInit] = useState(false);
   const [showCardList, setShowCardList] = useState(false);
   const [showMyCollection, setShowMyCollection] = useState(false);
+  const [showBattleModal, setShowBattleModal] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -114,22 +122,12 @@ export default function Home() {
 
   const menuItems = [
     {
-      href: "/single-player",
-      label: t.singlePlayer,
-      description: t.singlePlayerDesc,
+      onClick: () => setShowBattleModal(true),
+      label: t.battle,
+      description: t.battleDesc,
       icon: Sword,
       color: "from-red-600 to-red-900",
       shadow: "shadow-red-900/40",
-      size: "large",
-    },
-    {
-      href: "/online-battle",
-      label: t.onlineBattle,
-      description: t.onlineBattleDesc,
-      icon: Globe,
-      color: "from-blue-600 to-blue-900",
-      shadow: "shadow-blue-900/40",
-      size: "medium",
     },
     {
       onClick: () => setShowMyCollection(true),
@@ -138,7 +136,6 @@ export default function Home() {
       icon: Layers,
       color: "from-emerald-600 to-emerald-900",
       shadow: "shadow-emerald-900/40",
-      size: "small",
     },
     {
       href: "/shop",
@@ -147,7 +144,6 @@ export default function Home() {
       icon: ShoppingBag,
       color: "from-yellow-500 to-yellow-700",
       shadow: "shadow-yellow-900/40",
-      size: "small",
     },
     {
       href: "/how-to-play",
@@ -156,7 +152,6 @@ export default function Home() {
       icon: BookOpen,
       color: "from-amber-500 to-amber-700",
       shadow: "shadow-amber-900/40",
-      size: "small",
     },
   ];
 
@@ -251,7 +246,7 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="text-center mb-8 md:mb-16 relative group"
+          className="text-center mb-6 md:mb-8 relative group"
         >
           {/* Shuriken Decorations */}
           <motion.div
@@ -281,7 +276,7 @@ export default function Home() {
           {/* Subtle Glow Behind Title */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-24 md:w-64 md:h-32 bg-red-600/20 blur-[40px] md:blur-[60px] rounded-full pointer-events-none" />
 
-          <h1 className="text-5xl md:text-9xl font-black italic tracking-tighter leading-none select-none">
+          <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter leading-none select-none">
             <span className="block text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
               TRIPLE
             </span>
@@ -289,7 +284,7 @@ export default function Home() {
               TRIAD
             </span>
           </h1>
-          <div className="mt-2 md:mt-4 flex items-center justify-center gap-3">
+          <div className="mt-2 md:mt-3 flex items-center justify-center gap-3">
             <div className="h-px w-6 md:w-8 bg-red-600/50" />
             <p className="text-[8px] md:text-sm font-black tracking-[0.3em] md:tracking-[0.6em] text-red-500 uppercase italic">
               {t.subtitle}
@@ -323,19 +318,14 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="flex flex-col gap-2.5 md:gap-3 max-w-2xl mx-auto w-full">
               {menuItems.map((item, idx) => (
                 <motion.div
                   key={item.label}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 + idx * 0.1, duration: 0.5 }}
-                  className={cn(
-                    "group",
-                    item.size === "large" ? "md:col-span-4" : 
-                    item.size === "medium" ? "md:col-span-2" : 
-                    "md:col-span-2"
-                  )}
+                  className="w-full"
                 >
                   {item.href ? (
                     <Link href={item.href} className="block w-full h-full">
@@ -370,6 +360,12 @@ export default function Home() {
         showOwnedOnly={true}
       />
 
+      {/* Battle Modal */}
+      <BattleModal
+        isOpen={showBattleModal}
+        onClose={() => setShowBattleModal(false)}
+      />
+
       {/* Onboarding Modal */}
       <StarterPackModal isOpen={!!user} />
 
@@ -394,19 +390,15 @@ export default function Home() {
   );
 }
 
-function MenuCard({
-  item,
-}: {
-  item: any;
-}) {
+function MenuCard({ item }: { item: any }) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-white/10 transition-all duration-500 w-full h-full min-h-[64px] md:min-h-[120px]",
+        "relative overflow-hidden rounded-xl border border-white/10 transition-all duration-500 w-full",
         "bg-gradient-to-br from-white/5 to-transparent hover:to-white/10",
-        "group-hover:border-white/20 group-hover:scale-[1.02] active:scale-[0.98]",
+        "group-hover:border-white/20 group-hover:scale-[1.01] active:scale-[0.99]",
         "group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]",
-        "flex flex-row md:flex-col items-center md:items-stretch justify-start md:justify-between p-3 md:p-6 gap-4 md:gap-0"
+        "flex flex-row items-center justify-start p-3 md:p-4 gap-3 md:gap-4"
       )}
     >
       {/* Hover Background Accent */}
@@ -418,40 +410,43 @@ function MenuCard({
       />
 
       {/* Large Background Icon */}
-      <div className="absolute -right-2 -bottom-2 md:-right-4 md:-bottom-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-700 group-hover:scale-125 group-hover:-rotate-12 pointer-events-none">
-        <item.icon className="w-20 h-20 md:w-32 md:h-32 text-white" />
+      <div className="absolute -right-3 -bottom-3 opacity-[0.02] group-hover:opacity-[0.05] transition-all duration-700 group-hover:scale-110 pointer-events-none">
+        <item.icon className="w-24 h-24 md:w-32 md:h-32 text-white" />
       </div>
 
-      <div className="flex items-center md:items-start justify-between relative z-10">
+      {/* Icon Container */}
+      <div className="flex-shrink-0 relative z-10">
         <div
           className={cn(
-            "p-2 md:p-3 rounded-xl bg-black/60 border border-white/10 group-hover:scale-110 transition-transform duration-500 shadow-xl",
+            "p-2.5 md:p-3 rounded-xl bg-black/60 border border-white/10 group-hover:scale-110 transition-transform duration-500 shadow-xl",
             item.shadow
           )}
         >
           <item.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
         </div>
-
-        <div className="hidden md:flex items-center justify-center group-hover:translate-x-1 transition-transform">
-          <div
-            className={cn(
-              "w-2 h-2 rounded-full",
-              item.color.split(" ")[0].replace("from-", "bg-"),
-              "shadow-[0_0_10px_currentColor]"
-            )}
-          />
-        </div>
       </div>
 
-      <div className="relative z-10 md:mt-4">
+      {/* Text Content */}
+      <div className="flex-1 relative z-10 min-w-0">
         <h3 className="font-black text-sm md:text-lg tracking-wider uppercase italic text-white transition-colors group-hover:text-red-500">
           {item.label}
         </h3>
         {item.description && (
-          <p className="hidden md:block text-[8px] md:text-xs font-medium text-gray-500 mt-0.5 md:mt-1 line-clamp-1 group-hover:text-gray-300 transition-colors">
+          <p className="text-[10px] md:text-xs font-medium text-gray-500 mt-0.5 md:mt-1 line-clamp-1 group-hover:text-gray-300 transition-colors">
             {item.description}
           </p>
         )}
+      </div>
+
+      {/* Arrow Indicator */}
+      <div className="flex-shrink-0 relative z-10 flex items-center justify-center group-hover:translate-x-1 transition-transform">
+        <div
+          className={cn(
+            "w-2 h-2 rounded-full",
+            item.color.split(" ")[0].replace("from-", "bg-"),
+            "shadow-[0_0_10px_currentColor]"
+          )}
+        />
       </div>
 
       {/* Decorative Line */}
