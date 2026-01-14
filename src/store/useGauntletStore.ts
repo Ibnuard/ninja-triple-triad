@@ -50,8 +50,8 @@ interface GauntletState {
 
 // BOSS_CONFIGS is now imported from constants/gauntlet
 
-// Helper to generate dummy boss cards
-const generateBossDeck = (rank: GauntletRank): Card[] => {
+// Helper to generate fallback boss cards (used when no deck is configured)
+const generateFallbackBossDeck = (rank: GauntletRank): Card[] => {
   let stat = 5;
   switch (rank) {
     case "Genin":
@@ -83,15 +83,13 @@ const generateBossDeck = (rank: GauntletRank): Card[] => {
   }));
 };
 
-// Populate boss decks
-Object.keys(BOSS_CONFIGS).forEach((rank) => {
-  BOSS_CONFIGS[rank as GauntletRank].deck = generateBossDeck(
-    rank as GauntletRank
-  );
-});
+// Note: Boss decks are now loaded from useBossDeckStore
+// BOSS_CONFIGS.deck will be populated at runtime from the database
+// If no deck is configured, fallback to generated deck
 
 import { useDeckStore } from "./useDeckStore";
 import { useAuthStore } from "./useAuthStore";
+import { useBossDeckStore } from "./useBossDeckStore";
 
 export const useGauntletStore = create<GauntletState>()(
   persist(
@@ -165,7 +163,7 @@ export const useGauntletStore = create<GauntletState>()(
               score: finalScore,
               isActive: false,
               isBossBattle: false,
-              winStreak: 0
+              winStreak: 0,
             });
             return { scoreAdded: 0, newRank: null };
           }
@@ -227,7 +225,7 @@ export const useGauntletStore = create<GauntletState>()(
             scoreAdded,
             newRank: null,
             coinsEarned,
-            isWinStreakBonus
+            isWinStreakBonus,
           };
         }
 
@@ -249,7 +247,7 @@ export const useGauntletStore = create<GauntletState>()(
           scoreAdded,
           newRank: nextRank !== rank ? nextRank : null,
           coinsEarned,
-          isWinStreakBonus
+          isWinStreakBonus,
         };
       },
 
@@ -258,16 +256,27 @@ export const useGauntletStore = create<GauntletState>()(
 
         if (isBossBattle) {
           const boss = BOSS_CONFIGS[rank];
+
+          // Get boss deck from store, fallback to generated deck
+          const configuredDeck = useBossDeckStore.getState().getBossDeck(rank);
+          const bossDeck =
+            configuredDeck.length === 5
+              ? configuredDeck.map((c, i) => ({
+                  ...c,
+                  id: `boss-${rank}-${i}-${Date.now()}`, // Unique ID for this battle
+                }))
+              : generateFallbackBossDeck(rank);
+
           return {
-            deck: boss.deck,
+            deck: bossDeck,
             mechanic: boss.mechanic,
             bossKey: boss.bossKey,
             bossImage: boss.image,
             activeElement:
               boss.mechanic === "random_elemental"
                 ? GAME_ELEMENTS[
-                Math.floor(Math.random() * GAME_ELEMENTS.length)
-                ]
+                    Math.floor(Math.random() * GAME_ELEMENTS.length)
+                  ]
                 : undefined,
           };
         }

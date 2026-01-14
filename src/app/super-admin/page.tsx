@@ -23,6 +23,8 @@ import { ElementType, CardRarity, Card as CardType } from "../../types/game";
 import { cn } from "../../lib/utils";
 import { ImageUpload } from "./components/ImageUpload";
 import { useShopStore, PackRule, ShopPack } from "../../store/useShopStore";
+import { BossDeckManager } from "./components/BossDeckManager";
+import { ShopPackForm } from "./components/ShopPackForm";
 
 const ELEMENTS: ElementType[] = [
   "fire",
@@ -57,7 +59,9 @@ export default function SuperAdminPage() {
     isInit: false,
     cp: 0,
   });
-  const [activeTab, setActiveTab] = useState<"cards" | "shop">("cards");
+  const [activeTab, setActiveTab] = useState<"cards" | "shop" | "boss">(
+    "cards"
+  );
 
   // Shop Manager State
   const {
@@ -193,71 +197,58 @@ export default function SuperAdminPage() {
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handlePackSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePackSubmit = async (
+    data: Omit<ShopPack, "id" | "created_at">
+  ) => {
     setIsSubmitting(true);
-    let result;
-    if (editingPackId) {
-      result = await updateShopPack(editingPackId, packFormData);
-    } else {
-      result = await addPack(packFormData);
+    try {
+      if (editingPackId) {
+        await updateShopPack(editingPackId, data);
+      } else {
+        await addPack(data);
+      }
+      // Reset form
+      setEditingPackId(null);
+      setPackFormData({
+        name: "New Pack",
+        description: "Pack description",
+        price: 100,
+        icon: "Zap",
+        color: "from-blue-500 to-blue-700",
+        config: [],
+        is_active: true,
+      });
+      fetchPacks();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
-    if (result.success) {
-      setSuccess(true);
-      if (!editingPackId)
-        setPackFormData({ ...packFormData, name: "New Pack" });
-    } else {
-      setError(result.error || "Failed to save pack");
-    }
-    setIsSubmitting(false);
   };
 
-  const addRule = () => {
+  const handleEditPack = (pack: ShopPack) => {
+    setEditingPackId(pack.id);
     setPackFormData({
-      ...packFormData,
-      config: [
-        ...packFormData.config,
-        { type: "random", value: null, count: 1 },
-      ],
+      name: pack.name,
+      description: pack.description,
+      price: pack.price,
+      icon: pack.icon,
+      color: pack.color,
+      config: pack.config,
+      is_active: pack.is_active,
     });
   };
 
-  const updateRule = (index: number, rule: Partial<PackRule>) => {
-    const newConfig = [...packFormData.config];
-    const currentRule = newConfig[index];
-
-    // Set defaults when type changes
-    if (rule.type && rule.type !== currentRule.type) {
-      let defaultValue: any = null;
-      switch (rule.type) {
-        case "rarity":
-          defaultValue = "common";
-          break;
-        case "element":
-          defaultValue = "fire";
-          break;
-        case "cp_range":
-          defaultValue = [0, 1000];
-          break;
-        case "specific_card":
-          defaultValue = "";
-          break;
-        case "random":
-          defaultValue = null;
-          break;
-      }
-      newConfig[index] = { ...currentRule, ...rule, value: defaultValue };
-    } else {
-      newConfig[index] = { ...currentRule, ...rule };
-    }
-
-    setPackFormData({ ...packFormData, config: newConfig });
-  };
-
-  const removeRule = (index: number) => {
+  const handleCancelPackEdit = () => {
+    setEditingPackId(null);
     setPackFormData({
-      ...packFormData,
-      config: packFormData.config.filter((_, i) => i !== index),
+      name: "New Pack",
+      description: "Pack description",
+      price: 100,
+      icon: "Zap",
+      color: "from-blue-500 to-blue-700",
+      config: [],
+      is_active: true,
     });
   };
 
@@ -361,11 +352,22 @@ export default function SuperAdminPage() {
             >
               Shop Manager
             </button>
+            <button
+              onClick={() => setActiveTab("boss")}
+              className={cn(
+                "text-[10px] font-black uppercase tracking-widest transition-colors px-3 py-1.5 rounded-lg",
+                activeTab === "boss"
+                  ? "text-red-500 bg-red-500/10 border border-red-500/30"
+                  : "text-gray-500 hover:text-white hover:bg-white/5"
+              )}
+            >
+              Boss Decks
+            </button>
           </div>
         </header>
 
         <AnimatePresence mode="wait">
-          {activeTab === "cards" ? (
+          {activeTab === "cards" && (
             <motion.div
               key="cards-tab"
               initial={{ opacity: 0, y: 10 }}
@@ -757,7 +759,8 @@ export default function SuperAdminPage() {
                 </div>
               </div>
             </motion.div>
-          ) : (
+          )}
+          {activeTab === "shop" && (
             <motion.div
               key="shop-tab"
               initial={{ opacity: 0, y: 10 }}
@@ -797,16 +800,7 @@ export default function SuperAdminPage() {
                     <div
                       key={pack.id}
                       onClick={() => {
-                        setEditingPackId(pack.id);
-                        setPackFormData({
-                          name: pack.name,
-                          description: pack.description,
-                          price: pack.price,
-                          icon: pack.icon,
-                          color: pack.color,
-                          config: pack.config,
-                          is_active: pack.is_active,
-                        });
+                        handleEditPack(pack);
                       }}
                       className={cn(
                         "group p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between",
@@ -842,236 +836,30 @@ export default function SuperAdminPage() {
                 </div>
               </div>
 
-              {/* Pack Form */}
-              <div className="space-y-6 bg-gray-900/30 border border-white/5 p-6 rounded-[2rem]">
-                <h2 className="text-lg font-black uppercase italic">
-                  {editingPackId
-                    ? "Edit Pack Configuration"
-                    : "New Pack Protocol"}
-                </h2>
-
-                <form onSubmit={handlePackSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
-                        Pack Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={packFormData.name}
-                        onChange={(e) =>
-                          setPackFormData({
-                            ...packFormData,
-                            name: e.target.value,
-                          })
-                        }
-                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-red-500/50"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
-                        Price (Coins)
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        value={packFormData.price}
-                        onChange={(e) =>
-                          setPackFormData({
-                            ...packFormData,
-                            price: parseInt(e.target.value) || 0,
-                          })
-                        }
-                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-red-500/50"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
-                      Description
-                    </label>
-                    <textarea
-                      value={packFormData.description}
-                      onChange={(e) =>
-                        setPackFormData({
-                          ...packFormData,
-                          description: e.target.value,
-                        })
-                      }
-                      className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-red-500/50 h-20 resize-none"
-                    />
-                  </div>
-
-                  {/* Rule Builder */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">
-                        Card Generation Rules
-                      </label>
-                      <button
-                        type="button"
-                        onClick={addRule}
-                        className="flex items-center gap-1 text-[10px] font-black uppercase text-red-500 hover:text-red-400"
-                      >
-                        <Plus className="w-3 h-3" /> Add Rule
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {packFormData.config.map((rule, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-3 bg-black/40 p-3 rounded-xl border border-white/5"
-                        >
-                          <div className="flex-1 grid grid-cols-3 gap-3">
-                            <select
-                              value={rule.type}
-                              onChange={(e) =>
-                                updateRule(idx, { type: e.target.value as any })
-                              }
-                              className="bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-black uppercase"
-                            >
-                              <option value="random">Random</option>
-                              <option value="rarity">Rarity</option>
-                              <option value="cp_range">CP Range</option>
-                              <option value="element">Element</option>
-                              <option value="specific_card">
-                                Specific Card
-                              </option>
-                            </select>
-
-                            <div className="flex items-center gap-2">
-                              <label className="text-[8px] text-gray-600 font-black uppercase">
-                                Count
-                              </label>
-                              <input
-                                type="number"
-                                min="1"
-                                value={rule.count}
-                                onChange={(e) =>
-                                  updateRule(idx, {
-                                    count: parseInt(e.target.value) || 1,
-                                  })
-                                }
-                                className="w-12 bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold"
-                              />
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              {rule.type === "rarity" && (
-                                <select
-                                  value={rule.value || "common"}
-                                  onChange={(e) =>
-                                    updateRule(idx, { value: e.target.value })
-                                  }
-                                  className="w-full bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-black uppercase"
-                                >
-                                  {RARITIES.map((r) => (
-                                    <option key={r} value={r}>
-                                      {r}
-                                    </option>
-                                  ))}
-                                </select>
-                              )}
-                              {rule.type === "element" && (
-                                <select
-                                  value={rule.value || "fire"}
-                                  onChange={(e) =>
-                                    updateRule(idx, { value: e.target.value })
-                                  }
-                                  className="w-full bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-black uppercase"
-                                >
-                                  {ELEMENTS.map((el) => (
-                                    <option key={el} value={el}>
-                                      {el}
-                                    </option>
-                                  ))}
-                                </select>
-                              )}
-                              {rule.type === "cp_range" && (
-                                <div className="flex items-center gap-1">
-                                  <input
-                                    type="number"
-                                    placeholder="Min"
-                                    value={rule.value?.[0] || 0}
-                                    onChange={(e) =>
-                                      updateRule(idx, {
-                                        value: [
-                                          parseInt(e.target.value) || 0,
-                                          rule.value?.[1] || 1000,
-                                        ],
-                                      })
-                                    }
-                                    className="w-14 bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px]"
-                                  />
-                                  <span className="text-gray-600">-</span>
-                                  <input
-                                    type="number"
-                                    placeholder="Max"
-                                    value={rule.value?.[1] || 1000}
-                                    onChange={(e) =>
-                                      updateRule(idx, {
-                                        value: [
-                                          rule.value?.[0] || 0,
-                                          parseInt(e.target.value) || 1000,
-                                        ],
-                                      })
-                                    }
-                                    className="w-14 bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px]"
-                                  />
-                                </div>
-                              )}
-                              {rule.type === "specific_card" && (
-                                <select
-                                  value={rule.value || ""}
-                                  onChange={(e) =>
-                                    updateRule(idx, { value: e.target.value })
-                                  }
-                                  className="w-full bg-gray-800 border border-white/10 rounded-lg px-2 py-1 text-[10px] font-black uppercase"
-                                >
-                                  <option value="">Select Card</option>
-                                  {cards.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                      {c.name}
-                                    </option>
-                                  ))}
-                                </select>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeRule(idx)}
-                            className="p-1.5 text-gray-600 hover:text-red-500 transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={cn(
-                      "w-full bg-red-600 hover:bg-red-500 text-white font-black italic uppercase py-4 rounded-2xl transition-all shadow-xl shadow-red-900/20 flex items-center justify-center gap-2",
-                      isSubmitting && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    {isSubmitting ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Save className="w-5 h-5" />
-                        {editingPackId ? "Update Pack" : "Create Pack"}
-                      </>
-                    )}
-                  </button>
-                </form>
+              {/* Form Section */}
+              <div>
+                <ShopPackForm
+                  key={editingPackId || "new"} // Force re-render when switching packs
+                  initialData={
+                    editingPackId
+                      ? { ...packFormData, id: editingPackId, created_at: "" }
+                      : undefined
+                  }
+                  onSubmit={handlePackSubmit}
+                  onCancel={handleCancelPackEdit}
+                  isSubmitting={isSubmitting}
+                />
               </div>
+            </motion.div>
+          )}
+          {activeTab === "boss" && (
+            <motion.div
+              key="boss-tab"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              <BossDeckManager />
             </motion.div>
           )}
         </AnimatePresence>
