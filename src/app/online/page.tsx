@@ -70,9 +70,19 @@ export default function OnlinePage() {
     }
   }, [user, fetchUserCards, loadDeck]);
 
-  // Matchmaking State Reset on Mount
+  // Matchmaking State Reset on Mount & Unmount with Ready Check
+  const [isReady, setIsReady] = useState(false);
+
   useEffect(() => {
+    // Reset immediately on mount to clear stale state
     useMatchmakingStore.getState().reset();
+    setIsReady(true); // Only start listening to redirect after reset
+
+    // Also reset on unmount to prevent state leakage
+    return () => {
+      useMatchmakingStore.getState().reset();
+      setIsReady(false);
+    };
   }, []);
 
   // Timer
@@ -90,10 +100,10 @@ export default function OnlinePage() {
 
   // Match Found Redirect
   useEffect(() => {
-    if (status === "matched" && matchId) {
+    if (isReady && status === "matched" && matchId) {
       router.push(`/game?mode=online&matchId=${matchId}`);
     }
-  }, [status, matchId, router]);
+  }, [status, matchId, router, isReady]);
 
   // Deck Management Logic
   useEffect(() => {
@@ -163,13 +173,25 @@ export default function OnlinePage() {
               <p className="text-sm text-gray-400 uppercase tracking-wider">
                 Mode: Ranked
               </p>
-              <div className="mt-4 flex gap-1 justify-center opacity-50">
-                {selectedDeck.map((c: any) => (
-                  <div
-                    key={c.id}
-                    className="w-8 h-10 bg-gray-800 rounded border border-white/10"
-                  />
-                ))}
+              <div className="mt-4 flex gap-1 justify-center">
+                {selectedDeck.length > 0 ? (
+                  selectedDeck.map((c: any) => (
+                    <div
+                      key={c.id}
+                      className="w-10 h-14 bg-gray-800 rounded border border-white/10 overflow-hidden"
+                    >
+                      <img
+                        src={c.image}
+                        alt={c.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <span className="text-xs text-gray-600 italic">
+                    No cards selected
+                  </span>
+                )}
               </div>
             </div>
 

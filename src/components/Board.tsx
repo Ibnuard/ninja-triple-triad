@@ -36,6 +36,7 @@ const BoardCell = ({
   mechanic: any;
   placeCard: (r: number, c: number) => void;
   showAnimation?: boolean;
+  onCardPlaced?: (row: number, col: number, cardId: string, card: any) => void;
 }) => {
   const isHovered = useGameStore(
     (state) =>
@@ -90,19 +91,42 @@ export const Board = ({
   showBoardEffect = true,
   isFlipped = false,
   swapOwners = false,
+  onCardPlaced,
 }: {
   showCardPlaceAnimation?: boolean;
   showBoardEffect?: boolean;
   isFlipped?: boolean;
   swapOwners?: boolean;
+  onCardPlaced?: (row: number, col: number, cardId: string, card: any) => void;
 }) => {
   // Use selective subscriptions to prevent unnecessary re-renders
   const board = useGameStore((state) => state.board);
-  const placeCard = useGameStore((state) => state.placeCard);
+  const storePlaceCard = useGameStore((state) => state.placeCard);
   const lastMove = useGameStore((state) => state.lastMove);
   const mechanic = useGameStore((state) => state.mechanic);
   const phase = useGameStore((state) => state.phase);
+  const selectedCardId = useGameStore((state) => state.selectedCardId);
+  const currentPlayerId = useGameStore((state) => state.currentPlayerId);
+  const player1 = useGameStore((state) => state.player1);
+  const player2 = useGameStore((state) => state.player2);
   const isGameOver = phase === "game_over";
+
+  // Wrapped placeCard that also broadcasts for online
+  const placeCard = (row: number, col: number) => {
+    // Get the selected card before placing (for broadcast)
+    const currentPlayer = currentPlayerId === "player1" ? player1 : player2;
+    const selectedCard = currentPlayer.hand.find(
+      (c) => c.id === selectedCardId
+    );
+
+    // Place card locally
+    storePlaceCard(row, col);
+
+    // Broadcast for online
+    if (onCardPlaced && selectedCard && selectedCardId) {
+      onCardPlaced(row, col, selectedCardId, selectedCard);
+    }
+  };
 
   // Transform Board for POV
   // If isFlipped, we reverse rows and cols.

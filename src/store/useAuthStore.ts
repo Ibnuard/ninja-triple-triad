@@ -197,11 +197,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       const user = session?.user ?? null;
+      // Only set initial state
       set({ user, loading: !!user, initialized: true });
 
       if (user) {
+        // Silently refresh, butensure loading is cleared
         get()
           .refreshProfile()
+          .catch((err) => console.error(err))
           .finally(() => set({ loading: false }));
       } else {
         set({ loading: false });
@@ -213,6 +216,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const user = session?.user ?? null;
       const currentUser = get().user;
 
+      console.log("Auth State Change:", event, user?.id);
+
+      if (event === "SIGNED_OUT") {
+        set({ user: null, profile: null, loading: false });
+        return;
+      }
+
+      // If user changed (login/switch account)
       if (user?.id !== currentUser?.id) {
         set({ user, loading: !!user });
         if (user) {
@@ -222,9 +233,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         } else {
           set({ profile: null, loading: false });
         }
-      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+      }
+      // If same user, just refresh profile silently (don't toggle loading)
+      else if (
+        event === "SIGNED_IN" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "USER_UPDATED"
+      ) {
         if (user) get().refreshProfile();
       }
     });
+
+    // Timeout Guard: Force logout if loading is stuck for more than 8 seconds
+    // This handles the "infinite loading" issue on concurrent logins or network hangs
+    setTimeout(async () => {
+      if (get().loading) {
+        console.warn("Auth stuck on loading. Forcing logout safety protocol.");
+        await supabase.auth.signOut();
+        set({ user: null, profile: null, loading: false });
+        if (typeof window !== "undefined") {
+          // Clean corrupted Supabase tokens explicitly
+          Object.keys(localStorage).forEach((key) => {
+            if (key.startsWith("sb-") && key.endsWith("-auth-token")) {
+              console.log("Removing stale auth token:", key);
+              localStorage.removeItem(key);
+            }
+          });
+          window.location.reload();
+        }
+      }
+    }, 8000);
   },
 }));

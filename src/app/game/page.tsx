@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Info, LogOut } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useOnlineGameLogic } from "../../lib/useOnlineGameLogic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { Board } from "../../components/Board";
 import { BoardIntroAnimation } from "../../components/BoardIntroAnimation";
 import { BossIntroAnimation } from "../../components/BossIntroAnimation";
@@ -22,6 +22,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { useGauntletStore } from "../../store/useGauntletStore";
 import { useCardStore } from "../../store/useCardStore";
 import { useDeckStore } from "../../store/useDeckStore";
+import { useMatchmakingStore } from "../../store/useMatchmakingStore";
 import { RANK_THRESHOLDS, GauntletRank } from "../../constants/gauntlet";
 import { animate } from "framer-motion";
 import { CARD_POOL } from "../../data/cardPool";
@@ -78,11 +79,43 @@ const OPPONENT_CARDS: Card[] = Array.from({ length: 5 }).map((_, i) => {
   };
 });
 
+// Main exported component with Suspense wrapper for useSearchParams
 export default function GamePage() {
+  return (
+    <Suspense fallback={<LoadingOverlay message="Loading..." />}>
+      <GamePageContent />
+    </Suspense>
+  );
+}
+
+function GamePageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const isOnline = searchParams.get("mode") === "online";
-  useOnlineGameLogic();
   const user = useAuthStore((state) => state.user);
+
+  // State for opponent disconnection modal
+  const [showOpponentLeftModal, setShowOpponentLeftModal] = useState(false);
+
+  // Use online game logic hook - includes preparation phase tracking
+  const {
+    opponentDisconnected,
+    isConnected,
+    opponentReady,
+    myReady,
+    initError,
+  } = useOnlineGameLogic();
+
+  // Cleanup matchmaking state when leaving online game
+  useEffect(() => {
+    return () => {
+      if (isOnline) {
+        useMatchmakingStore.getState().reset();
+        // Force cleanup Game Store state to prevent "Ghost State" in next match
+        useGameStore.getState().resetGame();
+      }
+    };
+  }, [isOnline]);
 
   const {
     player1,
@@ -94,11 +127,25 @@ export default function GamePage() {
     resetGame,
     mechanic,
     draggingCardId,
+    board,
   } = useGameStore();
+
+  // Handle opponent disconnect (Placed here to access 'phase')
+  useEffect(() => {
+    // Only show modal if opponent disconnects WHILE playing or preparing
+    // If game is over, disconnection is expected/allowed.
+    if (opponentDisconnected && phase !== "game_over" && phase !== "lobby") {
+      setShowOpponentLeftModal(true);
+    }
+  }, [opponentDisconnected, phase]);
 
   const [showInfo, setShowInfo] = useState(false);
 
   const isPOVPlayer2 = isOnline && user?.id === player2.id;
+  const amIPlayer1 = !isOnline || player1?.id === user?.id;
+  const iWon =
+    (winner === "player1" && amIPlayer1) ||
+    (winner === "player2" && !amIPlayer1);
 
   // "Bottom/Left" Player (Me)
   const bottomPlayer = isPOVPlayer2 ? player2 : player1;
@@ -167,7 +214,7 @@ export default function GamePage() {
   const t = useTranslation().game;
   const { language } = useSettingsStore();
 
-  const router = useRouter();
+  // router is declared at the top of the component
 
   const generateDiverseHand = (prefix: string): Card[] => {
     const elements = GAME_ELEMENTS;
@@ -212,8 +259,8 @@ export default function GamePage() {
     element: configElement,
   } = useGameConfigStore();
 
-  const isGauntletMode = configMode === "gauntlet";
-  const isCustomMode = configMode === "custom";
+  const isGauntletMode = !isOnline && configMode === "gauntlet";
+  const isCustomMode = !isOnline && configMode === "custom";
 
   const [showRewardModal, setShowRewardModal] = useState(false);
   const { cards: allCards, userCardIds, fetchCards } = useCardStore();
@@ -423,10 +470,142 @@ export default function GamePage() {
 
   return (
     <div className="h-[100dvh] w-full bg-black text-white overflow-hidden flex flex-col relative select-none">
-      {isOnline && !canInteract && (
-        <div className="absolute inset-0 z-40 bg-transparent cursor-not-allowed" />
-      )}
+      {isOnline &&
+        !canInteract &&
+        phase !== "waiting" &&
+        phase !== "game_over" && (
+          <div className="absolute inset-0 z-40 bg-transparent cursor-not-allowed" />
+        )}
       {loadingMessage && <LoadingOverlay message={loadingMessage} />}
+
+      {/* Initialization Error Overlay */}
+      {initError && (
+        <div className="fixed inset-0 z-[101] bg-black/90 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+          <div className="bg-red-500/10 border border-red-500/50 p-8 rounded-xl max-w-md w-full backdrop-blur-md">
+            <h2 className="text-2xl font-black text-red-500 mb-4 tracking-tighter uppercase">
+              Game Error
+            </h2>
+            <p className="text-white/80 font-mono mb-8">{initError}</p>
+            <button
+              onClick={() => router.push("/online")}
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors w-full uppercase tracking-wider"
+            >
+              Return to Menu
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Opponent Left Modal */}
+      {/* Preparation Phase / Waiting UI */}
+      {isOnline && (phase === "waiting" || phase === "preparing") && (
+        <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4 font-mono">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center max-w-md w-full"
+          >
+            <div className="w-24 h-24 border-4 border-t-blue-500 border-blue-900/30 rounded-full animate-spin mb-8" />
+
+            <h2 className="text-2xl font-black text-white italic tracking-wider mb-8 uppercase text-center">
+              PREPARING BATTLEFIELD...
+            </h2>
+
+            <div className="flex flex-col gap-4 w-full bg-gray-900/50 p-6 rounded-2xl border border-white/10">
+              {/* Connection Status */}
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-sm font-bold">
+                  1. Connection Status
+                </span>
+                {isConnected ? (
+                  <span className="text-green-500 font-black text-xs uppercase flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    SECURE
+                  </span>
+                ) : (
+                  <span className="text-yellow-500 font-black text-xs uppercase flex items-center gap-2">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce" />
+                    CONNECTING...
+                  </span>
+                )}
+              </div>
+
+              {/* My Data Status */}
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-sm font-bold">
+                  2. Local Assets
+                </span>
+                {myReady ? (
+                  <span className="text-green-500 font-black text-xs uppercase flex items-center gap-2">
+                    <div className="text-green-500">✓</div>
+                    LOADED
+                  </span>
+                ) : (
+                  <span className="text-blue-500 font-black text-xs uppercase flex items-center gap-2">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                    LOADING...
+                  </span>
+                )}
+              </div>
+
+              {/* Opponent Status */}
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-sm font-bold">
+                  3. Opponent Status
+                </span>
+                {opponentReady ? (
+                  <span className="text-green-500 font-black text-xs uppercase flex items-center gap-2">
+                    <div className="text-green-500">✓</div>
+                    READY
+                  </span>
+                ) : (
+                  <span className="text-yellow-500 font-black text-xs uppercase flex items-center gap-2">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                    WAITING...
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <p className="text-gray-500 text-xs mt-6 animate-pulse text-center">
+              Game will start automatically when both players are ready...
+            </p>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Opponent Disconnected Modal */}
+      {showOpponentLeftModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90"
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-gray-900 border-2 border-red-500/30 p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm text-center"
+          >
+            <div className="text-red-500 text-5xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-black text-white mb-2">
+              Opponent Left
+            </h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Your opponent has disconnected from the match.
+            </p>
+            <button
+              onClick={() => {
+                setShowOpponentLeftModal(false);
+                resetGame();
+                router.push("/");
+              }}
+              className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors"
+            >
+              {t.exit || "Exit"}
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
 
       <GauntletRewardModal
         isOpen={showRewardModal}
@@ -794,7 +973,7 @@ export default function GamePage() {
                           activeSettings.showCardPlaceAnimation
                         }
                         showBoardEffect={activeSettings.showBoardEffect}
-                        isFlipped={isPOVPlayer2}
+                        isFlipped={false}
                         swapOwners={isPOVPlayer2}
                       />
                     </div>
@@ -862,30 +1041,30 @@ export default function GamePage() {
                             }}
                             className={cn(
                               "text-5xl md:text-6xl font-black tracking-tighter drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] italic",
-                              winner === "player1"
-                                ? "text-blue-400"
-                                : winner === "player2"
-                                ? "text-red-500"
-                                : winner === "draw"
+                              winner === "draw"
                                 ? "text-yellow-500"
-                                : "text-white"
+                                : iWon
+                                ? "text-blue-400"
+                                : "text-red-500"
                             )}
                           >
-                            {winner === "draw"
-                              ? justFinishedBoss
-                                ? t.gauntlet.rankUpFailed
-                                : t.draw
-                              : winner === "player1"
-                              ? justFinishedBoss
-                                ? t.gauntlet.bossDefeated
-                                : t.victory
-                              : winner === "player2"
-                              ? justFinishedBoss
-                                ? t.gauntlet.rankUpFailed
-                                : t.defeat
-                              : isBossBattle
-                              ? t.gauntlet.bossChallenge
-                              : t.victory}
+                            {(() => {
+                              if (winner === "draw") {
+                                return justFinishedBoss
+                                  ? t.gauntlet.rankUpFailed
+                                  : t.draw;
+                              }
+
+                              if (iWon) {
+                                return justFinishedBoss
+                                  ? t.gauntlet.bossDefeated
+                                  : t.victory;
+                              } else {
+                                return justFinishedBoss
+                                  ? t.gauntlet.rankUpFailed
+                                  : t.defeat;
+                              }
+                            })()}
                           </motion.h1>
                           {justFinishedBoss && winner !== null && (
                             <motion.p
@@ -894,7 +1073,7 @@ export default function GamePage() {
                               transition={{ delay: 1 }}
                               className="text-[10px] text-red-400 font-bold mt-2 tracking-widest uppercase"
                             >
-                              {winner === "player1"
+                              {iWon
                                 ? "You have proven your worth!"
                                 : "The Boss was too strong..."}
                             </motion.p>
@@ -925,11 +1104,10 @@ export default function GamePage() {
                             </div>
                             <div className="text-3xl font-black text-white drop-shadow-md">
                               {(() => {
-                                const board = useGameStore.getState().board;
                                 let count = 0;
                                 board.forEach((row) =>
                                   row.forEach((cell) => {
-                                    if (cell.owner === "player1") count++;
+                                    if (cell.owner === bottomOwnerId) count++;
                                   })
                                 );
                                 return count;
@@ -960,11 +1138,10 @@ export default function GamePage() {
                             </div>
                             <div className="text-3xl font-black text-white drop-shadow-md">
                               {(() => {
-                                const board = useGameStore.getState().board;
                                 let count = 0;
                                 board.forEach((row) =>
                                   row.forEach((cell) => {
-                                    if (cell.owner === "player2") count++;
+                                    if (cell.owner === topOwnerId) count++;
                                   })
                                 );
                                 return count;
@@ -1259,7 +1436,23 @@ export default function GamePage() {
                           }}
                           className="flex flex-col gap-4 w-full relative z-10"
                         >
-                          {isGauntletMode && winner === "player1" ? (
+                          {/* Online Mode - Single button to return to online menu */}
+                          {isOnline ? (
+                            <button
+                              onClick={async () => {
+                                setLoadingMessage("Returning to lobby...");
+                                await new Promise((resolve) =>
+                                  setTimeout(resolve, 500)
+                                );
+                                resetGame();
+                                useMatchmakingStore.getState().reset();
+                                router.push("/online");
+                              }}
+                              className="w-full py-3 bg-blue-500 text-white font-black text-xs tracking-[0.2em] hover:bg-blue-400 transition-all rounded-xl shadow-[0_4px_0_rgb(30,64,175)] active:translate-y-1 active:shadow-none uppercase italic"
+                            >
+                              BACK TO ONLINE MENU
+                            </button>
+                          ) : isGauntletMode && winner === "player1" ? (
                             <button
                               onClick={() => {
                                 if (pendingReward) {
@@ -1284,22 +1477,27 @@ export default function GamePage() {
                             </button>
                           )}
 
-                          <button
-                            onClick={async () => {
-                              if (isGauntletMode) {
-                                useGauntletStore.getState().endRun();
-                              }
-                              setLoadingMessage("Membersihkan battlefield...");
-                              await new Promise((resolve) =>
-                                setTimeout(resolve, 1000)
-                              );
-                              resetGame();
-                              router.push("/");
-                            }}
-                            className="w-full py-3 bg-red-600/10 text-red-500 border border-red-500/30 font-black text-xs tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all rounded-xl uppercase italic"
-                          >
-                            MENYERAH
-                          </button>
+                          {/* Hide surrender button for online mode */}
+                          {!isOnline && (
+                            <button
+                              onClick={async () => {
+                                if (isGauntletMode) {
+                                  useGauntletStore.getState().endRun();
+                                }
+                                setLoadingMessage(
+                                  "Membersihkan battlefield..."
+                                );
+                                await new Promise((resolve) =>
+                                  setTimeout(resolve, 1000)
+                                );
+                                resetGame();
+                                router.push("/");
+                              }}
+                              className="w-full py-3 bg-red-600/10 text-red-500 border border-red-500/30 font-black text-xs tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all rounded-xl uppercase italic"
+                            >
+                              MENYERAH
+                            </button>
+                          )}
                         </motion.div>
                       </motion.div>
                     </motion.div>

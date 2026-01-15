@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 import { useAuthStore } from "./useAuthStore";
 import { useDeckStore } from "./useDeckStore";
 
-type MatchStatus = "idle" | "searching" | "matched" | "error";
+type MatchStatus = "idle" | "searching" | "creating" | "matched" | "error";
 
 interface MatchmakingState {
   status: MatchStatus;
@@ -37,6 +37,17 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
         return;
       }
 
+      // FORCE SYNC DECK TO DB (Reliability Fix)
+      const currentDeck = useDeckStore.getState().selectedDeck;
+      if (currentDeck.length === 5) {
+        console.log("Syncing deck to DB before matchmaking...");
+        // We use the store's saveDeck action which handles DB update
+        await useDeckStore.getState().saveDeck(currentDeck, user.id);
+      } else {
+        set({ error: "Invalid Deck - Please select 5 cards" });
+        return;
+      }
+
       set({ status: "searching", startTime: Date.now(), error: null });
 
       // Join the matchmaking channel
@@ -67,7 +78,7 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
             });
           }
         )
-        .on("presence", { event: "sync" }, () => {
+        .on("presence", { event: "sync" }, async () => {
           const state = channel.presenceState();
           const myId = user.id;
 
@@ -92,53 +103,121 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
             const amIHost = myId < opponent.user_id;
 
             if (amIHost) {
-              console.log("I am Host. Creating match with", opponent.user_id);
+              // LOCK: Prevent double submission from multiple presence syncs
+              if (get().status === "creating" || get().status === "matched")
+                return;
+
+              console.log("I am Host. Locking match creation...");
+              set({ status: "creating" });
 
               // 1. Create match in DB
-              const myDeck = useDeckStore.getState().selectedDeck;
-              const opponentDeck = opponent.deck || []; // Should affect game logic if empty
+              const myDeck = useDeckStore
+                .getState()
+                .selectedDeck.filter((c) => c && c.id);
 
-              supabase
+              // FETCH OPPONENT DECK FROM DB (Primary Source)
+              // Retry loop max 5 attempts to handle replication latency
+              let opponentDeck: any[] = [];
+              let attempts = 0;
+
+              while (attempts < 5 && opponentDeck.length < 5) {
+                attempts++;
+                console.log(
+                  `Fetching opponent deck from DB (Attempt ${attempts})...`
+                );
+
+                const { data: oppProfile, error: dbError } = await supabase
+                  .from("profiles")
+                  .select("selected_deck")
+                  .eq("id", opponent.user_id)
+                  .single();
+
+                if (dbError) {
+                  console.error(
+                    "DB Fetch Error (Profile RLS might be issue):",
+                    dbError
+                  );
+                }
+
+                const fetchedDeck = (
+                  (oppProfile?.selected_deck as any[]) || []
+                ).filter((c: any) => c && c.id);
+
+                if (fetchedDeck.length >= 5) {
+                  opponentDeck = fetchedDeck;
+                  break;
+                }
+
+                // Wait 1s before retry
+                if (attempts < 5) await new Promise((r) => setTimeout(r, 1000));
+              }
+
+              // Fallback to presence if DB is empty (Legacy or Race Condition)
+              if (opponentDeck.length < 5) {
+                console.warn(
+                  "DB Deck fetch failed after retries. Trying presence deck as last resort..."
+                );
+                const presenceDeck = (opponent.deck || []).filter(
+                  (c: any) => c && c.id
+                );
+                if (presenceDeck.length >= 5) {
+                  opponentDeck = presenceDeck;
+                }
+              }
+
+              // Validate both decks exist before creating match
+              if (myDeck.length < 5) {
+                console.warn(
+                  "My deck is incomplete ( < 5 cards), cannot create match. Please reseave deck."
+                );
+                set({ status: "searching", error: "Invalid Deck" }); // Unlock
+                return;
+              }
+              if (opponentDeck.length < 5) {
+                console.warn(
+                  "Opponent deck is incomplete ( < 5 cards) in both DB and Presence. Aborting match creation."
+                );
+                set({ status: "searching" }); // Unlock to retry next sync
+                return;
+              }
+
+              console.log("Creating match with:", {
+                p1: user.id,
+                p2: opponent.user_id,
+              });
+
+              const { data, error } = await supabase
                 .from("matches")
                 .insert({
-                  player1_id: myId,
+                  player1_id: user.id,
                   player2_id: opponent.user_id,
-                  status: "active",
+                  status: "playing", // Start directly in playing phase
                   config: {
-                    mode,
                     decks: {
-                      [myId]: myDeck,
+                      [user.id]: myDeck,
                       [opponent.user_id]: opponentDeck,
                     },
                   },
                 })
                 .select()
-                .single()
-                .then(async ({ data: match, error }) => {
-                  if (error) {
-                    console.error("Failed to create match", error);
-                    return;
-                  }
+                .single();
 
-                  // 2. Broadcast Match Found (Best Effort)
-                  await channel.send({
-                    type: "broadcast",
-                    event: "match_found",
-                    payload: {
-                      match_id: match.id,
-                      player1: myId,
-                      player2: opponent.user_id,
-                    },
-                  });
+              if (error) {
+                console.error("Failed to create match:", error);
+                set({ status: "error", error: error.message });
+              } else {
+                console.log("Match created:", data.id);
 
-                  // 3. Transition Self Immediately (Don't wait for broadcast loopback)
-                  if (channel) supabase.removeChannel(channel);
-                  set({
-                    status: "matched",
-                    matchId: match.id,
-                    opponentId: opponent.user_id,
-                  });
+                // Cleanup matchmaking channel
+                if (channel) supabase.removeChannel(channel);
+                channel = null;
+
+                set({
+                  status: "matched",
+                  matchId: data.id,
+                  opponentId: opponent.user_id,
                 });
+              }
             } else {
               console.log("Waiting for host...", opponent.user_id);
             }
@@ -168,7 +247,9 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
               rank: profile?.rank_points || 1000,
               status: "searching",
               online_at: new Date().toISOString(),
-              deck: useDeckStore.getState().selectedDeck,
+              deck: useDeckStore
+                .getState()
+                .selectedDeck.filter((c) => c && c.id),
             });
           }
         });

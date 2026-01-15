@@ -50,7 +50,13 @@ export interface Player {
   isComputer: boolean;
 }
 
-export type GamePhase = "lobby" | "deciding_turn" | "playing" | "game_over";
+export type GamePhase =
+  | "lobby"
+  | "waiting"
+  | "preparing" // Online: Both players connected, loading data
+  | "deciding_turn"
+  | "playing"
+  | "game_over";
 
 export type BoardMechanicType =
   | "none"

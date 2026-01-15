@@ -14,15 +14,21 @@ interface HandProps {
   cards: CardType[];
   ownerId: "player1" | "player2";
   isCurrentPlayer: boolean;
-  orientation?: "horizontal" | "vertical"; // New prop
-  compact?: boolean; // New prop for visual scaling
-  isHidden?: boolean; // New prop
+  orientation?: "horizontal" | "vertical";
+  compact?: boolean;
+  isHidden?: boolean;
   isCustom?: boolean;
-  minimal?: boolean; // New prop for mobile indicator
-  name?: string; // New prop for dynamic name
-  gauntletRank?: string; // New prop for Gauntlet Rank
-  visualOwnerId?: "player1" | "player2"; // Support POV color swap
-  isInteractive?: boolean; // Control interaction independent of turn
+  minimal?: boolean;
+  name?: string;
+  gauntletRank?: string;
+  visualOwnerId?: "player1" | "player2";
+  isInteractive?: boolean;
+  onCardPlaced?: (
+    row: number,
+    col: number,
+    cardId: string,
+    card: CardType
+  ) => void;
 }
 
 export const Hand = ({
@@ -38,9 +44,16 @@ export const Hand = ({
   gauntletRank,
   visualOwnerId,
   isInteractive = true,
+  onCardPlaced,
 }: HandProps) => {
-  const { selectCard, selectedCardId, currentPlayerId, draggingCardId, phase } =
-    useGameStore();
+  const {
+    selectCard,
+    selectedCardId,
+    currentPlayerId,
+    draggingCardId,
+    phase,
+    placeCard: storePlaceCard,
+  } = useGameStore();
   const t = useTranslation().game;
 
   // Use visualOwnerId for styling/display, ownerId for logic
@@ -261,13 +274,23 @@ export const Hand = ({
                                     }
                                   },
                                   onDragEnd: () => {
-                                    const { hoveredCell, placeCard } =
+                                    const { hoveredCell } =
                                       useGameStore.getState();
                                     if (hoveredCell) {
-                                      placeCard(
+                                      // Place card locally
+                                      storePlaceCard(
                                         hoveredCell.row,
                                         hoveredCell.col
                                       );
+                                      // Broadcast for online
+                                      if (onCardPlaced) {
+                                        onCardPlaced(
+                                          hoveredCell.row,
+                                          hoveredCell.col,
+                                          card.id,
+                                          card
+                                        );
+                                      }
                                     }
                                     useGameStore
                                       .getState()

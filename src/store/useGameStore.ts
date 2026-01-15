@@ -18,7 +18,11 @@ import {
   handleFireRevenge,
 } from "../lib/game-logic";
 import { playSound, SOUNDS } from "../lib/sounds";
-import { GAME_MECHANICS, GAME_ELEMENTS, JOKER_MODIFIER_RANGE } from "../constants/game";
+import {
+  GAME_MECHANICS,
+  GAME_ELEMENTS,
+  JOKER_MODIFIER_RANGE,
+} from "../constants/game";
 import { UI_COLORS, DELAYS } from "../constants/ui";
 
 interface GameStore extends GameState {
@@ -39,6 +43,27 @@ interface GameStore extends GameState {
   setDraggingCardId: (cardId: string | null) => void;
   setHoveredCell: (cell: { row: number; col: number } | null) => void;
   setWinner: (winner: "player1" | "player2" | "draw") => void;
+
+  // Online Multiplayer Actions
+  moveSequence: number;
+  applyRemoteMove: (moveData: {
+    playerId: "player1" | "player2";
+    row: number;
+    col: number;
+    card: Card;
+    moveSequence: number;
+  }) => void;
+  setFullState: (state: Partial<GameState> & { moveSequence?: number }) => void;
+  getMoveData: () => {
+    board: BoardState;
+    player1: Player;
+    player2: Player;
+    currentPlayerId: string;
+    phase: GamePhase;
+    winner: string | null;
+    lastMove: any;
+    moveSequence: number;
+  };
 }
 
 const INITIAL_PLAYER_STATE: Player = {
@@ -64,7 +89,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     id: "p2",
     name: "Player 2",
     color: UI_COLORS.PLAYER2 as any,
-  }, // Will be overwritten on init
+  },
   currentPlayerId: "player1",
   phase: "lobby",
   winner: null,
@@ -73,6 +98,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   draggingCardId: null,
   draggingCard: null,
   hoveredCell: null,
+  moveSequence: 0,
   mechanic: {
     type: "none",
     activeElement: "none",
@@ -242,19 +268,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newPlayer1 =
       currentPlayerId === "player1"
         ? {
-          ...player1,
-          hand: newHand,
-          totalFlips: (player1.totalFlips || 0) + flips.length,
-        }
+            ...player1,
+            hand: newHand,
+            totalFlips: (player1.totalFlips || 0) + flips.length,
+          }
         : { ...player1 };
 
     const newPlayer2 =
       currentPlayerId === "player2"
         ? {
-          ...player2,
-          hand: newHand,
-          totalFlips: (player2.totalFlips || 0) + flips.length,
-        }
+            ...player2,
+            hand: newHand,
+            totalFlips: (player2.totalFlips || 0) + flips.length,
+          }
         : { ...player2 };
 
     // Determine next state
@@ -288,7 +314,145 @@ export const useGameStore = create<GameStore>((set, get) => ({
       draggingCardId: null,
       draggingCard: null,
       hoveredCell: null,
+      moveSequence: get().moveSequence + 1,
     });
+  },
+
+  // Apply move from remote player (no sounds, for receiving broadcast)
+  applyRemoteMove: (moveData) => {
+    const { board, player1, player2, moveSequence: currentSeq } = get();
+
+    // Ignore if we already processed this or a newer move
+    if (moveData.moveSequence <= currentSeq) {
+      console.log(
+        "Ignoring old/duplicate move",
+        moveData.moveSequence,
+        "current:",
+        currentSeq
+      );
+      return;
+    }
+
+    const { playerId, row, col, card } = moveData;
+    const cell = board[row][col];
+    if (cell.card) return; // Already occupied
+
+    // Create new board state
+    let newBoard = [...board.map((r) => [...r])];
+    newBoard[row][col] = {
+      ...newBoard[row][col],
+      card: { ...card },
+      owner: playerId,
+    };
+
+    // Apply passives
+    newBoard = applyElementalPassives(newBoard, get().mechanic);
+    const placedCardUpdated = newBoard[row][col].card!;
+
+    // Calculate flips
+    const flips = calculateFlips(
+      newBoard,
+      row,
+      col,
+      placedCardUpdated,
+      playerId
+    );
+
+    // Apply flips
+    flips.forEach((flip) => {
+      const originalOwner = newBoard[flip.row][flip.col].owner!;
+      newBoard[flip.row][flip.col].owner = flip.newOwner;
+      newBoard = handleFireRevenge(newBoard, flip.row, flip.col, originalOwner);
+    });
+
+    // Final passives
+    newBoard = applyElementalPassives(newBoard, get().mechanic);
+
+    // Update hands
+    const currentPlayer = playerId === "player1" ? player1 : player2;
+    const cardIndex = currentPlayer.hand.findIndex((c) => c.id === card.id);
+    const newHand = [...currentPlayer.hand];
+    if (cardIndex !== -1) {
+      newHand.splice(cardIndex, 1);
+    }
+
+    const newPlayer1 =
+      playerId === "player1"
+        ? {
+            ...player1,
+            hand: newHand,
+            totalFlips: (player1.totalFlips || 0) + flips.length,
+          }
+        : { ...player1 };
+
+    const newPlayer2 =
+      playerId === "player2"
+        ? {
+            ...player2,
+            hand: newHand,
+            totalFlips: (player2.totalFlips || 0) + flips.length,
+          }
+        : { ...player2 };
+
+    // Check game over
+    let nextPhase: GamePhase = "playing";
+    let nextWinner: "player1" | "player2" | "draw" | null = null;
+
+    if (isBoardFull(newBoard)) {
+      nextPhase = "game_over";
+      nextWinner = determineWinner(newBoard, newPlayer1, newPlayer2);
+    }
+
+    set({
+      board: newBoard,
+      player1: newPlayer1,
+      player2: newPlayer2,
+      currentPlayerId: playerId === "player1" ? "player2" : "player1",
+      lastMove: { row, col, playerId },
+      phase: nextPhase,
+      winner: nextWinner,
+      moveSequence: moveData.moveSequence,
+      selectedCardId: null,
+      draggingCardId: null,
+      draggingCard: null,
+      hoveredCell: null,
+    });
+  },
+
+  // Set full state from initialization or reconnection
+  setFullState: (state) => {
+    set({
+      ...state,
+      moveSequence: state.moveSequence ?? 0,
+      selectedCardId: null,
+      draggingCardId: null,
+      draggingCard: null,
+      hoveredCell: null,
+    });
+  },
+
+  // Get current state for persistence
+  getMoveData: () => {
+    const {
+      board,
+      player1,
+      player2,
+      currentPlayerId,
+      phase,
+      winner,
+      lastMove,
+      moveSequence,
+    } = get();
+    return {
+      board,
+      player1,
+      player2,
+      currentPlayerId,
+      phase,
+      winner,
+      lastMove,
+      moveSequence,
+    };
   },
 
   setDraggingCardId: (cardId) => {
