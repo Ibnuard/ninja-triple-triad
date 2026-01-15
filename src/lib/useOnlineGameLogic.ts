@@ -143,6 +143,15 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       return false;
     }
 
+    // Fetch Profiles for Avatar & Names
+    const { data: profiles, error: pError } = await supabase
+      .from("profiles")
+      .select("id, username, avatar_url")
+      .in("id", [p1Id, p2Id]);
+
+    const p1Profile = profiles?.find((p) => p.id === p1Id);
+    const p2Profile = profiles?.find((p) => p.id === p2Id);
+
     const processHand = (hand: any[]) =>
       hand.map((c, idx) => ({
         ...c,
@@ -159,7 +168,8 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       moveSequence: 0,
       player1: {
         id: p1Id,
-        name: "Player 1",
+        name: p1Profile?.username || "Player 1",
+        avatar_url: p1Profile?.avatar_url,
         hand: processHand(p1Hand),
         capturedCount: 0,
         color: "blue" as const,
@@ -167,7 +177,8 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       },
       player2: {
         id: p2Id,
-        name: "Player 2",
+        name: p2Profile?.username || "Player 2",
+        avatar_url: p2Profile?.avatar_url,
         hand: processHand(p2Hand),
         capturedCount: 0,
         color: "red" as const,
@@ -256,6 +267,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
 
       console.log("Archiving match...");
       const { player1, player2, winner, board } = finalState;
+      console.log("Final State Winner:", winner);
 
       // Calculate scores
       let p1Score = 0;
@@ -267,6 +279,8 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
         })
       );
 
+      console.log("Final Scores:", { p1: p1Score, p2: p2Score });
+
       const winnerId =
         winner === "player1"
           ? player1.id
@@ -274,7 +288,19 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
           ? player2.id
           : null;
 
-      // 1. Insert to History
+      console.log("Determined Winner ID:", winnerId);
+
+      // 1. Update Match status in live table (Redundancy & Safety)
+      console.log("Setting match status to completed...");
+      await supabase
+        .from("matches")
+        .update({
+          status: "completed",
+          winner_id: winnerId,
+        })
+        .eq("id", matchId);
+
+      // 2. Insert to History
       const { error } = await supabase.from("match_history").insert({
         match_id: matchId,
         player1_id: player1.id,

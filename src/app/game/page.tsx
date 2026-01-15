@@ -1091,12 +1091,30 @@ function GamePageContent() {
                           {/* Player Stat */}
                           <div className="flex flex-col items-center flex-1">
                             <div className="relative mb-2">
-                              <div className="w-14 h-16 rounded-xl border-2 border-blue-500/50 p-1 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.1)] flex items-center justify-center overflow-hidden">
-                                <div className="w-full h-full rounded-lg bg-gradient-to-br from-blue-500/20 to-transparent flex items-center justify-center">
-                                  <div className="w-6 h-6 rounded-full border-2 border-blue-500/30 flex items-center justify-center">
-                                    <div className="w-3 h-3 bg-blue-500/40 rounded-full" />
+                              <div className="w-16 h-16 rounded-full border-2 border-blue-500/50 p-1 bg-blue-500/10 shadow-[0_0_20px_rgba(59,130,246,0.1)] flex items-center justify-center overflow-hidden">
+                                {(
+                                  isPOVPlayer2
+                                    ? player2.avatar_url
+                                    : player1.avatar_url
+                                ) ? (
+                                  <img
+                                    src={
+                                      isPOVPlayer2
+                                        ? player2.avatar_url
+                                        : player1.avatar_url
+                                    }
+                                    alt={
+                                      isPOVPlayer2 ? player2.name : player1.name
+                                    }
+                                    className="w-full h-full rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-500/20 to-transparent flex items-center justify-center">
+                                    <div className="w-6 h-6 rounded-full border-2 border-blue-500/30 flex items-center justify-center">
+                                      <div className="w-3 h-3 bg-blue-500/40 rounded-full" />
+                                    </div>
                                   </div>
-                                </div>
+                                )}
                               </div>
                               <div className="absolute -bottom-2 -right-2 bg-blue-500 text-white text-[8px] font-black px-2 py-0.5 rounded-md border border-white/20 shadow-lg">
                                 {t.you}
@@ -1104,10 +1122,13 @@ function GamePageContent() {
                             </div>
                             <div className="text-3xl font-black text-white drop-shadow-md">
                               {(() => {
+                                const targetOwner = isPOVPlayer2
+                                  ? "player2"
+                                  : "player1";
                                 let count = 0;
                                 board.forEach((row) =>
                                   row.forEach((cell) => {
-                                    if (cell.owner === bottomOwnerId) count++;
+                                    if (cell.owner === targetOwner) count++;
                                   })
                                 );
                                 return count;
@@ -1125,23 +1146,48 @@ function GamePageContent() {
                           {/* Opponent Stat */}
                           <div className="flex flex-col items-center flex-1">
                             <div className="relative mb-2">
-                              <div className="w-14 h-16 rounded-xl border-2 border-red-500/50 p-1 bg-red-500/10 shadow-[0_0_20px_rgba(239,68,68,0.1)] flex items-center justify-center overflow-hidden">
-                                <div className="w-full h-full rounded-lg bg-gradient-to-br from-red-500/20 to-transparent flex items-center justify-center">
-                                  <div className="w-6 h-6 rounded-full border-2 border-red-500/30 flex items-center justify-center">
-                                    <div className="w-3 h-3 bg-red-500/40 rounded-full" />
+                              <div className="w-16 h-16 rounded-full border-2 border-red-500/50 p-1 bg-red-500/10 shadow-[0_0_20px_rgba(239,68,68,0.1)] flex items-center justify-center overflow-hidden">
+                                {(
+                                  isPOVPlayer2
+                                    ? player1.avatar_url
+                                    : player2.avatar_url
+                                ) ? (
+                                  <img
+                                    src={
+                                      isPOVPlayer2
+                                        ? player1.avatar_url
+                                        : player2.avatar_url
+                                    }
+                                    alt={
+                                      isPOVPlayer2 ? player1.name : player2.name
+                                    }
+                                    className="w-full h-full rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full rounded-full bg-gradient-to-br from-red-500/20 to-transparent flex items-center justify-center">
+                                    <div className="w-6 h-6 rounded-full border-2 border-red-500/30 flex items-center justify-center">
+                                      <div className="w-3 h-3 bg-red-500/40 rounded-full" />
+                                    </div>
                                   </div>
-                                </div>
+                                )}
                               </div>
                               <div className="absolute -bottom-2 -left-2 bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-md border border-white/20 shadow-lg">
-                                {isGauntletMode ? player2.name : t.cpu}
+                                {isOnline || isGauntletMode
+                                  ? isPOVPlayer2
+                                    ? player1.name
+                                    : player2.name
+                                  : t.cpu}
                               </div>
                             </div>
                             <div className="text-3xl font-black text-white drop-shadow-md">
                               {(() => {
+                                const targetOwner = isPOVPlayer2
+                                  ? "player1"
+                                  : "player2";
                                 let count = 0;
                                 board.forEach((row) =>
                                   row.forEach((cell) => {
-                                    if (cell.owner === topOwnerId) count++;
+                                    if (cell.owner === targetOwner) count++;
                                   })
                                 );
                                 return count;

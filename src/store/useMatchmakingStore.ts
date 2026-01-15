@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { supabase } from "../lib/supabase";
 import { useAuthStore } from "./useAuthStore";
 import { useDeckStore } from "./useDeckStore";
+import { useCardStore } from "./useCardStore";
 
 type MatchStatus = "idle" | "searching" | "creating" | "matched" | "error";
 
@@ -29,6 +30,12 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
     error: null,
 
     startSearch: async (mode) => {
+      // GUARD: Prevent multiple searches
+      if (get().status === "searching" || get().status === "creating") {
+        console.warn("Already searching or creating match. Ignoring request.");
+        return;
+      }
+
       const user = useAuthStore.getState().user;
       const profile = useAuthStore.getState().profile;
 
@@ -48,7 +55,14 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
         return;
       }
 
+      console.log("Starting search for mode:", mode);
       set({ status: "searching", startTime: Date.now(), error: null });
+
+      // Clean up any existing channel first (Safety)
+      if (channel) {
+        supabase.removeChannel(channel);
+        channel = null;
+      }
 
       // Join the matchmaking channel
       channel = supabase.channel("matchmaking_queue", {
@@ -70,7 +84,10 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
           },
           (payload: any) => {
             console.log("Match Invite Received via DB:", payload.new.id);
-            if (channel) supabase.removeChannel(channel);
+            if (channel) {
+              supabase.removeChannel(channel);
+              channel = null;
+            }
             set({
               status: "matched",
               matchId: payload.new.id,
@@ -84,11 +101,21 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
 
           // Flatten state to get all searching users
           const searchingUsers: any[] = [];
+          const now = Date.now();
+
           for (const key in state) {
-            // state[key] is an array of presence objects
             state[key].forEach((presence: any) => {
-              if (presence.mode === mode && presence.status === "searching") {
-                searchingUsers.push(presence);
+              // Only consider presences from the last 60 seconds (Anti-Ghost)
+              const searchingAt = presence.searching_at
+                ? new Date(presence.searching_at).getTime()
+                : 0;
+
+              if (
+                presence.mode === mode &&
+                presence.status === "searching" &&
+                now - searchingAt < 60000
+              ) {
+                searchingUsers.push({ ...presence, id: key });
               }
             });
           }
@@ -97,9 +124,12 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
           const opponents = searchingUsers.filter((u) => u.user_id !== myId);
 
           if (opponents.length > 0) {
-            // To prevent race conditions (both trying to match each other), determine a "Host".
-            // Rule: User with String(ID) < String(OpponentID) is the Host.
-            const opponent = opponents[0];
+            // Pick the MOST RECENT opponent (best way to handle multiple ghosts if they exist)
+            const opponent = opponents.sort(
+              (a, b) =>
+                new Date(b.searching_at).getTime() -
+                new Date(a.searching_at).getTime()
+            )[0];
             const amIHost = myId < opponent.user_id;
 
             if (amIHost) {
@@ -145,24 +175,24 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
 
                 if (fetchedDeck.length >= 5) {
                   opponentDeck = fetchedDeck;
+                  console.log("Opponent deck fetched from DB successfully.");
                   break;
                 }
 
-                // Wait 1s before retry
-                if (attempts < 5) await new Promise((r) => setTimeout(r, 1000));
-              }
-
-              // Fallback to presence if DB is empty (Legacy or Race Condition)
-              if (opponentDeck.length < 5) {
-                console.warn(
-                  "DB Deck fetch failed after retries. Trying presence deck as last resort..."
-                );
+                // IMPROVEMENT: Parallel check presence deck while waiting for DB
                 const presenceDeck = (opponent.deck || []).filter(
                   (c: any) => c && c.id
                 );
                 if (presenceDeck.length >= 5) {
+                  console.log(
+                    "Found valid deck in Presence. Using as early fallback..."
+                  );
                   opponentDeck = presenceDeck;
+                  break;
                 }
+
+                // Wait 1s before retry if DB still empty
+                if (attempts < 5) await new Promise((r) => setTimeout(r, 1000));
               }
 
               // Validate both decks exist before creating match
@@ -208,15 +238,33 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
               } else {
                 console.log("Match created:", data.id);
 
-                // Cleanup matchmaking channel
-                if (channel) supabase.removeChannel(channel);
-                channel = null;
-
                 set({
                   status: "matched",
                   matchId: data.id,
                   opponentId: opponent.user_id,
                 });
+
+                // 2. BROADCAST to Guest (Secondary Path for speed)
+                console.log("Broadcasting match found to guest...");
+                channel.send({
+                  type: "broadcast",
+                  event: "match_found",
+                  payload: {
+                    match_id: data.id,
+                    player1: user.id,
+                    player2: opponent.user_id,
+                  },
+                });
+
+                // 3. Cleanup matchmaking channel AFTER state update & broadcast
+                // Small delay to ensure broadcast is sent
+                setTimeout(() => {
+                  if (channel) {
+                    console.log("Cleaning up matchmaking channel (Host)");
+                    supabase.removeChannel(channel);
+                    channel = null;
+                  }
+                }, 500);
               }
             } else {
               console.log("Waiting for host...", opponent.user_id);
@@ -230,7 +278,10 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
           // Guest logic via Broadcast
           if (myId && player2 === myId) {
             console.log("Match Found (Broadcast)! ID:", match_id);
-            if (channel) supabase.removeChannel(channel);
+            if (channel) {
+              supabase.removeChannel(channel);
+              channel = null;
+            }
 
             set({
               status: "matched",
@@ -246,29 +297,44 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
               mode: mode,
               rank: profile?.rank_points || 1000,
               status: "searching",
+              searching_at: new Date().toISOString(),
               online_at: new Date().toISOString(),
               deck: useDeckStore
                 .getState()
-                .selectedDeck.filter((c) => c && c.id),
+                .selectedDeck.map((c: any) => {
+                  const fullCard = useCardStore
+                    .getState()
+                    .cards.find((full: any) => full.id === c.id);
+                  return fullCard || c;
+                })
+                .filter((c: any) => c && c.id),
             });
           }
         });
     },
 
     cancelSearch: () => {
+      console.log("Cancelling search...");
       if (channel) {
         supabase.removeChannel(channel);
         channel = null;
       }
-      set({ status: "idle", startTime: null });
+      set({ status: "idle", startTime: null, error: null });
     },
 
     reset: () => {
+      console.log("Resetting matchmaking store...");
       if (channel) {
         supabase.removeChannel(channel);
         channel = null;
       }
-      set({ status: "idle", matchId: null, opponentId: null });
+      set({
+        status: "idle",
+        matchId: null,
+        opponentId: null,
+        startTime: null,
+        error: null,
+      });
     },
   };
 });

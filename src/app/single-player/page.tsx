@@ -202,7 +202,7 @@ export default function SinglePlayerModes() {
   };
 
   return (
-    <div className="h-[100dvh] md:min-h-screen bg-black text-white flex flex-col relative overflow-hidden md:overflow-auto font-mono">
+    <div className="h-[100dvh] bg-black text-white flex flex-col relative overflow-hidden font-mono">
       {/* Dynamic Background */}
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 via-black to-black z-0" />
       <div className="fixed inset-0 opacity-20 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
@@ -232,10 +232,10 @@ export default function SinglePlayerModes() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative z-10 w-full max-w-7xl mx-auto flex flex-col flex-1 p-4 overflow-hidden md:overflow-auto"
+        className="relative z-10 w-full max-w-7xl mx-auto flex flex-col flex-1 p-4 overflow-hidden"
       >
         {/* Content Area */}
-        <div className="flex flex-col items-center justify-center flex-1 overflow-hidden md:overflow-auto">
+        <div className="flex flex-col items-center justify-center flex-1 py-4 md:py-6 overflow-hidden">
           <AnimatePresence mode="wait">
             {!selectedMode ? (
               <ModeSelectionGrid

@@ -48,6 +48,7 @@ export interface Player {
   totalFlips?: number; // Total cards flipped during match
   color: string; // e.g. 'blue' or 'red'
   isComputer: boolean;
+  avatar_url?: string;
 }
 
 export type GamePhase =
