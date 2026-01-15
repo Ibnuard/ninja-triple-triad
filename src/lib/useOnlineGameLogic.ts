@@ -169,7 +169,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       player1: {
         id: p1Id,
         name: p1Profile?.username || "Player 1",
-        avatar_url: p1Profile?.avatar_url,
+        avatar_url: p1Profile?.avatar_url || undefined,
         hand: processHand(p1Hand),
         capturedCount: 0,
         color: "blue" as const,
@@ -178,7 +178,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       player2: {
         id: p2Id,
         name: p2Profile?.username || "Player 2",
-        avatar_url: p2Profile?.avatar_url,
+        avatar_url: p2Profile?.avatar_url || undefined,
         hand: processHand(p2Hand),
         capturedCount: 0,
         color: "red" as const,

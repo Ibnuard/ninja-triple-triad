@@ -6,6 +6,7 @@ import { useCardStore } from "./useCardStore";
 interface UserProfile {
   id: string;
   is_onboarded: boolean;
+  username?: string;
   full_name?: string;
   avatar_url?: string;
   coins: number;

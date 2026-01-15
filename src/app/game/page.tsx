@@ -130,6 +130,8 @@ function GamePageContent() {
     board,
   } = useGameStore();
 
+  const profile = useAuthStore((state) => state.profile);
+
   // Handle opponent disconnect (Placed here to access 'phase')
   useEffect(() => {
     // Only show modal if opponent disconnects WHILE playing or preparing
@@ -320,6 +322,8 @@ function GamePageContent() {
         },
         player1: {
           ...state.player1,
+          name: profile?.username || profile?.full_name || state.player1.name,
+          avatar_url: profile?.avatar_url || undefined,
           hand: overrideP1Hand
             ? overrideP1Hand.map((c) => ({ ...c, id: c.id + Math.random() }))
             : [...gauntletDeck].map((c) => ({
@@ -335,6 +339,7 @@ function GamePageContent() {
             isBossBattle && config.bossKey
               ? (t.gauntlet.bosses as any)[config.bossKey]
               : t.gauntlet.enemy,
+          avatar_url: isBossBattle ? config.bossImage : undefined,
           totalFlips: 0,
         },
         // Apply Swift Strike (Option 2)
@@ -355,6 +360,8 @@ function GamePageContent() {
       useGameStore.setState((state) => ({
         player1: {
           ...state.player1,
+          name: profile?.username || profile?.full_name || state.player1.name,
+          avatar_url: profile?.avatar_url || undefined,
           hand: isCustom
             ? generateDiverseHand("p1")
             : configMode === "training" &&
@@ -384,6 +391,7 @@ function GamePageContent() {
             : configMode === "training"
             ? "Dummy (Easy)"
             : "Computer",
+          avatar_url: undefined,
           totalFlips: 0,
         },
       }));
@@ -1174,8 +1182,8 @@ function GamePageContent() {
                               <div className="absolute -bottom-2 -left-2 bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-md border border-white/20 shadow-lg">
                                 {isOnline || isGauntletMode
                                   ? isPOVPlayer2
-                                    ? player1.name
-                                    : player2.name
+                                    ? player1.name || "Opponent"
+                                    : player2.name || "Opponent"
                                   : t.cpu}
                               </div>
                             </div>
