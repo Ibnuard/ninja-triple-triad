@@ -146,7 +146,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
     // Fetch Profiles for Avatar & Names
     const { data: profiles, error: pError } = await supabase
       .from("profiles")
-      .select("id, username, avatar_url")
+      .select("id, username, full_name, avatar_url")
       .in("id", [p1Id, p2Id]);
 
     const p1Profile = profiles?.find((p) => p.id === p1Id);
@@ -162,13 +162,22 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
 
     const starterPlayerId = Math.random() > 0.5 ? "player1" : "player2";
 
+    const localProfile = useAuthStore.getState().profile;
+    const localUser = useAuthStore.getState().user;
+
     const initialState = {
       phase: "playing" as const,
       currentPlayerId: starterPlayerId as "player1" | "player2",
       moveSequence: 0,
       player1: {
         id: p1Id,
-        name: p1Profile?.username || "Player 1",
+        name:
+          p1Profile?.username ||
+          p1Profile?.full_name ||
+          (p1Id === localUser?.id
+            ? localProfile?.username || localProfile?.full_name
+            : null) ||
+          "Player 1",
         avatar_url: p1Profile?.avatar_url || undefined,
         hand: processHand(p1Hand),
         capturedCount: 0,
@@ -177,7 +186,13 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       },
       player2: {
         id: p2Id,
-        name: p2Profile?.username || "Player 2",
+        name:
+          p2Profile?.username ||
+          p2Profile?.full_name ||
+          (p2Id === localUser?.id
+            ? localProfile?.username || localProfile?.full_name
+            : null) ||
+          "Player 2",
         avatar_url: p2Profile?.avatar_url || undefined,
         hand: processHand(p2Hand),
         capturedCount: 0,
@@ -369,6 +384,11 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       }
 
       if (match.state && match.state.phase) {
+        // Essential: Populate ref so initializeGame can run if it hasn't yet
+        if (!matchDataRef.current) {
+          matchDataRef.current = match;
+          isHostRef.current = match.player1_id === user?.id;
+        }
         applyStateFromDb(match.state);
       }
     };
@@ -405,6 +425,10 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
             return;
           }
           if (newMatch.state) {
+            if (!matchDataRef.current) {
+              matchDataRef.current = newMatch;
+              isHostRef.current = newMatch.player1_id === user?.id;
+            }
             applyStateFromDb(newMatch.state);
           }
         }
@@ -466,7 +490,8 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
           // Load match data
           const match = await loadStateFromDb();
           if (!match) {
-            console.error("Match not found!");
+            // Silently wait for polling to pick it up if DB is truly slow
+            console.log("Initial load failed, relying on polling...");
             return;
           }
 
@@ -502,7 +527,6 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
               }
             }
           } else {
-            // Go to preparing phase
             // Go to preparing phase
             console.log("Entering preparation phase...");
             useGameStore.setState({ phase: "preparing" });
@@ -616,6 +640,73 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
     loadStateFromDb,
     applyStateFromDb,
   ]);
+
+  // Effect: Hydrate Profiles if names are generic
+  useEffect(() => {
+    if (mode !== "online" || !isConnected || !matchId) return;
+
+    const hydrate = async () => {
+      const state = useGameStore.getState();
+      const needsP1 =
+        state.player1.name === "Player 1" ||
+        state.player1.name === "KAMU" ||
+        !state.player1.name;
+      const needsP2 =
+        state.player2.name === "Player 2" ||
+        state.player2.name === "Opponent" ||
+        state.player2.name === "Lawan" ||
+        !state.player2.name;
+
+      if (!needsP1 && !needsP2) return;
+
+      console.log("Hydrating profiles background...");
+      const match = matchDataRef.current;
+      if (!match) return;
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, username, full_name, avatar_url")
+        .in("id", [match.player1_id, match.player2_id]);
+
+      if (!profiles) return;
+
+      const p1Profile = profiles.find((p) => p.id === match.player1_id);
+      const p2Profile = profiles.find((p) => p.id === match.player2_id);
+
+      const updates: any = {};
+      if (needsP1 && p1Profile) {
+        updates.player1 = {
+          ...state.player1,
+          name: p1Profile.username || p1Profile.full_name || "Player 1",
+          avatar_url: p1Profile.avatar_url || state.player1.avatar_url,
+        };
+      }
+      if (needsP2 && p2Profile) {
+        updates.player2 = {
+          ...state.player2,
+          name: p2Profile.username || p2Profile.full_name || "Player 2",
+          avatar_url: p2Profile.avatar_url || state.player2.avatar_url,
+        };
+      }
+
+      if (Object.keys(updates).length > 0) {
+        console.log("Profiles hydrated, updating state locally...");
+        useGameStore.setState(updates);
+
+        if (isHostRef.current) {
+          console.log("Host syncing names to DB...");
+          const newState = { ...useGameStore.getState(), ...updates };
+          await supabase
+            .from("matches")
+            .update({ state: newState })
+            .eq("id", matchId);
+        }
+      }
+    };
+
+    const timeout = setTimeout(hydrate, 2000);
+    return () => clearTimeout(timeout);
+  }, [mode, isConnected, matchId]);
 
   return {
     isConnected,

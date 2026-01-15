@@ -796,6 +796,8 @@ function GamePageContent() {
                   >
                     {isMyTurn
                       ? t.yourTurn
+                      : isOnline
+                      ? t.opponentTurn
                       : isGauntletMode
                       ? player2.name
                       : isCustomMode
@@ -955,6 +957,7 @@ function GamePageContent() {
                       orientation="horizontal"
                       isCustom={isCustomMode}
                       gauntletRank={isGauntletMode ? gauntletRank : undefined}
+                      name={profile?.username || profile?.full_name || t.player}
                     />
                   </div>
                   {/* Desktop View (Vertical) */}
@@ -968,6 +971,7 @@ function GamePageContent() {
                       orientation="vertical"
                       isCustom={isCustomMode}
                       gauntletRank={isGauntletMode ? gauntletRank : undefined}
+                      name={profile?.username || profile?.full_name || t.player}
                     />
                   </div>
                 </div>
