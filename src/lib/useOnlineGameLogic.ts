@@ -27,42 +27,14 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
   const channelRef = useRef<any>(null);
   const isHostRef = useRef<boolean>(false);
   const hasInitializedRef = useRef<boolean>(false);
-  const lastStateStringRef = useRef<string>("");
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const lastPushedMoveSeq = useRef<number>(0);
   const matchDataRef = useRef<any>(null);
   const hydratedProfilesRef = useRef<Set<string>>(new Set());
 
-  // Get current phase
   const phase = useGameStore((state) => state.phase);
+  const localMoveSequence = useGameStore((state) => state.moveSequence || 0);
 
-  // Hash state for comparison
-  const hashState = (state: any): string => {
-    if (!state) return "";
-    return JSON.stringify({
-      board: state.board,
-      player1: state.player1,
-      player2: state.player2,
-      currentPlayerId: state.currentPlayerId,
-      phase: state.phase,
-      winner: state.winner,
-      moveSequence: state.moveSequence,
-    });
-  };
-
-  // Apply state from DB
-  const applyStateFromDb = useCallback((dbState: any) => {
-    if (!dbState || !dbState.phase) return false;
-    const dbHash = hashState(dbState);
-    if (dbHash !== lastStateStringRef.current) {
-      console.log("Applying state from DB, phase:", dbState.phase);
-      lastStateStringRef.current = dbHash;
-      useGameStore.setState(dbState);
-      return true;
-    }
-    return false;
-  }, []);
-
-  // Load state from DB
+  // Load state from DB (Moved before applyStateFromDb to fix dependency)
   const loadStateFromDb = useCallback(async (): Promise<any> => {
     if (!matchId) return null;
 
@@ -82,6 +54,70 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
     }
     return null;
   }, [matchId]);
+
+  // Apply state from DB (Improved with moveSequence + validation + retry)
+  const applyStateFromDb = useCallback(
+    async (dbState: any) => {
+      if (!dbState || !dbState.phase) return false;
+
+      // Use moveSequence for more reliable comparison
+      const dbMoveSeq = dbState.moveSequence || 0;
+      const localSeq = useGameStore.getState().moveSequence || 0;
+
+      // Only apply if DB state is newer OR if phases differ (important state changes)
+      if (
+        dbMoveSeq > localSeq ||
+        dbState.phase !== useGameStore.getState().phase
+      ) {
+        // Validate critical data before applying (prevent bugs)
+        const hasValidHands =
+          dbState.player1?.hand?.length > 0 &&
+          dbState.player2?.hand?.length > 0;
+
+        // Validate player IDs exist (prevent "both YOUR TURN" bug)
+        const hasValidPlayerIds = dbState.player1?.id && dbState.player2?.id;
+
+        if (!hasValidHands && dbState.phase === "playing") {
+          console.warn("⚠️ Incomplete state detected - missing hand cards!");
+          console.log(
+            "Triggering immediate DB reload to fetch complete state..."
+          );
+
+          // Active retry: Reload from DB immediately
+          setTimeout(async () => {
+            const match = await loadStateFromDb();
+            if (match?.state) {
+              const retryHasHands =
+                match.state.player1?.hand?.length > 0 &&
+                match.state.player2?.hand?.length > 0;
+
+              if (retryHasHands) {
+                console.log("✅ Retry successful - complete state loaded");
+                useGameStore.setState(match.state);
+              } else {
+                console.error("❌ Retry failed - state still incomplete");
+              }
+            }
+          }, 500);
+
+          return false;
+        }
+
+        if (!hasValidPlayerIds && dbState.phase === "playing") {
+          console.warn("⚠️ Incomplete state - missing player IDs! Skipping...");
+          return false;
+        }
+
+        console.log(
+          `Applying state from DB (moveSeq: ${dbMoveSeq} > ${localSeq})`
+        );
+        useGameStore.setState(dbState);
+        return true;
+      }
+      return false;
+    },
+    [loadStateFromDb]
+  );
 
   // Initialize game - called when both players ready
   const initializeGame = useCallback(async () => {
@@ -235,12 +271,12 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
     }
 
     console.log("Game initialized!");
-    lastStateStringRef.current = hashState(initialState);
+    lastPushedMoveSeq.current = 0;
     useGameStore.setState(initialState);
     return true;
   }, [matchId]);
 
-  // Push state to DB
+  // Push state to DB (Optimistic - Non-blocking)
   const pushStateToDb = useCallback(async () => {
     if (!matchId || mode !== "online") return;
     const store = useGameStore.getState();
@@ -262,16 +298,23 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       moveSequence: store.moveSequence,
     };
 
-    const newHash = hashState(stateToSave);
-    if (newHash === lastStateStringRef.current) return;
+    // Skip if already pushed this sequence
+    if (store.moveSequence === lastPushedMoveSeq.current) return;
 
     console.log("Pushing state, moveSeq:", store.moveSequence);
-    lastStateStringRef.current = newHash;
+    lastPushedMoveSeq.current = store.moveSequence;
 
-    await supabase
+    // Non-blocking DB update
+    supabase
       .from("matches")
       .update({ state: stateToSave })
-      .eq("id", matchId);
+      .eq("id", matchId)
+      .then(({ error }) => {
+        if (error) {
+          console.error("State push failed:", error);
+          // Optionally: trigger a reload from DB on error
+        }
+      });
   }, [matchId, mode]);
 
   const hasArchivedRef = useRef(false);
@@ -371,38 +414,6 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
     return () => unsubscribe();
   }, [mode, matchId, pushStateToDb, archiveMatch]);
 
-  // Polling for updates
-  useEffect(() => {
-    if (mode !== "online" || !matchId) return;
-
-    const poll = async () => {
-      const match = await loadStateFromDb();
-      if (!match) return;
-
-      if (match.status === "cancelled") {
-        setOpponentDisconnected(true);
-        return;
-      }
-
-      if (match.state && match.state.phase) {
-        // Essential: Populate ref so initializeGame can run if it hasn't yet
-        if (!matchDataRef.current) {
-          matchDataRef.current = match;
-          isHostRef.current = match.player1_id === user?.id;
-        }
-        applyStateFromDb(match.state);
-      }
-    };
-
-    pollingRef.current = setInterval(poll, 500);
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-    };
-  }, [mode, matchId, loadStateFromDb, applyStateFromDb]);
-
   // Main effect
   useEffect(() => {
     if (mode !== "online" || !matchId || !user) return;
@@ -488,27 +499,27 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
         if (status === "SUBSCRIBED") {
           setIsConnected(true);
 
-          // Load match data
+          // Load match data - CRITICAL: Must succeed before proceeding
           const match = await loadStateFromDb();
           if (!match) {
-            // Silently wait for polling to pick it up if DB is truly slow
-            console.log("Initial load failed, relying on polling...");
+            console.error("Initial load failed - cannot proceed");
+            setInitError("Failed to load match data");
             return;
           }
 
+          // IMPORTANT: Set refs FIRST before any other logic
           matchDataRef.current = match;
+          isHostRef.current = match.player1_id === user.id;
+          console.log("Match loaded. Am I host?", isHostRef.current);
 
           if (match.status === "cancelled") {
             setOpponentDisconnected(true);
             return;
           }
 
-          isHostRef.current = match.player1_id === user.id;
-          console.log("Am I host?", isHostRef.current);
-
           // Check existing state
           if (match.state && match.state.phase === "playing") {
-            console.log("Loading existing game");
+            console.log("Loading existing game state");
             applyStateFromDb(match.state);
             // Track with ready=true since game already started
             if (channel.state === "joined") {
@@ -519,6 +530,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
               }
             }
           } else if (match.state && match.state.phase === "game_over") {
+            console.log("Loading finished game state");
             applyStateFromDb(match.state);
             if (channel.state === "joined") {
               try {
@@ -532,18 +544,6 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
             console.log("Entering preparation phase...");
             useGameStore.setState({ phase: "preparing" });
 
-            // AUTO-START if Host (Architecture Rework)
-            // We do NOT wait for opponent presence anymore. Database is the source of truth.
-            if (isHostRef.current && !hasInitializedRef.current) {
-              console.log(
-                "Host connected. Auto-initializing game (Skip Preparation)..."
-              );
-              // Small delay to ensure state is set
-              setTimeout(() => {
-                initializeGame();
-              }, 500);
-            }
-
             // Initial track
             if (channel.state === "joined") {
               try {
@@ -551,6 +551,52 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
               } catch (e) {
                 console.warn("Track error:", e);
               }
+            }
+
+            // AUTO-START if Host (with strict validation to prevent race conditions)
+            if (
+              isHostRef.current &&
+              !hasInitializedRef.current &&
+              matchDataRef.current
+            ) {
+              console.log("Host: Preparing to auto-initialize game...");
+
+              // CRITICAL: Wait longer to ensure joiner has connected
+              // This prevents empty hands and "both YOUR TURN" bugs
+              setTimeout(async () => {
+                if (hasInitializedRef.current) {
+                  console.log("Host: Already initialized, skipping");
+                  return;
+                }
+
+                const match = matchDataRef.current;
+                if (!match) {
+                  console.error("Host: No match data, cannot initialize");
+                  return;
+                }
+
+                // Validate both player IDs exist
+                if (!match.player1_id || !match.player2_id) {
+                  console.error("Host: Missing player IDs, cannot initialize");
+                  return;
+                }
+
+                // Check if opponent is present (optional but recommended)
+                const presenceState = channel?.presenceState() || {};
+                const presenceCount = Object.keys(presenceState).length;
+                console.log(`Host: Presence count = ${presenceCount}`);
+
+                if (presenceCount < 2) {
+                  console.warn(
+                    "Host: Only 1 player in presence, but proceeding anyway (opponent might be slow)"
+                  );
+                }
+
+                console.log(
+                  "Host: All validations passed. Executing initialization..."
+                );
+                initializeGame();
+              }, 1500); // Increased from 300ms to 1500ms
             }
           }
         }
@@ -600,24 +646,51 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
         }
       }
 
-      // 3. Host Init Check (Redundant safety net)
-      // 3. Host Init Check (Redundant safety net)
+      // 3. Host Init Check (Redundant safety net for stuck preparing)
       if (
         isHostRef.current &&
         currentPhase === "preparing" &&
-        !hasInitializedRef.current
+        !hasInitializedRef.current &&
+        matchDataRef.current
       ) {
-        console.log("Watchdog: Host check, initializing game...");
+        console.log(
+          "Watchdog: Host stuck in preparing - retrying initialization..."
+        );
         initializeGame();
       }
-    }, 2000);
+
+      // 4. Empty Hand Detection & Fix
+      if (currentPhase === "playing") {
+        const state = useGameStore.getState();
+        const hasEmptyHands =
+          !state.player1?.hand?.length || !state.player2?.hand?.length;
+
+        if (hasEmptyHands) {
+          console.error("🚨 CRITICAL: Empty hands detected in playing phase!");
+          console.log("Attempting emergency state reload from DB...");
+
+          loadStateFromDb().then((match) => {
+            if (match?.state) {
+              const dbHasHands =
+                match.state.player1?.hand?.length > 0 &&
+                match.state.player2?.hand?.length > 0;
+
+              if (dbHasHands) {
+                console.log("✅ Emergency reload successful - hands restored");
+                useGameStore.setState(match.state);
+              } else {
+                console.error(
+                  "❌ DB state also has empty hands - critical error"
+                );
+              }
+            }
+          });
+        }
+      }
+    }, 3000); // Check every 3 seconds (less aggressive than before)
 
     return () => {
       clearInterval(watchdogInterval);
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
       supabase.removeChannel(channel);
       channelRef.current = null;
 

@@ -139,12 +139,13 @@ export default function OnlinePage() {
     return () => clearInterval(interval);
   }, [status, elapsed, user]);
 
-  // Match Found Redirect
+  // Match Found Redirect (Immediate - No Guard Needed)
   useEffect(() => {
-    if (isReady && status === "matched" && matchId) {
+    if (status === "matched" && matchId) {
+      console.log("Match found! Redirecting to game...");
       router.push(`/game?mode=online&matchId=${matchId}`);
     }
-  }, [status, matchId, router, isReady]);
+  }, [status, matchId, router]);
 
   // Deck Management Logic
   useEffect(() => {

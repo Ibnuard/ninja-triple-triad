@@ -120,8 +120,8 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
             });
           }
 
-          // Filter out self
-          const opponents = searchingUsers.filter((u) => u.user_id !== myId);
+          // Filter out self - CRITICAL: Use 'id' not 'user_id' (presence key)
+          const opponents = searchingUsers.filter((u) => u.id !== myId);
 
           if (opponents.length > 0) {
             // Pick the MOST RECENT opponent (best way to handle multiple ghosts if they exist)
@@ -130,6 +130,13 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
                 new Date(b.searching_at).getTime() -
                 new Date(a.searching_at).getTime()
             )[0];
+
+            // CRITICAL: Double-check opponent is not self (safety)
+            if (opponent.user_id === myId) {
+              console.error("CRITICAL: Opponent is self! Aborting match.");
+              return;
+            }
+
             const amIHost = myId < opponent.user_id;
 
             if (amIHost) {
