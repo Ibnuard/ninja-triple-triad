@@ -30,6 +30,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
   const lastStateStringRef = useRef<string>("");
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const matchDataRef = useRef<any>(null);
+  const hydratedProfilesRef = useRef<Set<string>>(new Set());
 
   // Get current phase
   const phase = useGameStore((state) => state.phase);
@@ -177,7 +178,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
           (p1Id === localUser?.id
             ? localProfile?.username || localProfile?.full_name
             : null) ||
-          "Player 1",
+          "...",
         avatar_url: p1Profile?.avatar_url || undefined,
         hand: processHand(p1Hand),
         capturedCount: 0,
@@ -192,7 +193,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
           (p2Id === localUser?.id
             ? localProfile?.username || localProfile?.full_name
             : null) ||
-          "Player 2",
+          "...",
         avatar_url: p2Profile?.avatar_url || undefined,
         hand: processHand(p2Hand),
         capturedCount: 0,
@@ -641,32 +642,62 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
     applyStateFromDb,
   ]);
 
+  const p1Name = useGameStore((state) => state.player1.name);
+  const p2Name = useGameStore((state) => state.player2.name);
+
   // Effect: Hydrate Profiles if names are generic
   useEffect(() => {
     if (mode !== "online" || !isConnected || !matchId) return;
 
+    const p1Lower = (p1Name || "").toLowerCase();
+    const p2Lower = (p2Name || "").toLowerCase();
+
+    const needsP1 =
+      p1Lower === "player 1" ||
+      p1Lower === "kamu" ||
+      p1Lower === "..." ||
+      p1Lower === "you" ||
+      !p1Lower;
+    const needsP2 =
+      p2Lower === "player 2" ||
+      p2Lower === "opponent" ||
+      p2Lower === "lawan" ||
+      p2Lower === "..." ||
+      !p2Lower;
+
+    if (!needsP1 && !needsP2) return;
+
     const hydrate = async () => {
       const state = useGameStore.getState();
-      const needsP1 =
-        state.player1.name === "Player 1" ||
-        state.player1.name === "KAMU" ||
-        !state.player1.name;
-      const needsP2 =
-        state.player2.name === "Player 2" ||
-        state.player2.name === "Opponent" ||
-        state.player2.name === "Lawan" ||
-        !state.player2.name;
-
-      if (!needsP1 && !needsP2) return;
-
-      console.log("Hydrating profiles background...");
       const match = matchDataRef.current;
       if (!match) return;
 
+      const profilesToFetch = [];
+      if (
+        needsP1 &&
+        match.player1_id &&
+        !hydratedProfilesRef.current.has(match.player1_id)
+      ) {
+        profilesToFetch.push(match.player1_id);
+      }
+      if (
+        needsP2 &&
+        match.player2_id &&
+        !hydratedProfilesRef.current.has(match.player2_id)
+      ) {
+        profilesToFetch.push(match.player2_id);
+      }
+
+      if (profilesToFetch.length === 0) return;
+
+      // Mark as "attempted" to avoid spamming while pending
+      profilesToFetch.forEach((id) => hydratedProfilesRef.current.add(id));
+
+      console.log("Hydrating profiles background...", profilesToFetch);
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, username, full_name, avatar_url")
-        .in("id", [match.player1_id, match.player2_id]);
+        .in("id", profilesToFetch);
 
       if (!profiles) return;
 
@@ -704,9 +735,9 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       }
     };
 
-    const timeout = setTimeout(hydrate, 2000);
+    const timeout = setTimeout(hydrate, 500); // Faster check
     return () => clearTimeout(timeout);
-  }, [mode, isConnected, matchId]);
+  }, [mode, isConnected, matchId, p1Name, p2Name]);
 
   return {
     isConnected,

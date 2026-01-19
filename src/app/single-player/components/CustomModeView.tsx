@@ -21,7 +21,14 @@ export function CustomModeView({
   onActiveElementChange,
   onStartBattle,
 }: CustomModeViewProps) {
-  const mechanics = ["none", "random", "random_elemental", "poison", "foggy", "joker"];
+  const mechanics = [
+    "none",
+    "random",
+    "random_elemental",
+    "poison",
+    "foggy",
+    "joker",
+  ];
 
   const elements = ["random", "fire", "water", "earth", "wind", "lightning"];
 
@@ -31,7 +38,7 @@ export function CustomModeView({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="w-full max-w-4xl bg-gray-900/80 border border-purple-500/30 rounded-[3rem] p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row gap-8 items-center"
+      className="w-full max-w-4xl bg-gray-900/80 border border-purple-500/30 rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-12 relative overflow-y-auto max-h-[90vh] md:max-h-none md:overflow-visible flex flex-col md:flex-row gap-8 items-center custom-scrollbar"
     >
       {/* Decorative Elements */}
       <div className="absolute top-0 left-0 w-32 h-32 bg-purple-500/20 blur-[60px]" />

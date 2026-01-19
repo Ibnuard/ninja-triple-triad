@@ -325,14 +325,14 @@ export default function OnlinePage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-5xl mx-auto bg-gray-900/80 border border-blue-500/30 rounded-[2rem] md:rounded-[3rem] p-6 md:p-8 relative shadow-2xl my-4"
+          className="w-full max-w-5xl mx-auto bg-gray-900/80 border border-blue-500/30 rounded-[2rem] md:rounded-[3rem] p-4 md:p-8 relative shadow-2xl my-4 overflow-y-auto max-h-[85vh] md:max-h-none md:overflow-visible custom-scrollbar"
         >
           {/* Decorative Elements */}
           <div className="absolute top-0 left-0 w-32 h-32 bg-blue-500/20 blur-[60px]" />
           <div className="absolute bottom-0 right-0 w-32 h-32 bg-purple-500/20 blur-[60px]" />
 
           {!showDeckSelection ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10 transition-all">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center relative z-10 transition-all">
               {/* Left Column: Info & Actions */}
               <div className="flex flex-col gap-6 md:gap-8 text-center md:text-left">
                 <div className="hidden md:block">
@@ -346,17 +346,17 @@ export default function OnlinePage() {
                   <StatsCard />
                 </div>
 
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-4 md:gap-6">
                   {/* Deck Status Bar */}
                   <div className="flex items-center gap-4 justify-center md:justify-start">
-                    <div className="bg-black/40 px-4 py-2 rounded-xl border border-white/10 flex items-center gap-3">
-                      <Layers className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+                    <div className="bg-black/40 px-3 md:px-4 py-1.5 md:py-2 rounded-xl border border-white/10 flex items-center gap-2 md:gap-3">
+                      <Layers className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400" />
+                      <span className="text-[10px] md:text-sm font-bold text-gray-300 uppercase tracking-wider">
                         {t.deckStatus}
                       </span>
                       <span
                         className={cn(
-                          "text-lg font-black",
+                          "text-sm md:text-lg font-black",
                           isDeckComplete()
                             ? "text-green-400"
                             : "text-yellow-400"
@@ -368,14 +368,14 @@ export default function OnlinePage() {
                   </div>
 
                   {/* Deck Visual Preview */}
-                  <div className="flex justify-center md:justify-start -space-x-3 h-16">
+                  <div className="flex justify-center md:justify-start -space-x-2 md:-space-x-3 h-12 md:h-16">
                     {selectedDeck.length > 0 ? (
                       selectedDeck.map((c, i) => {
                         const hydrated = getHydratedCard(c);
                         return (
                           <div
                             key={i}
-                            className="w-10 h-14 md:w-12 md:h-16 rounded-lg border-2 border-gray-900 relative overflow-hidden shadow-lg transform hover:-translate-y-2 transition-transform duration-300 bg-gray-900"
+                            className="w-8 h-11 md:w-12 md:h-16 rounded-lg border-2 border-gray-900 relative overflow-hidden shadow-lg transform hover:-translate-y-2 transition-transform duration-300 bg-gray-900"
                             style={{ zIndex: i }}
                           >
                             <img
@@ -387,27 +387,27 @@ export default function OnlinePage() {
                         );
                       })
                     ) : (
-                      <span className="text-xs text-gray-600 italic self-center">
+                      <span className="text-[10px] md:text-xs text-gray-600 italic self-center">
                         {t.noCardsSelected}
                       </span>
                     )}
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-stretch">
+                  <div className="flex flex-row gap-2 items-stretch">
                     <button
                       onClick={() => handleModeClick("ranked")}
                       disabled={!isDeckComplete()}
                       className={cn(
-                        "group relative px-6 py-3 font-black uppercase tracking-widest text-sm transition-all w-full sm:w-auto overflow-hidden rounded-xl flex items-center justify-center gap-2",
+                        "flex-1 group relative px-2 md:px-6 py-3 md:py-4 font-black uppercase tracking-tighter md:tracking-widest text-[10px] md:text-sm transition-all overflow-hidden rounded-xl flex items-center justify-center gap-1 md:gap-2",
                         isDeckComplete()
                           ? "bg-white text-black hover:bg-blue-500 hover:text-white"
                           : "bg-gray-800 text-gray-500 cursor-not-allowed"
                       )}
                     >
-                      {t.startRanked}
+                      <span className="truncate">{t.startRanked}</span>
                       {isDeckComplete() && (
-                        <ChevronLeft className="rotate-180 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        <ChevronLeft className="rotate-180 w-3 h-3 md:w-4 md:h-4 shrink-0 group-hover:translate-x-1 transition-transform" />
                       )}
                     </button>
 
@@ -415,22 +415,22 @@ export default function OnlinePage() {
                       onClick={() => handleModeClick("custom")}
                       disabled={!isDeckComplete()}
                       className={cn(
-                        "px-6 py-3 font-black uppercase tracking-widest text-sm transition-all rounded-xl flex items-center justify-center gap-2 w-full sm:w-auto",
+                        "flex-1 px-2 md:px-6 py-3 md:py-4 font-black uppercase tracking-tighter md:tracking-widest text-[10px] md:text-sm transition-all rounded-xl flex items-center justify-center gap-1 md:gap-2",
                         isDeckComplete()
                           ? "bg-purple-600 text-white hover:bg-purple-500"
                           : "bg-gray-800 text-gray-500 cursor-not-allowed"
                       )}
                     >
-                      <Users className="w-4 h-4" />
-                      {t.customLobby}
+                      <Users className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
+                      <span className="truncate">{t.customLobby}</span>
                     </button>
 
                     <button
                       onClick={() => setShowDeckSelection(true)}
-                      className="px-6 py-3 bg-gray-800 text-white font-black uppercase tracking-widest text-sm hover:bg-gray-700 transition-colors rounded-xl flex items-center justify-center gap-2 w-full sm:w-auto"
+                      className="flex-1 px-2 md:px-6 py-3 md:py-4 bg-gray-800 text-white font-black uppercase tracking-tighter md:tracking-widest text-[10px] md:text-sm hover:bg-gray-700 transition-colors rounded-xl flex items-center justify-center gap-1 md:gap-2"
                     >
-                      <Layers className="w-4 h-4" />
-                      {t.editDeck}
+                      <Layers className="w-3 h-3 md:w-4 md:h-4 shrink-0" />
+                      <span className="truncate">{t.editDeck}</span>
                     </button>
                   </div>
                 </div>

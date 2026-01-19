@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { supabase } from "../lib/supabase";
 import { User } from "@supabase/supabase-js";
 import { useCardStore } from "./useCardStore";
+import { useDeckStore } from "./useDeckStore";
 
 interface UserProfile {
   id: string;
@@ -28,6 +29,10 @@ interface AuthState {
   refreshProfile: () => Promise<void>;
   addCoins: (amount: number) => Promise<void>;
   verifyOnboarding: (userId: string) => Promise<void>;
+  checkUsernameAvailability: (username: string) => Promise<boolean>;
+  updateUsername: (
+    username: string
+  ) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -58,6 +63,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     await supabase.auth.signOut();
+    useDeckStore.getState().reset();
     set({ user: null, profile: null });
   },
 
@@ -115,53 +121,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        // PGRST116: JSON object requested, multiple (or no) rows returned
-        if (error.code === "PGRST116") {
-          console.log("Profile missing (legacy user), creating one...");
+        console.error("Error fetching profile:", error);
+        return;
+      }
 
-          // Use Upsert to handle race conditions safely
-          const { data: newProfile, error: createError } = await supabase
-            .from("profiles")
-            .upsert(
-              {
-                id: user.id,
-                full_name: user.user_metadata?.full_name,
-                avatar_url: user.user_metadata?.avatar_url,
-                is_onboarded: false,
-                coins: 0,
-              },
-              { onConflict: "id", ignoreDuplicates: true }
-            )
-            .select()
-            .single();
+      if (!data) {
+        console.log("Profile missing, creating one...");
+        const { error: insertError } = await supabase.from("profiles").insert({
+          id: user.id,
+          full_name: user.user_metadata?.full_name,
+          avatar_url: user.user_metadata?.avatar_url,
+          is_onboarded: false,
+          coins: 0,
+        });
 
-          if (createError) {
-            console.error("Error creating profile:", createError);
-            // Try to fetch again in case it was created concurrently
-            const { data: retryData } = await supabase
-              .from("profiles")
-              .select("*")
-              .eq("id", user.id)
-              .single();
-            if (retryData) finalProfile = retryData;
-          } else if (newProfile) {
-            finalProfile = newProfile;
-          } else {
-            // Duplicate ignored (upsert returned null). Fetch existing.
-            const { data: existing } = await supabase
-              .from("profiles")
-              .select("*")
-              .eq("id", user.id)
-              .single();
-            finalProfile = existing;
-          }
-        } else {
-          console.error("Error fetching profile:", error);
-          return;
+        if (insertError && insertError.code !== "23505") {
+          console.error("Error creating profile:", insertError);
         }
+
+        const { data: retryData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .maybeSingle();
+        finalProfile = retryData;
       } else {
         finalProfile = data;
       }
@@ -191,6 +177,46 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ profile: { ...profile, coins: newCoins } });
     } catch (error) {
       console.error("Error adding coins:", error);
+    }
+  },
+
+  checkUsernameAvailability: async (username: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", username)
+        .limit(1);
+
+      if (error) {
+        console.error("Detailed error checking username:", error);
+        throw error;
+      }
+      return data.length === 0; // Available if no profile found
+    } catch (error) {
+      console.error("Error checking username (catch block):", error);
+      return false;
+    }
+  },
+
+  updateUsername: async (username: string) => {
+    const { user, profile } = get();
+    if (!user || !profile)
+      return { success: false, error: "Not authenticated" };
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ username })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      set({ profile: { ...profile, username } });
+      return { success: true };
+    } catch (error: any) {
+      console.error("Detailed error updating username:", error);
+      return { success: false, error: error.message };
     }
   },
 

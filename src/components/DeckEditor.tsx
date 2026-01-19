@@ -5,6 +5,7 @@ import { X, Check } from "lucide-react";
 import { Card } from "./Card";
 import { Card as CardType } from "../types/game";
 import { cn } from "../lib/utils";
+import { useTranslation } from "../store/useSettingsStore";
 
 interface DeckEditorProps {
   title: string;
@@ -25,6 +26,8 @@ export function DeckEditor({
   onSave,
   onCancel,
 }: DeckEditorProps) {
+  const t = useTranslation();
+
   return (
     <div className="flex flex-col h-full relative z-10">
       <div className="flex items-center justify-between mb-6">
@@ -99,7 +102,7 @@ export function DeckEditor({
           onClick={onCancel}
           className="px-6 py-2 rounded-lg font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
         >
-          CANCEL
+          {t.onlineSelection.deckEditor.cancel}
         </button>
         <button
           onClick={onSave}
@@ -111,7 +114,7 @@ export function DeckEditor({
               : "bg-gray-800 text-gray-600 cursor-not-allowed"
           )}
         >
-          SAVE DECK
+          {t.onlineSelection.deckEditor.save}
         </button>
       </div>
     </div>

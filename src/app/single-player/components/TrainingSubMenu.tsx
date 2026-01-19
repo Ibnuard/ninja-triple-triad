@@ -15,7 +15,7 @@ export function TrainingSubMenu({ t, onNavigate }: TrainingSubMenuProps) {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="w-full max-w-4xl flex flex-col md:flex-row gap-6 items-stretch"
+      className="w-full max-w-4xl flex flex-col md:flex-row gap-6 items-stretch overflow-y-auto max-h-[90vh] md:max-h-none md:overflow-visible p-2 custom-scrollbar"
     >
       {/* Training Option 1 */}
       <button
