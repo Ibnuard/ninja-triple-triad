@@ -1065,7 +1065,7 @@ function GamePageContent() {
               />
 
               {/* Main Layout Container */}
-              <div className="relative z-10 w-full h-full p-1 lg:p-8 grid grid-rows-[auto_1fr_auto] lg:grid-rows-1 lg:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-1 lg:gap-8 justify-items-center items-center max-w-[1600px] mx-auto">
+              <div className="relative z-10 w-full h-full p-1 lg:p-8 grid grid-rows-[auto_1fr_auto] lg:grid-rows-1 lg:grid-cols-[minmax(200px,280px)_1fr_minmax(200px,280px)] gap-1 lg:gap-8 justify-items-center items-center max-w-[1400px] mx-auto">
                 {/* PLAYER 1 HAND */}
                 <div
                   className={cn(
@@ -1114,7 +1114,7 @@ function GamePageContent() {
                 {/* CENTER (Board) */}
                 <div className="order-2 w-full h-full flex flex-col items-center justify-center relative min-h-0 min-w-0 gap-2 lg:gap-6">
                   <div className="relative w-full h-full max-h-[50vh] sm:max-h-[55vh] lg:max-h-[75vh] aspect-square flex items-center justify-center">
-                    <div className="scale-85 sm:scale-75 lg:scale-95 transition-transform duration-500">
+                    <div className="scale-85 sm:scale-75 lg:scale-90 transition-transform duration-500">
                       <Board
                         showCardPlaceAnimation={
                           activeSettings.showCardPlaceAnimation

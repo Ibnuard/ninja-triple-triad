@@ -552,7 +552,7 @@ export const TRANSLATIONS = {
       you: "KAMU",
       vs: "VS",
       boss: "BOSS",
-      cpu: "Lawan/Musuh",
+      cpu: "Lawan",
       emptyHand: "Tangan Kosong",
       passiveInfo: "Info Pasif",
       standardMatch: "Pertandingan Standar",

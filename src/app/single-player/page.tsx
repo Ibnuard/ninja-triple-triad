@@ -16,6 +16,7 @@ import { ModeSelectionGrid } from "../../components/ModeSelectionGrid";
 import { TrainingSubMenu } from "./components/TrainingSubMenu";
 import { GauntletModeView } from "./components/GauntletModeView";
 import { CustomModeView } from "./components/CustomModeView";
+import { DeckSelectionView } from "./components/DeckSelectionView";
 
 export default function SinglePlayerModes() {
   const router = useRouter();
@@ -112,10 +113,7 @@ export default function SinglePlayerModes() {
     } else {
       // "own" deck -> ensure we use the loaded deck
       if (selectedDeck.length !== 5) {
-        alert(
-          t.trainingSub?.ownDeckError ||
-            "Please create a deck with 5 cards first!"
-        );
+        setShowDeckSelection(true);
         return;
       }
     }
@@ -186,7 +184,7 @@ export default function SinglePlayerModes() {
     }
   };
 
-  const saveGauntletDeck = () => {
+  const handleSaveDeck = () => {
     if (tempDeck.length === 5) {
       saveDeck(tempDeck, user?.id);
       setShowDeckSelection(false);
@@ -244,7 +242,18 @@ export default function SinglePlayerModes() {
                 onModeClick={handleModeClick}
               />
             ) : selectedMode === "training" ? (
-              <TrainingSubMenu t={t} onNavigate={handleTrainingNavigate} />
+              showDeckSelection ? (
+                <DeckSelectionView
+                  t={t}
+                  tempDeck={tempDeck}
+                  cardPool={displayCardPool}
+                  onToggleCard={toggleCardSelection}
+                  onSaveDeck={handleSaveDeck}
+                  onCancelSelection={() => setShowDeckSelection(false)}
+                />
+              ) : (
+                <TrainingSubMenu t={t} onNavigate={handleTrainingNavigate} />
+              )
             ) : selectedMode === "gauntlet" ? (
               <GauntletModeView
                 t={t}
@@ -258,7 +267,7 @@ export default function SinglePlayerModes() {
                 onStartGauntlet={handleStartGauntlet}
                 onManageDeck={() => setShowDeckSelection(true)}
                 onToggleCard={toggleCardSelection}
-                onSaveDeck={saveGauntletDeck}
+                onSaveDeck={handleSaveDeck}
                 onCancelSelection={() => setShowDeckSelection(false)}
               />
             ) : (

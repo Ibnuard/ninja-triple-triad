@@ -168,10 +168,10 @@ export const Hand = ({
           className={cn(
             "flex items-center justify-center p-2 lg:p-4 rounded-2xl transition-all duration-500 relative",
             orientation === "vertical"
-              ? "bg-gray-900/80 border border-white/5 shadow-inner min-h-[320px] lg:min-h-[460px] w-full"
+              ? "bg-gray-900/80 border border-white/5 shadow-inner min-h-[320px] lg:min-h-[400px] w-full"
               : isMyTurn && !isHidden
-              ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)] min-h-[100px] lg:min-h-[150px] w-fit min-w-[280px] lg:min-w-[400px]"
-              : "bg-black/40 border border-white/5 shadow-inner min-h-[100px] lg:min-h-[150px] w-fit min-w-[280px] lg:min-w-[400px]",
+              ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)] min-h-[100px] lg:min-h-[140px] w-fit min-w-[280px] lg:min-w-[360px]"
+              : "bg-black/40 border border-white/5 shadow-inner min-h-[100px] lg:min-h-[140px] w-fit min-w-[280px] lg:min-w-[360px]",
             !isMyTurn && "scale-90 lg:scale-100 origin-center",
             isMyTurn && "scale-100 origin-center"
           )}
@@ -218,7 +218,7 @@ export const Hand = ({
                 >
                   {isHidden ? (
                     // Card Back (Modernized)
-                    <div className="w-[12vw] h-[17vw] max-w-[70px] max-h-[100px] lg:w-20 lg:h-28 rounded-lg border border-white/10 shadow-lg relative overflow-hidden group">
+                    <div className="w-[12vw] h-[17vw] max-w-[70px] max-h-[100px] lg:w-16 lg:h-24 rounded-lg border border-white/10 shadow-lg relative overflow-hidden group">
                       <div className="absolute inset-0 bg-linear-to-br from-gray-800 to-gray-950" />
                       <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
                       <div className="absolute inset-0 flex items-center justify-center">

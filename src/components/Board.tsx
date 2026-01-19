@@ -50,7 +50,7 @@ const BoardCell = ({
       key={`${rIndex}-${cIndex}`}
       data-cell-index={`${rIndex}-${cIndex}`}
       className={cn(
-        "relative w-[28vw] h-[38vw] max-w-[120px] max-h-[160px] lg:w-32 lg:h-40 bg-black/40 rounded-lg flex items-center justify-center border border-white/5 transition-all",
+        "relative w-[28vw] h-[38vw] max-w-[120px] max-h-[160px] lg:w-28 lg:h-36 bg-black/40 rounded-lg flex items-center justify-center border border-white/5 transition-all",
         !cell.card && "hover:bg-white/5 cursor-pointer",
         isLastMove && "ring-2 ring-yellow-400/50",
         isHovered && !cell.card && "ring-2 ring-blue-500 bg-blue-500/20"

@@ -318,7 +318,7 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col gap-2.5 md:gap-3 max-w-2xl mx-auto w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-3 max-w-3xl mx-auto w-full">
               {menuItems.map((item, idx) => (
                 <motion.div
                   key={item.label}
@@ -398,7 +398,7 @@ function MenuCard({ item }: { item: any }) {
         "bg-gradient-to-br from-white/5 to-transparent hover:to-white/10",
         "group-hover:border-white/20 group-hover:scale-[1.01] active:scale-[0.99]",
         "group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]",
-        "flex flex-row items-center justify-start p-3 md:p-4 gap-3 md:gap-4"
+        "flex flex-row items-center justify-start p-3 md:p-3.5 gap-2.5 md:gap-3"
       )}
     >
       {/* Hover Background Accent */}
@@ -411,28 +411,28 @@ function MenuCard({ item }: { item: any }) {
 
       {/* Large Background Icon */}
       <div className="absolute -right-3 -bottom-3 opacity-[0.02] group-hover:opacity-[0.05] transition-all duration-700 group-hover:scale-110 pointer-events-none">
-        <item.icon className="w-24 h-24 md:w-32 md:h-32 text-white" />
+        <item.icon className="w-24 h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 text-white" />
       </div>
 
       {/* Icon Container */}
       <div className="flex-shrink-0 relative z-10">
         <div
           className={cn(
-            "p-2.5 md:p-3 rounded-xl bg-black/60 border border-white/10 group-hover:scale-110 transition-transform duration-500 shadow-xl",
+            "p-2 md:p-2.5 rounded-xl bg-black/60 border border-white/10 group-hover:scale-110 transition-transform duration-500 shadow-xl",
             item.shadow
           )}
         >
-          <item.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          <item.icon className="w-4 h-4 md:w-5 md:h-5 text-white" />
         </div>
       </div>
 
       {/* Text Content */}
       <div className="flex-1 relative z-10 min-w-0">
-        <h3 className="font-black text-sm md:text-lg tracking-wider uppercase italic text-white transition-colors group-hover:text-red-500">
+        <h3 className="font-black text-xs md:text-sm tracking-wider uppercase italic text-white transition-colors group-hover:text-red-500">
           {item.label}
         </h3>
         {item.description && (
-          <p className="text-[10px] md:text-xs font-medium text-gray-500 mt-0.5 md:mt-1 line-clamp-1 group-hover:text-gray-300 transition-colors">
+          <p className="text-[9px] md:text-[10px] font-medium text-gray-500 mt-0.5 md:mt-1 line-clamp-1 group-hover:text-gray-300 transition-colors">
             {item.description}
           </p>
         )}
