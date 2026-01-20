@@ -134,47 +134,78 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
     let p1DeckSource = decks[p1Id] || [];
     let p2DeckSource = decks[p2Id] || [];
 
-    // Fallback: If Match Config failed to save decks, Fetch direct from DB
+    // Fallback: If Match Config failed to save decks, Fetch direct from DB with retry
     // This solves the issue where Host fails to populate config correctly
+    const fetchDeckWithRetry = async (
+      playerId: string,
+      maxRetries = 3,
+    ): Promise<any[]> => {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        console.log(
+          `Fetching deck for ${playerId} (attempt ${attempt}/${maxRetries})...`,
+        );
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("selected_deck")
+          .eq("id", playerId)
+          .single();
+
+        if (data?.selected_deck && data.selected_deck.length >= 5) {
+          return data.selected_deck;
+        }
+
+        if (error) {
+          console.warn(`Deck fetch attempt ${attempt} failed:`, error);
+        }
+
+        if (attempt < maxRetries) {
+          await new Promise((r) => setTimeout(r, 500 * attempt)); // Exponential backoff
+        }
+      }
+      return [];
+    };
+
     try {
       if (p1DeckSource.length < 5) {
         console.warn("P1 Deck Missing in Config. Fetching from DB Fallback...");
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("selected_deck, rank_points")
-          .eq("id", p1Id)
-          .single();
-        if (data?.selected_deck) {
-          p1DeckSource = data.selected_deck;
-        } else if (error) {
-          console.error("P1 DB Fetch Error:", error);
-        }
+        p1DeckSource = await fetchDeckWithRetry(p1Id);
       }
       if (p2DeckSource.length < 5) {
         console.warn("P2 Deck Missing in Config. Fetching from DB Fallback...");
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("selected_deck, rank_points")
-          .eq("id", p2Id)
-          .single();
-        if (data?.selected_deck) {
-          p2DeckSource = data.selected_deck;
-        } else if (error) {
-          console.error("P2 DB Fetch Error:", error);
-        }
+        p2DeckSource = await fetchDeckWithRetry(p2Id);
       }
     } catch (err) {
       console.error("Critical Error during Deck Fallback Fetch:", err);
       // Don't crash, proceed to validation check so we show the proper Error UI
     }
 
-    const p1Hand = p1DeckSource.filter((c: any) => c && c.id);
-    const p2Hand = p2DeckSource.filter((c: any) => c && c.id);
+    let p1Hand = p1DeckSource.filter((c: any) => c && c.id);
+    let p2Hand = p2DeckSource.filter((c: any) => c && c.id);
 
     console.log("Deck check:", { p1: p1Hand.length, p2: p2Hand.length });
 
+    // Final retry if still incomplete
     if (p1Hand.length < 5 || p2Hand.length < 5) {
-      console.error("Incomplete hands! Cannot initialize.");
+      console.warn("Hands still incomplete. Final retry after 1s delay...");
+      await new Promise((r) => setTimeout(r, 1000));
+
+      if (p1Hand.length < 5) {
+        const retryP1 = await fetchDeckWithRetry(p1Id, 2);
+        if (retryP1.length >= 5) p1Hand = retryP1.filter((c: any) => c && c.id);
+      }
+      if (p2Hand.length < 5) {
+        const retryP2 = await fetchDeckWithRetry(p2Id, 2);
+        if (retryP2.length >= 5) p2Hand = retryP2.filter((c: any) => c && c.id);
+      }
+
+      console.log("After final retry:", {
+        p1: p1Hand.length,
+        p2: p2Hand.length,
+      });
+    }
+
+    if (p1Hand.length < 5 || p2Hand.length < 5) {
+      console.error("Incomplete hands after all retries! Cannot initialize.");
       setInitError("Incomplete Decks - Match Cancelled");
       hasInitializedRef.current = false;
       return false;
@@ -458,16 +489,18 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
           );
 
           // CRITICAL: Check if both ready and initialize
+          // Use isPlayer1 directly instead of isHostRef which may not be set yet
+          const amIHost = isPlayer1;
           if (
             newMatch.player1_ready &&
             newMatch.player2_ready &&
             !hasInitializedRef.current &&
-            isHostRef.current
+            amIHost
           ) {
             console.log("Both players ready! Host initiating game...");
-            if (!matchDataRef.current) {
-              matchDataRef.current = newMatch;
-            }
+            // Ensure refs are set before init
+            matchDataRef.current = newMatch;
+            isHostRef.current = true;
             initializeGame();
           }
 
@@ -475,7 +508,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
           if (newMatch.state) {
             if (!matchDataRef.current) {
               matchDataRef.current = newMatch;
-              isHostRef.current = newMatch.player1_id === user?.id;
+              isHostRef.current = isPlayer1;
             }
             applyStateFromDb(newMatch.state);
           }
@@ -643,11 +676,21 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
 
     channelRef.current = channel;
 
-    // Periodic Check & Retry (Watchdog for Deadlocks)
-    const watchdogInterval = setInterval(async () => {
-      if (!channel || channel.state !== "joined") return;
+    // Dynamic Watchdog - faster in early phase, slower later
+    let watchdogTimer: NodeJS.Timeout;
+
+    const runWatchdog = async () => {
+      if (!channel || channel.state !== "joined") {
+        watchdogTimer = setTimeout(runWatchdog, 3000);
+        return;
+      }
 
       const currentPhase = useGameStore.getState().phase;
+      const moveSeq = useGameStore.getState().moveSequence || 0;
+
+      // Dynamic interval: 1.5s for preparing/early game, 3s for mid-late game
+      const interval =
+        currentPhase === "preparing" || moveSeq < 3 ? 1500 : 3000;
 
       // 1. Re-evaluate presence (in case sync missed)
       const presenceState = channel.presenceState();
@@ -714,10 +757,16 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
           });
         }
       }
-    }, 3000); // Check every 3 seconds (less aggressive than before)
+
+      // Schedule next run
+      watchdogTimer = setTimeout(runWatchdog, interval);
+    };
+
+    // Start watchdog
+    watchdogTimer = setTimeout(runWatchdog, 1500);
 
     return () => {
-      clearInterval(watchdogInterval);
+      clearTimeout(watchdogTimer);
       supabase.removeChannel(channel);
       channelRef.current = null;
 
