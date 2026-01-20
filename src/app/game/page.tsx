@@ -543,9 +543,15 @@ function GamePageContent() {
             <h2 className="text-xl font-black text-yellow-500 italic tracking-wider mb-2 uppercase text-center">
               Syncing Game State...
             </h2>
-            <p className="text-gray-400 text-sm text-center">
+            <p className="text-gray-400 text-sm text-center mb-6">
               Please wait while we sync with the server
             </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 rounded-lg font-bold text-sm hover:bg-yellow-500/30 transition-all"
+            >
+              ⟳ Reload if stuck
+            </button>
           </div>
         )}
 

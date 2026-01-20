@@ -51,8 +51,10 @@ export function BoardMechanicModal({
         return <CloudFog className="w-12 h-12 text-gray-400" />;
       case "joker":
         return <Dices className="w-12 h-12 text-pink-500" />;
+      case "none":
+        return <span className="text-5xl">📋</span>;
       default:
-        return null;
+        return <span className="text-5xl">📋</span>;
     }
   };
 
@@ -80,8 +82,12 @@ export function BoardMechanicModal({
           title: t.joker.title,
           desc: t.joker.desc,
         };
+      case "none":
       default:
-        return { title: "", desc: "" };
+        return {
+          title: t.standard.title,
+          desc: t.standard.desc,
+        };
     }
   };
 

@@ -114,6 +114,10 @@ export const TRANSLATIONS = {
           lightningTitle: "Lightning Board",
           desc: "The board has been infused with {element} energy. All cards with the {element} element receive +1 to all stats.",
         },
+        standard: {
+          title: "Standard Board",
+          desc: "A classic Triple Triad match with no special modifiers. Cards battle based on their base stats only. May the best strategist win!",
+        },
         poison: {
           title: "Poison Board",
           desc: "Toxic fumes cover the battlefield. All cards suffer -1 to all stats.",
@@ -565,6 +569,10 @@ export const TRANSLATIONS = {
           windTitle: "Papan Angin",
           lightningTitle: "Papan Petir",
           desc: "Papan telah dipenuhi energi {element}. Semua kartu dengan elemen {element} mendapat +1 untuk semua stat.",
+        },
+        standard: {
+          title: "Papan Standar",
+          desc: "Pertandingan Triple Triad klasik tanpa modifier khusus. Kartu bertarung berdasarkan stat dasar mereka saja. Semoga ahli strategi terbaik menang!",
         },
         poison: {
           title: "Papan Racun",
