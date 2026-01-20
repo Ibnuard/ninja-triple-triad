@@ -17,7 +17,7 @@ const shojumaru = Shojumaru({
   variable: "--font-shojumaru",
   subsets: ["latin"],
 });
- 
+
 const luckiestGuy = Luckiest_Guy({
   weight: "400",
   variable: "--font-luckiest",
@@ -30,6 +30,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/components/AuthProvider";
+import { RouteGuard } from "@/components/RouteGuard";
 
 export default function RootLayout({
   children,
@@ -42,7 +43,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${shojumaru.variable} ${luckiestGuy.variable} antialiased`}
       >
         <AuthProvider>
-          {children}
+          <RouteGuard>{children}</RouteGuard>
         </AuthProvider>
       </body>
     </html>
