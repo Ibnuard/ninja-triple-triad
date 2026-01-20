@@ -272,6 +272,8 @@ export const TRANSLATIONS = {
       beta: "BETA",
       yourStats: "YOUR STATS",
       rankPoints: "Rank Points",
+      currentRank: "Current Rank",
+      pointsToNextRank: "points to next rank",
       deckEditor: {
         title: "EDIT BATTLE DECK",
         cancel: "CANCEL",
@@ -727,6 +729,8 @@ export const TRANSLATIONS = {
       beta: "BETA",
       yourStats: "STATISTIK KAMU",
       rankPoints: "Poin Peringkat",
+      currentRank: "Peringkat Saat Ini",
+      pointsToNextRank: "poin ke peringkat berikutnya",
       deckEditor: {
         title: "ATUR DEK PERTANDINGAN",
         cancel: "BATAL",

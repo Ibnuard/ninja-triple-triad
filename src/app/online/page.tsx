@@ -24,6 +24,12 @@ import { CARD_POOL } from "../../data/cardPool";
 import { Card } from "../../components/Card";
 import { DeckEditor } from "../../components/DeckEditor";
 import { cn } from "../../lib/utils";
+import {
+  getRankFromPoints,
+  RANK_DISPLAY,
+  getRankProgress,
+  getPointsToNextRank,
+} from "../../constants/onlineRanks";
 
 export default function OnlinePage() {
   const router = useRouter();
@@ -234,6 +240,12 @@ export default function OnlinePage() {
                           src={hydrated.image}
                           alt={hydrated.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.onerror = null;
+                            target.style.display = "none";
+                            target.parentElement!.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center"><span class="text-sm">🥷</span></div>`;
+                          }}
                         />
                       </div>
                     );
@@ -259,43 +271,93 @@ export default function OnlinePage() {
   }
 
   // Helper Stats Component
-  const StatsCard = () => (
-    <div className="relative w-full bg-black/40 rounded-3xl border border-white/5 p-4 md:p-6 flex flex-col gap-4 md:gap-6">
-      <div className="flex items-center justify-between border-b border-white/10 pb-4">
-        <h3 className="text-lg md:text-xl font-black italic uppercase text-white/50">
-          {t.yourStats}
-        </h3>
-        <Globe className="w-5 h-5 text-gray-500" />
-      </div>
+  const StatsCard = () => {
+    const rankPoints = profile?.rank_points || 0;
+    const totalMatches = profile?.total_matches || 0;
+    const currentRank = getRankFromPoints(rankPoints);
+    const rankInfo = RANK_DISPLAY[currentRank];
+    const progress = getRankProgress(rankPoints);
+    const pointsToNext = getPointsToNextRank(rankPoints);
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4">
-        <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
-          <Trophy className="w-6 h-6 md:w-8 md:h-8 text-amber-500" />
-          <div className="text-center">
+    return (
+      <div className="relative w-full bg-black/40 rounded-3xl border border-white/5 p-4 md:p-6 flex flex-col gap-4 md:gap-6">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <h3 className="text-lg md:text-xl font-black italic uppercase text-white/50">
+            {t.yourStats}
+          </h3>
+          <Globe className="w-5 h-5 text-gray-500" />
+        </div>
+
+        {/* Rank Badge */}
+        <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-800/50 to-transparent rounded-2xl border border-white/5">
+          <div className="text-4xl">{rankInfo.icon}</div>
+          <div className="flex-1">
             <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-              {t.rankPoints}
+              {t.currentRank || "Current Rank"}
             </div>
-            <div className="text-xl md:text-2xl font-black text-white">
-              {profile?.rank_points || 0}
+            <div
+              className={cn(
+                "text-xl md:text-2xl font-black uppercase",
+                rankInfo.color
+              )}
+            >
+              {rankInfo.name}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl md:text-3xl font-black text-white">
+              {rankPoints}
+            </div>
+            <div className="text-[10px] text-gray-500 uppercase">pts</div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        {pointsToNext && (
+          <div className="space-y-1">
+            <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <div className="text-[10px] text-gray-500 text-center">
+              {pointsToNext} {t.pointsToNextRank || "points to next rank"}
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
+          <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
+            <Trophy className="w-6 h-6 md:w-8 md:h-8 text-amber-500" />
+            <div className="text-center">
+              <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
+                {t.rankPoints}
+              </div>
+              <div className="text-xl md:text-2xl font-black text-white">
+                {rankPoints}
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
+            <Swords className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
+            <div className="text-center">
+              <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
+                {t.matchesPlayed}
+              </div>
+              <div className="text-sm md:text-lg font-black text-white">
+                {totalMatches}
+              </div>
             </div>
           </div>
         </div>
-        <div className="bg-gray-800/50 rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center gap-2 border border-white/5">
-          <Swords className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
-          <div className="text-center">
-            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
-              {t.matchesPlayed}
-            </div>
-            <div className="text-sm md:text-lg font-black text-white">-</div>
-          </div>
+
+        <div className="mt-auto pt-4 border-t border-white/10 text-center">
+          <p className="text-xs text-gray-500 uppercase">{t.seasonLabel}</p>
         </div>
       </div>
-
-      <div className="mt-auto pt-4 border-t border-white/10 text-center">
-        <p className="text-xs text-gray-500 uppercase">{t.seasonLabel}</p>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="h-[100dvh] bg-black text-white relative overflow-hidden flex flex-col font-mono">
@@ -383,6 +445,12 @@ export default function OnlinePage() {
                               src={hydrated.image}
                               alt={hydrated.name}
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                target.onerror = null;
+                                target.style.display = "none";
+                                target.parentElement!.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center"><span class="text-lg">🥷</span></div>`;
+                              }}
                             />
                           </div>
                         );

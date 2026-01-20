@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Info, LogOut } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useOnlineGameLogic } from "../../lib/useOnlineGameLogic";
-import { useEffect, useMemo, useState, Suspense } from "react";
+import { useEffect, useMemo, useState, useRef, Suspense } from "react";
+import { updatePlayerRankAfterMatch, MatchResult } from "../../lib/rankService";
 import { Board } from "../../components/Board";
 import { BoardIntroAnimation } from "../../components/BoardIntroAnimation";
 import { BossIntroAnimation } from "../../components/BossIntroAnimation";
@@ -466,6 +467,39 @@ function GamePageContent() {
     }
   }, [phase, isGauntletMode]);
 
+  // Ref to track if we've already updated rank for this match
+  const hasUpdatedRankRef = useRef(false);
+
+  // Update rank points when online game ends
+  useEffect(() => {
+    if (
+      phase === "game_over" &&
+      isOnline &&
+      user?.id &&
+      !hasUpdatedRankRef.current
+    ) {
+      hasUpdatedRankRef.current = true;
+
+      // Determine match result from user's perspective
+      let matchResult: MatchResult = "draw";
+      if (winner === "player1") {
+        // If user is player1, they won; if user is player2, they lost
+        matchResult = player1.id === user.id ? "win" : "loss";
+      } else if (winner === "player2") {
+        // If user is player2, they won; if user is player1, they lost
+        matchResult = player2.id === user.id ? "win" : "loss";
+      }
+
+      console.log(`Updating rank: User ${user.id} result = ${matchResult}`);
+      updatePlayerRankAfterMatch(user.id, matchResult);
+    }
+
+    // Reset ref when phase changes away from game_over
+    if (phase !== "game_over") {
+      hasUpdatedRankRef.current = false;
+    }
+  }, [phase, isOnline, user?.id, winner, player1.id, player2.id]);
+
   useEffect(() => {
     // Always start game if in Gauntlet mode to ensure correct opponent name/config
     // Or if hand is empty (standard flow)
@@ -496,7 +530,9 @@ function GamePageContent() {
 
   const handleOnlineMenu = async () => {
     setLoadingMessage(t.online.returningLobby);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Refresh profile to get updated rank points and matches
+    await useAuthStore.getState().refreshProfile();
+    await new Promise((resolve) => setTimeout(resolve, 300));
     resetGame();
     useMatchmakingStore.getState().reset();
     router.push("/online");

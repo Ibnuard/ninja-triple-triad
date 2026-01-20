@@ -7,6 +7,11 @@ import {
 } from "@/constants/gauntlet";
 import { ANIMATION_DURATIONS } from "@/constants/ui";
 import { Cell } from "@/types/game";
+import {
+  getRankFromPoints,
+  RANK_DISPLAY,
+  RANK_POINTS,
+} from "@/constants/onlineRanks";
 
 interface GameResultModalProps {
   t: any;
@@ -470,12 +475,55 @@ export function GameResultModal({
           className="flex flex-col gap-4 w-full relative z-10"
         >
           {isOnline ? (
-            <button
-              onClick={onOnlineMenu}
-              className="w-full py-3 bg-blue-500 text-white font-black text-xs tracking-[0.2em] hover:bg-blue-400 transition-all rounded-xl shadow-[0_4px_0_rgb(30,64,175)] active:translate-y-1 active:shadow-none uppercase italic"
-            >
-              {t.online.backToOnlineMenu}
-            </button>
+            <>
+              {/* Rank Point Change Display */}
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                className="bg-gray-900/80 border border-white/10 rounded-xl p-4 mb-4"
+              >
+                <div className="text-center">
+                  <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-2">
+                    {t.online?.rankChange || "Rank Points"}
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <span
+                      className={cn(
+                        "text-2xl font-black",
+                        iWon
+                          ? "text-green-400"
+                          : winner === "draw"
+                          ? "text-yellow-400"
+                          : "text-red-400"
+                      )}
+                    >
+                      {iWon
+                        ? `+${RANK_POINTS.WIN}`
+                        : winner === "draw"
+                        ? `+${RANK_POINTS.DRAW}`
+                        : RANK_POINTS.LOSS}
+                    </span>
+                    <span className="text-gray-500 text-sm">pts</span>
+                  </div>
+                  <div className="text-[10px] text-gray-500 mt-1">
+                    {iWon
+                      ? t.online?.victoryBonus || "Victory Bonus!"
+                      : winner === "draw"
+                      ? t.online?.drawPoints || "Draw Points"
+                      : t.online?.defeatPenalty || "Defeat Penalty"}
+                  </div>
+                </div>
+              </motion.div>
+
+              <button
+                onClick={onOnlineMenu}
+                className="w-full py-3 bg-blue-500 text-white font-black text-xs tracking-[0.2em] hover:bg-blue-400 transition-all rounded-xl shadow-[0_4px_0_rgb(30,64,175)] active:translate-y-1 active:shadow-none uppercase italic"
+              >
+                {t.online.backToOnlineMenu}
+              </button>
+            </>
           ) : isGauntletMode && winner === "player1" ? (
             <button
               onClick={() => {

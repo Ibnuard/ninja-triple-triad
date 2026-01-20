@@ -3,6 +3,7 @@ import { Info, LogOut, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IMAGE_PATHS } from "@/constants/assets";
 import { BoardMechanicState } from "@/types/game";
+import { getRankFromPoints, RANK_DISPLAY } from "@/constants/onlineRanks";
 
 interface GameHeaderProps {
   t: any;
@@ -16,6 +17,7 @@ interface GameHeaderProps {
   player2: any;
   isPOVPlayer2: boolean;
   mechanic: BoardMechanicState;
+  opponentRankPoints?: number;
   showInfoButton?: boolean;
   onShowInfo: () => void;
   onShowSettings: () => void;
@@ -35,6 +37,7 @@ export function GameHeader({
   player2,
   isPOVPlayer2,
   mechanic,
+  opponentRankPoints = 0,
   onShowInfo,
   onShowSettings,
   onShowExitConfirm,
@@ -117,6 +120,17 @@ export function GameHeader({
                   {opponentName || "???"}
                 </span>
               </div>
+              {/* Opponent Rank Badge */}
+              {isOnline && opponentRankPoints !== undefined && (
+                <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-black/40 rounded border border-white/10">
+                  <span className="text-[10px] lg:text-xs">
+                    {RANK_DISPLAY[getRankFromPoints(opponentRankPoints)].icon}
+                  </span>
+                  <span className="text-[9px] lg:text-[10px] text-white/60 font-bold tabular-nums">
+                    {opponentRankPoints}
+                  </span>
+                </div>
+              )}
             </motion.div>
           )}
 

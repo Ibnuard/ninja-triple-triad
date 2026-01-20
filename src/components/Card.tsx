@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card as CardType } from "../types/game";
 import { cn } from "../lib/utils"; // Assuming you have this helper
@@ -52,6 +53,7 @@ export const Card = ({
 }: CardProps) => {
   const rarity = card.rarity || "common";
   const rarityStyle = rarityStyles[rarity];
+  const [imageError, setImageError] = useState(false);
 
   return (
     <motion.div
@@ -262,11 +264,24 @@ export const Card = ({
       {/* Center Image Placeholder */}
       {/* Center Image Placeholder */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden rounded-xl lg:rounded-2xl">
-        <img
-          src={card.image || "/images/dummy-ninja.webp"}
-          alt={card.name}
-          className="w-full h-full object-cover opacity-80"
-        />
+        {imageError ? (
+          /* Fallback placeholder when image fails to load */
+          <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black flex flex-col items-center justify-center">
+            <div className="w-8 h-8 lg:w-12 lg:h-12 rounded-full bg-gray-700/50 flex items-center justify-center mb-1">
+              <span className="text-xl lg:text-2xl">🥷</span>
+            </div>
+            <span className="text-[6px] lg:text-[8px] text-gray-500 font-bold uppercase tracking-wider truncate max-w-[90%] text-center px-1">
+              {card.name}
+            </span>
+          </div>
+        ) : (
+          <img
+            src={card.image || "/images/dummy-ninja.webp"}
+            alt={card.name}
+            className="w-full h-full object-cover opacity-80"
+            onError={() => setImageError(true)}
+          />
+        )}
       </div>
 
       {/* Card Name / Footer */}

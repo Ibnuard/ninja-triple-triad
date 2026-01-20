@@ -12,8 +12,10 @@ interface UserProfile {
   avatar_url?: string;
   coins: number;
   rank_points?: number;
+  total_matches?: number;
   wins?: number;
   losses?: number;
+  draws?: number;
 }
 
 interface AuthState {

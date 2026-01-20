@@ -223,6 +223,10 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
                 p2: opponent.user_id,
               });
 
+              // Get rank points for both players
+              const myRankPoints = profile?.rank_points || 0;
+              const opponentRankPoints = opponent.rank_points || 0;
+
               const { data, error } = await supabase
                 .from("matches")
                 .insert({
@@ -235,6 +239,10 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
                     decks: {
                       [user.id]: myDeck,
                       [opponent.user_id]: opponentDeck,
+                    },
+                    rankPoints: {
+                      [user.id]: myRankPoints,
+                      [opponent.user_id]: opponentRankPoints,
                     },
                   },
                 })
@@ -304,7 +312,7 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
             const trackStatus = await channel.track({
               user_id: user.id,
               mode: mode,
-              rank: profile?.rank_points || 1000,
+              rank_points: profile?.rank_points || 0,
               status: "searching",
               searching_at: new Date().toISOString(),
               online_at: new Date().toISOString(),
