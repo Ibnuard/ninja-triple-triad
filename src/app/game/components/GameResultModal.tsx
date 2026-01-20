@@ -100,8 +100,8 @@ export function GameResultModal({
             winner === "player1"
               ? "bg-blue-500"
               : winner === "player2"
-              ? "bg-red-500"
-              : "bg-yellow-500"
+                ? "bg-red-500"
+                : "bg-yellow-500",
           )}
         />
 
@@ -117,8 +117,8 @@ export function GameResultModal({
               ? justFinishedBoss
                 ? t.gauntlet.roundCleared
                 : isBossBattle
-                ? t.gauntlet.thresholdReached
-                : t.gauntlet.roundCleared
+                  ? t.gauntlet.thresholdReached
+                  : t.gauntlet.roundCleared
               : t.matchFinished}
           </h2>
           <motion.h1
@@ -133,8 +133,8 @@ export function GameResultModal({
               winner === "draw"
                 ? "text-yellow-500"
                 : iWon
-                ? "text-blue-400"
-                : "text-red-500"
+                  ? "text-blue-400"
+                  : "text-red-500",
             )}
           >
             {(() => {
@@ -196,7 +196,7 @@ export function GameResultModal({
                 board.forEach((row) =>
                   row.forEach((cell) => {
                     if (cell.owner === targetOwner) count++;
-                  })
+                  }),
                 );
                 return count;
               })()}
@@ -230,8 +230,8 @@ export function GameResultModal({
                 {isOnline || isGauntletMode
                   ? formatName(
                       isPOVPlayer2
-                        ? player1.name || "Opponent"
-                        : player2.name || "Opponent"
+                        ? player1.name || t.opponent
+                        : player2.name || t.opponent,
                     )
                   : t.cpu}
               </div>
@@ -243,7 +243,7 @@ export function GameResultModal({
                 board.forEach((row) =>
                   row.forEach((cell) => {
                     if (cell.owner === targetOwner) count++;
-                  })
+                  }),
                 );
                 return count;
               })()}
@@ -340,7 +340,7 @@ export function GameResultModal({
                         board.forEach((row) =>
                           row.forEach((cell) => {
                             if (cell.owner === "player1") boardCardCount++;
-                          })
+                          }),
                         );
                         return (
                           boardCardCount * GAUNTLET_SCORING.BOARD_BONUS_PER_CARD
@@ -415,7 +415,7 @@ export function GameResultModal({
                       "Rikudo",
                     ];
                     const currentRankIndex = ranks.indexOf(
-                      gauntletRank as GauntletRank
+                      gauntletRank as GauntletRank,
                     );
                     if (currentRankIndex === ranks.length - 1) return "MAX";
                     return ranks[currentRankIndex + 1];
@@ -436,7 +436,7 @@ export function GameResultModal({
                         "Rikudo",
                       ];
                       const currentRankIndex = ranks.indexOf(
-                        gauntletRank as GauntletRank
+                        gauntletRank as GauntletRank,
                       );
                       if (currentRankIndex === ranks.length - 1) return "100%";
                       const currentThreshold =
@@ -449,8 +449,8 @@ export function GameResultModal({
                           0,
                           ((gauntletScore - currentThreshold) /
                             (nextThreshold - currentThreshold)) *
-                            100
-                        )
+                            100,
+                        ),
                       );
                       return `${progress}%`;
                     })(),
@@ -486,7 +486,7 @@ export function GameResultModal({
               >
                 <div className="text-center">
                   <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-2">
-                    {t.online?.rankChange || "Rank Points"}
+                    {t.online?.rankChange}
                   </div>
                   <div className="flex items-center justify-center gap-2">
                     <span
@@ -495,24 +495,24 @@ export function GameResultModal({
                         iWon
                           ? "text-green-400"
                           : winner === "draw"
-                          ? "text-yellow-400"
-                          : "text-red-400"
+                            ? "text-yellow-400"
+                            : "text-red-400",
                       )}
                     >
                       {iWon
                         ? `+${RANK_POINTS.WIN}`
                         : winner === "draw"
-                        ? `+${RANK_POINTS.DRAW}`
-                        : RANK_POINTS.LOSS}
+                          ? `+${RANK_POINTS.DRAW}`
+                          : RANK_POINTS.LOSS}
                     </span>
                     <span className="text-gray-500 text-sm">pts</span>
                   </div>
                   <div className="text-[10px] text-gray-500 mt-1">
                     {iWon
-                      ? t.online?.victoryBonus || "Victory Bonus!"
+                      ? t.online?.victoryBonus
                       : winner === "draw"
-                      ? t.online?.drawPoints || "Draw Points"
-                      : t.online?.defeatPenalty || "Defeat Penalty"}
+                        ? t.online?.drawPoints
+                        : t.online?.defeatPenalty}
                   </div>
                 </div>
               </motion.div>

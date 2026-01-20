@@ -17,8 +17,6 @@ interface GameHeaderProps {
   player2: any;
   isPOVPlayer2: boolean;
   mechanic: BoardMechanicState;
-  opponentRankPoints?: number;
-  myRankPoints?: number;
   showInfoButton?: boolean;
   onShowInfo: () => void;
   onShowSettings: () => void;
@@ -38,8 +36,6 @@ export function GameHeader({
   player2,
   isPOVPlayer2,
   mechanic,
-  opponentRankPoints = 0,
-  myRankPoints = 0,
   onShowInfo,
   onShowSettings,
   onShowExitConfirm,
@@ -122,17 +118,6 @@ export function GameHeader({
                   {opponentName || "???"}
                 </span>
               </div>
-              {/* Opponent Rank Badge */}
-              {isOnline && opponentRankPoints !== undefined && (
-                <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-black/40 rounded border border-white/10">
-                  <span className="text-[10px] lg:text-xs">
-                    {RANK_DISPLAY[getRankFromPoints(opponentRankPoints)].icon}
-                  </span>
-                  <span className="text-[9px] lg:text-[10px] text-white/60 font-bold tabular-nums">
-                    {opponentRankPoints}
-                  </span>
-                </div>
-              )}
             </motion.div>
           )}
 
@@ -235,18 +220,6 @@ export function GameHeader({
         <div className="flex-1 flex justify-end items-center gap-1 lg:gap-1.5 pointer-events-auto">
           {phase !== "game_over" && (
             <>
-              {/* My Rank Badge */}
-              {isOnline && myRankPoints !== undefined && (
-                <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-black/40 rounded border border-white/10 mr-1 lg:mr-2">
-                  <span className="text-[10px] lg:text-xs">
-                    {RANK_DISPLAY[getRankFromPoints(myRankPoints)].icon}
-                  </span>
-                  <span className="text-[9px] lg:text-[10px] text-white/60 font-bold tabular-nums">
-                    {myRankPoints}
-                  </span>
-                </div>
-              )}
-
               <button
                 onClick={onShowInfo}
                 className="h-7 lg:h-8 w-7 lg:w-8 flex items-center justify-center rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400/80 hover:text-yellow-300 hover:border-yellow-400/50 hover:bg-yellow-500/20 transition-all"

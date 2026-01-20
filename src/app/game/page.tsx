@@ -881,12 +881,6 @@ function GamePageContent() {
                 player2={player2}
                 isPOVPlayer2={isPOVPlayer2}
                 mechanic={mechanic}
-                opponentRankPoints={
-                  isPOVPlayer2 ? player1.rank_points : player2.rank_points
-                }
-                myRankPoints={
-                  isPOVPlayer2 ? player2.rank_points : player1.rank_points
-                }
                 onShowInfo={() => setShowInfo(true)}
                 onShowSettings={() => setShowSettingsModal(true)}
                 onShowExitConfirm={() => setShowExitConfirm(true)}
@@ -926,6 +920,9 @@ function GamePageContent() {
                       orientation="horizontal"
                       isCustom={isCustomMode}
                       gauntletRank={isGauntletMode ? gauntletRank : undefined}
+                      onlineRankPoints={
+                        isOnline ? bottomPlayer.rank_points : undefined
+                      }
                       name={
                         isOnline
                           ? undefined
@@ -944,6 +941,9 @@ function GamePageContent() {
                       orientation="vertical"
                       isCustom={isCustomMode}
                       gauntletRank={isGauntletMode ? gauntletRank : undefined}
+                      onlineRankPoints={
+                        isOnline ? bottomPlayer.rank_points : undefined
+                      }
                       name={
                         isOnline
                           ? undefined
@@ -987,6 +987,9 @@ function GamePageContent() {
                       isHidden={isCustomMode ? false : true}
                       isCustom={isCustomMode}
                       name={isOnline ? undefined : topPlayer.name}
+                      onlineRankPoints={
+                        isOnline ? topPlayer.rank_points : undefined
+                      }
                     />
                   </div>
                   {/* Desktop View (Vertical Compact) */}
@@ -1002,6 +1005,9 @@ function GamePageContent() {
                       isHidden={isCustomMode ? false : true}
                       isCustom={isCustomMode}
                       name={isOnline ? undefined : topPlayer.name}
+                      onlineRankPoints={
+                        isOnline ? topPlayer.rank_points : undefined
+                      }
                     />
                   </div>
                 </div>

@@ -203,6 +203,10 @@ export const TRANSLATIONS = {
           "Game will start automatically when both players are ready...",
         returningLobby: "Returning to lobby...",
         backToOnlineMenu: "BACK TO ONLINE MENU",
+        rankChange: "Rank Points",
+        victoryBonus: "Victory Bonus!",
+        drawPoints: "Draw Points",
+        defeatPenalty: "Defeat Penalty",
       },
       exitConfirmation: {
         title: "Quit Game?",
@@ -661,6 +665,10 @@ export const TRANSLATIONS = {
         waitBothReady: "Game akan dimulai otomatis saat kedua pemain siap...",
         returningLobby: "Kembali ke lobi...",
         backToOnlineMenu: "KEMBALI KE MENU ONLINE",
+        rankChange: "Poin Peringkat",
+        victoryBonus: "Bonus Kemenangan!",
+        drawPoints: "Poin Seri",
+        defeatPenalty: "Penalti Kekalahan",
       },
       exitConfirmation: {
         title: "Keluar Permainan?",

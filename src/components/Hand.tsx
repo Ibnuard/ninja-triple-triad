@@ -7,6 +7,7 @@ import { Card as CardType } from "../types/game";
 import { Card } from "./Card";
 import { useGameStore } from "../store/useGameStore";
 import { cn } from "../lib/utils";
+import { RANK_DISPLAY, getRankFromPoints } from "../constants/onlineRanks";
 
 import { useTranslation } from "../store/useSettingsStore";
 
@@ -21,13 +22,14 @@ interface HandProps {
   minimal?: boolean;
   name?: string;
   gauntletRank?: string;
+  onlineRankPoints?: number;
   visualOwnerId?: "player1" | "player2";
   isInteractive?: boolean;
   onCardPlaced?: (
     row: number,
     col: number,
     cardId: string,
-    card: CardType
+    card: CardType,
   ) => void;
 }
 
@@ -42,6 +44,7 @@ export const Hand = ({
   minimal = false,
   name,
   gauntletRank,
+  onlineRankPoints,
   visualOwnerId,
   isInteractive = true,
   onCardPlaced,
@@ -77,6 +80,29 @@ export const Hand = ({
           <span className="text-[9px] font-black tracking-widest text-gray-500 uppercase mr-1">
             {name || t.opponent}
           </span>
+          {gauntletRank && (
+            <div className="flex items-center gap-1 border-l border-white/10 pl-1.5 mr-1">
+              <Trophy size={10} className="text-yellow-600" />
+              <span className="text-[9px] font-black text-yellow-100/60 uppercase">
+                {gauntletRank}
+              </span>
+            </div>
+          )}
+          {onlineRankPoints !== undefined && (
+            <div className="flex items-center gap-1 border-l border-white/10 pl-1.5 mr-1">
+              <span className="text-[10px]">
+                {RANK_DISPLAY[getRankFromPoints(onlineRankPoints)].icon}
+              </span>
+              <span
+                className={cn(
+                  "text-[9px] font-black tabular-nums contrast-125",
+                  RANK_DISPLAY[getRankFromPoints(onlineRankPoints)].color,
+                )}
+              >
+                {onlineRankPoints}
+              </span>
+            </div>
+          )}
           <div className="flex gap-1">
             {cards.map((card) => (
               <motion.div
@@ -111,7 +137,7 @@ export const Hand = ({
       transition={{ duration: 0.5, ease: "circOut" }}
       className={cn(
         "flex flex-col items-center gap-1 lg:gap-4 transition-all duration-300 w-full scale-90 sm:scale-100 origin-center",
-        isHidden && "opacity-80"
+        isHidden && "opacity-80",
       )}
     >
       {/* Label: Outside the card container now */}
@@ -124,7 +150,7 @@ export const Hand = ({
           displayOwner === "player1"
             ? "text-blue-400 border-blue-500/30 shadow-blue-900/20"
             : "text-red-400 border-red-500/30 shadow-red-900/20",
-          isMyTurn && "scale-105 border-opacity-80 animate-pulse"
+          isMyTurn && "scale-105 border-opacity-80 animate-pulse",
         )}
       >
         <div className="flex items-center gap-3">
@@ -146,19 +172,48 @@ export const Hand = ({
               </span>
             </div>
           )}
+          {onlineRankPoints !== undefined && (
+            <div className="flex items-center gap-1.5 pl-3 border-l border-white/20">
+              <span className="text-sm">
+                {RANK_DISPLAY[getRankFromPoints(onlineRankPoints)].icon}
+              </span>
+              <span className="text-[10px] font-black text-white/80 uppercase tracking-widest font-mono">
+                {RANK_DISPLAY[getRankFromPoints(onlineRankPoints)].name}
+              </span>
+              <span className="text-xs font-black text-gray-500 tabular-nums">
+                {onlineRankPoints}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Wrapper for alignment */}
       <div className="flex flex-col w-fit relative">
         {/* Mobile Rank Display (Left Aligned) */}
-        {gauntletRank && !minimal && (
+        {(gauntletRank || onlineRankPoints !== undefined) && !minimal && (
           <div className="lg:hidden self-start mb-2 animate-in fade-in slide-in-from-left-4 duration-500">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-yellow-500/10 rounded-lg border border-yellow-500/20 backdrop-blur-sm shadow-lg">
-              <Trophy size={10} className="text-yellow-500" />
-              <span className="text-[10px] font-black text-yellow-100 uppercase tracking-wider">
-                {gauntletRank}
-              </span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/40 rounded-lg border border-white/10 backdrop-blur-sm shadow-xl">
+              {gauntletRank ? (
+                <>
+                  <Trophy size={10} className="text-yellow-500" />
+                  <span className="text-[10px] font-black text-yellow-100 uppercase tracking-wider">
+                    {gauntletRank}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xs">
+                    {RANK_DISPLAY[getRankFromPoints(onlineRankPoints!)].icon}
+                  </span>
+                  <span className="text-[9px] font-black text-white/60 uppercase tracking-widest font-mono">
+                    {RANK_DISPLAY[getRankFromPoints(onlineRankPoints!)].name}
+                  </span>
+                  <span className="text-[10px] font-black text-gray-500 tabular-nums">
+                    {onlineRankPoints}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -170,10 +225,10 @@ export const Hand = ({
             orientation === "vertical"
               ? "bg-gray-900/80 border border-white/5 shadow-inner min-h-[320px] lg:min-h-[400px] w-full"
               : isMyTurn && !isHidden
-              ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)] min-h-[100px] lg:min-h-[140px] w-fit min-w-[280px] lg:min-w-[360px]"
-              : "bg-black/40 border border-white/5 shadow-inner min-h-[100px] lg:min-h-[140px] w-fit min-w-[280px] lg:min-w-[360px]",
+                ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 shadow-[0_0_30px_-10px_rgba(255,255,255,0.2)] min-h-[100px] lg:min-h-[140px] w-fit min-w-[280px] lg:min-w-[360px]"
+                : "bg-black/40 border border-white/5 shadow-inner min-h-[100px] lg:min-h-[140px] w-fit min-w-[280px] lg:min-w-[360px]",
             !isMyTurn && "scale-90 lg:scale-100 origin-center",
-            isMyTurn && "scale-100 origin-center"
+            isMyTurn && "scale-100 origin-center",
           )}
         >
           <div
@@ -181,7 +236,7 @@ export const Hand = ({
               "transition-all duration-500",
               orientation === "vertical"
                 ? "grid grid-cols-2 gap-2 lg:gap-3 p-2" // 2-column grid for vertical
-                : "flex flex-row -space-x-2 lg:space-x-4 lg:space-x-6 items-center justify-center" // Horizontal layout
+                : "flex flex-row -space-x-2 lg:space-x-4 lg:space-x-6 items-center justify-center", // Horizontal layout
             )}
           >
             {cards.map((card, index) => {
@@ -199,7 +254,7 @@ export const Hand = ({
                       isSelected &&
                       !isAnyCardDragging &&
                       "mx-2",
-                    "cursor-pointer"
+                    "cursor-pointer",
                   )}
                   whileHover={
                     orientation === "vertical" && !isAnyCardDragging
@@ -255,7 +310,7 @@ export const Hand = ({
                                     const y = info.point.y;
                                     const element = document.elementFromPoint(
                                       x,
-                                      y
+                                      y,
                                     );
                                     const cellData = element
                                       ?.closest("[data-cell-index]")
@@ -280,7 +335,7 @@ export const Hand = ({
                                       // Place card locally
                                       storePlaceCard(
                                         hoveredCell.row,
-                                        hoveredCell.col
+                                        hoveredCell.col,
                                       );
                                       // Broadcast for online
                                       if (onCardPlaced) {
@@ -288,7 +343,7 @@ export const Hand = ({
                                           hoveredCell.row,
                                           hoveredCell.col,
                                           card.id,
-                                          card
+                                          card,
                                         );
                                       }
                                     }
