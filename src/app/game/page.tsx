@@ -531,6 +531,24 @@ function GamePageContent() {
       )}
 
       {/* Opponent Left Modal */}
+      {/* State Validation - Show syncing if state is incomplete */}
+      {isOnline &&
+        phase === "playing" &&
+        (!player1?.id ||
+          !player2?.id ||
+          !player1?.hand?.length ||
+          !player2?.hand?.length) && (
+          <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4 font-mono">
+            <div className="w-16 h-16 border-4 border-t-yellow-500 border-yellow-900/30 rounded-full animate-spin mb-6" />
+            <h2 className="text-xl font-black text-yellow-500 italic tracking-wider mb-2 uppercase text-center">
+              Syncing Game State...
+            </h2>
+            <p className="text-gray-400 text-sm text-center">
+              Please wait while we sync with the server
+            </p>
+          </div>
+        )}
+
       {/* Preparation Phase / Waiting UI */}
       {isOnline && (phase === "waiting" || phase === "preparing") && (
         <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4 font-mono">

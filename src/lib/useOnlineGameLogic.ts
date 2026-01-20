@@ -430,12 +430,44 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
           table: "matches",
           filter: `id=eq.${matchId}`,
         },
-        (payload) => {
+        async (payload) => {
           const newMatch = payload.new;
+          console.log("DB Update received:", {
+            player1_ready: newMatch.player1_ready,
+            player2_ready: newMatch.player2_ready,
+            hasState: !!newMatch.state,
+            phase: newMatch.state?.phase,
+          });
+
           if (newMatch.status === "cancelled") {
             setOpponentDisconnected(true);
             return;
           }
+
+          // Update ready states from DB
+          const isPlayer1 = newMatch.player1_id === user?.id;
+          setMyReady(
+            isPlayer1 ? newMatch.player1_ready : newMatch.player2_ready
+          );
+          setOpponentReady(
+            isPlayer1 ? newMatch.player2_ready : newMatch.player1_ready
+          );
+
+          // CRITICAL: Check if both ready and initialize
+          if (
+            newMatch.player1_ready &&
+            newMatch.player2_ready &&
+            !hasInitializedRef.current &&
+            isHostRef.current
+          ) {
+            console.log("Both players ready! Host initiating game...");
+            if (!matchDataRef.current) {
+              matchDataRef.current = newMatch;
+            }
+            initializeGame();
+          }
+
+          // Apply game state if exists
           if (newMatch.state) {
             if (!matchDataRef.current) {
               matchDataRef.current = newMatch;
@@ -544,59 +576,62 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
             console.log("Entering preparation phase...");
             useGameStore.setState({ phase: "preparing" });
 
-            // Initial track
+            // SET READY FLAG IN DB (New DB-based approach)
+            const isPlayer1 = match.player1_id === user.id;
+            console.log(
+              `Setting ${
+                isPlayer1 ? "player1_ready" : "player2_ready"
+              } = true in DB...`
+            );
+
+            const readyUpdate = isPlayer1
+              ? { player1_ready: true }
+              : { player2_ready: true };
+
+            const { error: readyError } = await supabase
+              .from("matches")
+              .update(readyUpdate)
+              .eq("id", matchId);
+
+            if (readyError) {
+              console.error("Failed to set ready flag:", readyError);
+            } else {
+              console.log("Ready flag set successfully!");
+              // Update local state
+              setMyReady(true);
+            }
+
+            // Check if already both ready (host might have joined first)
+            if (
+              match.player1_ready &&
+              match.player2_ready &&
+              isHostRef.current &&
+              !hasInitializedRef.current
+            ) {
+              console.log(
+                "Both already ready on initial load! Host initiating game..."
+              );
+              initializeGame();
+            }
+
+            // If I'm host and other player already ready, initialize
+            if (isHostRef.current && !hasInitializedRef.current) {
+              const otherReady = isPlayer1
+                ? match.player2_ready
+                : match.player1_ready;
+              if (otherReady) {
+                console.log("Opponent already ready! Host initiating game...");
+                initializeGame();
+              }
+            }
+
+            // Keep presence tracking for UI indicators (optional)
             if (channel.state === "joined") {
               try {
                 await channel.track({ user_id: user.id, ready: true });
               } catch (e) {
                 console.warn("Track error:", e);
               }
-            }
-
-            // AUTO-START if Host (with strict validation to prevent race conditions)
-            if (
-              isHostRef.current &&
-              !hasInitializedRef.current &&
-              matchDataRef.current
-            ) {
-              console.log("Host: Preparing to auto-initialize game...");
-
-              // CRITICAL: Wait longer to ensure joiner has connected
-              // This prevents empty hands and "both YOUR TURN" bugs
-              setTimeout(async () => {
-                if (hasInitializedRef.current) {
-                  console.log("Host: Already initialized, skipping");
-                  return;
-                }
-
-                const match = matchDataRef.current;
-                if (!match) {
-                  console.error("Host: No match data, cannot initialize");
-                  return;
-                }
-
-                // Validate both player IDs exist
-                if (!match.player1_id || !match.player2_id) {
-                  console.error("Host: Missing player IDs, cannot initialize");
-                  return;
-                }
-
-                // Check if opponent is present (optional but recommended)
-                const presenceState = channel?.presenceState() || {};
-                const presenceCount = Object.keys(presenceState).length;
-                console.log(`Host: Presence count = ${presenceCount}`);
-
-                if (presenceCount < 2) {
-                  console.warn(
-                    "Host: Only 1 player in presence, but proceeding anyway (opponent might be slow)"
-                  );
-                }
-
-                console.log(
-                  "Host: All validations passed. Executing initialization..."
-                );
-                initializeGame();
-              }, 1500); // Increased from 300ms to 1500ms
             }
           }
         }
@@ -631,32 +666,20 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       setOpponentReady(foundOpponentReady);
       setMyReady(foundMyReady);
 
-      // 2. Retry Tracking if I'm not ready in my own view
-      if (
-        !foundMyReady &&
-        (currentPhase === "preparing" || currentPhase === "playing")
-      ) {
-        if (channel.state === "joined") {
-          console.log("Watchdog: Retracking ready status...");
-          try {
-            await channel.track({ user_id: user.id, ready: true });
-          } catch (e) {
-            console.warn("Watchdog track error:", e);
-          }
-        }
-      }
-
-      // 3. Host Init Check (Redundant safety net for stuck preparing)
+      // 3. Host Init Check via DB (Redundant safety net for stuck preparing)
+      // This now uses DB-based ready tracking instead of presence
       if (
         isHostRef.current &&
         currentPhase === "preparing" &&
-        !hasInitializedRef.current &&
-        matchDataRef.current
+        !hasInitializedRef.current
       ) {
-        console.log(
-          "Watchdog: Host stuck in preparing - retrying initialization..."
-        );
-        initializeGame();
+        console.log("Watchdog: Checking DB for both players ready...");
+        const match = await loadStateFromDb();
+        if (match && match.player1_ready && match.player2_ready) {
+          matchDataRef.current = match;
+          console.log("Watchdog: Both players ready in DB! Initiating game...");
+          initializeGame();
+        }
       }
 
       // 4. Empty Hand Detection & Fix

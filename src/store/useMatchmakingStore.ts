@@ -229,6 +229,8 @@ export const useMatchmakingStore = create<MatchmakingState>((set, get) => {
                   player1_id: user.id,
                   player2_id: opponent.user_id,
                   status: "playing", // Start directly in playing phase
+                  player1_ready: true, // Host is ready immediately
+                  player2_ready: false, // Joiner will set when they connect
                   config: {
                     decks: {
                       [user.id]: myDeck,
