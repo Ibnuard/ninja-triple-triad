@@ -252,10 +252,10 @@ function GamePageContent() {
   const gauntletScore = useGauntletStore((state) => state.score);
   const gauntletDeck = useGauntletStore((state) => state.deck);
   const processMatchResult = useGauntletStore(
-    (state) => state.processMatchResult
+    (state) => state.processMatchResult,
   );
   const getOpponentConfig = useGauntletStore(
-    (state) => state.getOpponentConfig
+    (state) => state.getOpponentConfig,
   );
   const isGauntletActive = useGauntletStore((state) => state.isActive);
   const isBossBattle = useGauntletStore((state) => state.isBossBattle);
@@ -301,7 +301,7 @@ function GamePageContent() {
   const startGame = async (
     isRestart = false,
     overrideP1Hand?: Card[],
-    overrideP2Hand?: Card[]
+    overrideP2Hand?: Card[],
   ) => {
     setLoadingMessage(isRestart ? t.cleaning : t.preparing);
 
@@ -320,7 +320,7 @@ function GamePageContent() {
         "gauntlet-room",
         true,
         config.mechanic,
-        config.activeElement as any
+        config.activeElement as any,
       );
 
       useGameStore.setState((state) => ({
@@ -356,8 +356,8 @@ function GamePageContent() {
           activeReward === 2
             ? "player1"
             : Math.random() > 0.5
-            ? "player1"
-            : "player2",
+              ? "player1"
+              : "player2",
       }));
 
       // Reward logic is now handled by the selection flow before calling startGame
@@ -374,12 +374,12 @@ function GamePageContent() {
           hand: isCustom
             ? generateDiverseHand("p1")
             : configMode === "training" &&
-              useDeckStore.getState().selectedDeck.length === 5
-            ? [...useDeckStore.getState().selectedDeck].map((c) => ({
-                ...c,
-                id: `${c.id}-${Math.random()}`,
-              }))
-            : [...MOCK_CARDS].sort(() => Math.random() - 0.5),
+                useDeckStore.getState().selectedDeck.length === 5
+              ? [...useDeckStore.getState().selectedDeck].map((c) => ({
+                  ...c,
+                  id: `${c.id}-${Math.random()}`,
+                }))
+              : [...MOCK_CARDS].sort(() => Math.random() - 0.5),
           totalFlips: 0,
         },
         player2: {
@@ -387,19 +387,19 @@ function GamePageContent() {
           hand: isCustom
             ? generateDiverseHand("p2")
             : configMode === "training"
-            ? (useCardStore.getState().cards.length > 0
-                ? useCardStore.getState().cards
-                : CARD_POOL
-              )
-                .sort((a, b) => (a.cp || 0) - (b.cp || 0))
-                .slice(0, 5)
-                .map((c) => ({ ...c, id: `${c.id}-${Math.random()}` }))
-            : [...OPPONENT_CARDS].sort(() => Math.random() - 0.5),
+              ? (useCardStore.getState().cards.length > 0
+                  ? useCardStore.getState().cards
+                  : CARD_POOL
+                )
+                  .sort((a, b) => (a.cp || 0) - (b.cp || 0))
+                  .slice(0, 5)
+                  .map((c) => ({ ...c, id: `${c.id}-${Math.random()}` }))
+              : [...OPPONENT_CARDS].sort(() => Math.random() - 0.5),
           name: isCustom
             ? "Player 2"
             : configMode === "training"
-            ? "Dummy (Easy)"
-            : "Computer",
+              ? "Dummy (Easy)"
+              : "Computer",
           avatar_url: undefined,
           totalFlips: 0,
         },
@@ -430,8 +430,8 @@ function GamePageContent() {
     rank: isGauntletMode
       ? gauntletRank
       : configMode === "training"
-      ? "Genin"
-      : "Chunin",
+        ? "Genin"
+        : "Chunin",
   });
 
   const [showResult, setShowResult] = useState(false);
@@ -446,14 +446,14 @@ function GamePageContent() {
         board.forEach((row) =>
           row.forEach((cell) => {
             if (cell.owner === "player1") boardCardCount++;
-          })
+          }),
         );
         setOldGauntletScore(gauntletScore);
         setJustFinishedBoss(isBossBattle);
         const result = processMatchResult(
           winner || "draw",
           player1.totalFlips || 0,
-          boardCardCount
+          boardCardCount,
         );
         setGauntletResult(result);
       }
@@ -805,10 +805,10 @@ function GamePageContent() {
           const oppCard = cards[0];
           const oldCard = selectedHandCards[0];
           const newP1Hand = gauntletDeck.map((c) =>
-            c.id === oldCard.id ? oppCard : c
+            c.id === oldCard.id ? oppCard : c,
           );
           const newP2Hand = nextOpponentDeck.map((c) =>
-            c.id === oppCard.id ? oldCard : c
+            c.id === oppCard.id ? oldCard : c,
           );
 
           setSwapData({ oldCards: [oldCard], newCards: [oppCard] });
@@ -881,6 +881,12 @@ function GamePageContent() {
                 player2={player2}
                 isPOVPlayer2={isPOVPlayer2}
                 mechanic={mechanic}
+                opponentRankPoints={
+                  isPOVPlayer2 ? player1.rank_points : player2.rank_points
+                }
+                myRankPoints={
+                  isPOVPlayer2 ? player2.rank_points : player1.rank_points
+                }
                 onShowInfo={() => setShowInfo(true)}
                 onShowSettings={() => setShowSettingsModal(true)}
                 onShowExitConfirm={() => setShowExitConfirm(true)}
@@ -906,7 +912,7 @@ function GamePageContent() {
                 <div
                   className={cn(
                     "order-3 lg:order-1 w-full h-full flex flex-col items-center justify-center relative p-1 lg:p-2",
-                    useGameStore.getState().draggingCardId && "z-[100]"
+                    useGameStore.getState().draggingCardId && "z-[100]",
                   )}
                 >
                   {/* Mobile View (Horizontal) */}

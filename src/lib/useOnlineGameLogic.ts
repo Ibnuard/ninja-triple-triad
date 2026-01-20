@@ -80,7 +80,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
         if (!hasValidHands && dbState.phase === "playing") {
           console.warn("⚠️ Incomplete state detected - missing hand cards!");
           console.log(
-            "Triggering immediate DB reload to fetch complete state..."
+            "Triggering immediate DB reload to fetch complete state...",
           );
 
           // Active retry: Reload from DB immediately
@@ -109,14 +109,14 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
         }
 
         console.log(
-          `Applying state from DB (moveSeq: ${dbMoveSeq} > ${localSeq})`
+          `Applying state from DB (moveSeq: ${dbMoveSeq} > ${localSeq})`,
         );
         useGameStore.setState(dbState);
         return true;
       }
       return false;
     },
-    [loadStateFromDb]
+    [loadStateFromDb],
   );
 
   // Initialize game - called when both players ready
@@ -141,7 +141,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
         console.warn("P1 Deck Missing in Config. Fetching from DB Fallback...");
         const { data, error } = await supabase
           .from("profiles")
-          .select("selected_deck")
+          .select("selected_deck, rank_points")
           .eq("id", p1Id)
           .single();
         if (data?.selected_deck) {
@@ -154,7 +154,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
         console.warn("P2 Deck Missing in Config. Fetching from DB Fallback...");
         const { data, error } = await supabase
           .from("profiles")
-          .select("selected_deck")
+          .select("selected_deck, rank_points")
           .eq("id", p2Id)
           .single();
         if (data?.selected_deck) {
@@ -180,10 +180,10 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
       return false;
     }
 
-    // Fetch Profiles for Avatar & Names
+    // Fetch Profiles for Avatar, Names & Rank Points
     const { data: profiles, error: pError } = await supabase
       .from("profiles")
-      .select("id, username, full_name, avatar_url")
+      .select("id, username, full_name, avatar_url, rank_points")
       .in("id", [p1Id, p2Id]);
 
     const p1Profile = profiles?.find((p) => p.id === p1Id);
@@ -216,6 +216,8 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
             : null) ||
           "...",
         avatar_url: p1Profile?.avatar_url || undefined,
+        rank_points:
+          p1Profile?.rank_points || match.config?.rankPoints?.[p1Id] || 0,
         hand: processHand(p1Hand),
         capturedCount: 0,
         color: "blue" as const,
@@ -231,6 +233,8 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
             : null) ||
           "...",
         avatar_url: p2Profile?.avatar_url || undefined,
+        rank_points:
+          p2Profile?.rank_points || match.config?.rankPoints?.[p2Id] || 0,
         hand: processHand(p2Hand),
         capturedCount: 0,
         color: "red" as const,
@@ -247,7 +251,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
               card: null,
               owner: null,
               element: "none" as const,
-            }))
+            })),
         ),
       winner: null,
       lastMove: null,
@@ -335,7 +339,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
         row.forEach((c: any) => {
           if (c.owner === "player1") p1Score++;
           if (c.owner === "player2") p2Score++;
-        })
+        }),
       );
 
       console.log("Final Scores:", { p1: p1Score, p2: p2Score });
@@ -344,8 +348,8 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
         winner === "player1"
           ? player1.id
           : winner === "player2"
-          ? player2.id
-          : null;
+            ? player2.id
+            : null;
 
       console.log("Determined Winner ID:", winnerId);
 
@@ -385,7 +389,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
         }, 2000);
       }
     },
-    [matchId, mode, user]
+    [matchId, mode, user],
   );
 
   // Subscribe to store changes
@@ -447,10 +451,10 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
           // Update ready states from DB
           const isPlayer1 = newMatch.player1_id === user?.id;
           setMyReady(
-            isPlayer1 ? newMatch.player1_ready : newMatch.player2_ready
+            isPlayer1 ? newMatch.player1_ready : newMatch.player2_ready,
           );
           setOpponentReady(
-            isPlayer1 ? newMatch.player2_ready : newMatch.player1_ready
+            isPlayer1 ? newMatch.player2_ready : newMatch.player1_ready,
           );
 
           // CRITICAL: Check if both ready and initialize
@@ -475,7 +479,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
             }
             applyStateFromDb(newMatch.state);
           }
-        }
+        },
       )
       .on("presence", { event: "sync" }, () => {
         const presenceState = channel.presenceState();
@@ -581,7 +585,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
             console.log(
               `Setting ${
                 isPlayer1 ? "player1_ready" : "player2_ready"
-              } = true in DB...`
+              } = true in DB...`,
             );
 
             const readyUpdate = isPlayer1
@@ -609,7 +613,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
               !hasInitializedRef.current
             ) {
               console.log(
-                "Both already ready on initial load! Host initiating game..."
+                "Both already ready on initial load! Host initiating game...",
               );
               initializeGame();
             }
@@ -703,7 +707,7 @@ export const useOnlineGameLogic = (): UseOnlineGameLogicReturn => {
                 useGameStore.setState(match.state);
               } else {
                 console.error(
-                  "❌ DB state also has empty hands - critical error"
+                  "❌ DB state also has empty hands - critical error",
                 );
               }
             }

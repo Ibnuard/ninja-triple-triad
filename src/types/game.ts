@@ -49,6 +49,7 @@ export interface Player {
   color: string; // e.g. 'blue' or 'red'
   isComputer: boolean;
   avatar_url?: string;
+  rank_points?: number;
 }
 
 export type GamePhase =

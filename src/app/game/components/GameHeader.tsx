@@ -18,6 +18,7 @@ interface GameHeaderProps {
   isPOVPlayer2: boolean;
   mechanic: BoardMechanicState;
   opponentRankPoints?: number;
+  myRankPoints?: number;
   showInfoButton?: boolean;
   onShowInfo: () => void;
   onShowSettings: () => void;
@@ -38,6 +39,7 @@ export function GameHeader({
   isPOVPlayer2,
   mechanic,
   opponentRankPoints = 0,
+  myRankPoints = 0,
   onShowInfo,
   onShowSettings,
   onShowExitConfirm,
@@ -61,7 +63,7 @@ export function GameHeader({
             mechanic.activeElement === "water" && "bg-blue-500/30",
             mechanic.activeElement === "earth" && "bg-amber-700/30",
             mechanic.activeElement === "wind" && "bg-emerald-500/30",
-            mechanic.activeElement === "lightning" && "bg-yellow-400/30"
+            mechanic.activeElement === "lightning" && "bg-yellow-400/30",
           )}
         >
           <img
@@ -207,7 +209,7 @@ export function GameHeader({
                 "h-7 lg:h-8 px-4 lg:px-6 rounded-lg font-bold flex items-center justify-center transition-all duration-300",
                 isMyTurn
                   ? "bg-gradient-to-r from-blue-600/90 to-blue-500/90 text-white border border-blue-400/40 shadow-lg shadow-blue-900/40"
-                  : "bg-gradient-to-r from-red-600/80 to-red-500/80 text-white border border-red-400/30 shadow-lg shadow-red-900/30"
+                  : "bg-gradient-to-r from-red-600/80 to-red-500/80 text-white border border-red-400/30 shadow-lg shadow-red-900/30",
               )}
             >
               <motion.span
@@ -218,12 +220,12 @@ export function GameHeader({
                 {isMyTurn
                   ? t.yourTurn
                   : isOnline
-                  ? t.opponentTurn
-                  : isGauntletMode
-                  ? formatName(player2.name)
-                  : isCustomMode
-                  ? "P2"
-                  : t.opponentTurn}
+                    ? t.opponentTurn
+                    : isGauntletMode
+                      ? formatName(player2.name)
+                      : isCustomMode
+                        ? "P2"
+                        : t.opponentTurn}
               </motion.span>
             </motion.div>
           )}
@@ -233,6 +235,18 @@ export function GameHeader({
         <div className="flex-1 flex justify-end items-center gap-1 lg:gap-1.5 pointer-events-auto">
           {phase !== "game_over" && (
             <>
+              {/* My Rank Badge */}
+              {isOnline && myRankPoints !== undefined && (
+                <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-black/40 rounded border border-white/10 mr-1 lg:mr-2">
+                  <span className="text-[10px] lg:text-xs">
+                    {RANK_DISPLAY[getRankFromPoints(myRankPoints)].icon}
+                  </span>
+                  <span className="text-[9px] lg:text-[10px] text-white/60 font-bold tabular-nums">
+                    {myRankPoints}
+                  </span>
+                </div>
+              )}
+
               <button
                 onClick={onShowInfo}
                 className="h-7 lg:h-8 w-7 lg:w-8 flex items-center justify-center rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400/80 hover:text-yellow-300 hover:border-yellow-400/50 hover:bg-yellow-500/20 transition-all"

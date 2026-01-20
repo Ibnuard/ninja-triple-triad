@@ -274,6 +274,7 @@ export const TRANSLATIONS = {
       rankPoints: "Rank Points",
       currentRank: "Current Rank",
       pointsToNextRank: "points to next rank",
+      loadingData: "SYNCING DATA...",
       deckEditor: {
         title: "EDIT BATTLE DECK",
         cancel: "CANCEL",
@@ -731,6 +732,7 @@ export const TRANSLATIONS = {
       rankPoints: "Poin Peringkat",
       currentRank: "Peringkat Saat Ini",
       pointsToNextRank: "poin ke peringkat berikutnya",
+      loadingData: "SINKRONISASI DATA...",
       deckEditor: {
         title: "ATUR DEK PERTANDINGAN",
         cancel: "BATAL",

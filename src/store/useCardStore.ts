@@ -5,27 +5,31 @@ import { useAuthStore } from "./useAuthStore";
 
 interface CardState {
   cards: Card[];
-  isLoading: boolean;
+  isCardsLoading: boolean;
+  isUserCardsLoading: boolean;
+  isLoading: boolean; // Keep for backward compatibility if used elsewhere
   error: string | null;
   userCardIds: string[];
   fetchCards: () => Promise<void>;
   fetchUserCards: (userId: string) => Promise<void>;
   addCard: (
-    card: Omit<Card, "id" | "baseStats">
+    card: Omit<Card, "id" | "baseStats">,
   ) => Promise<{ success: boolean; error?: string }>;
   updateCard: (
     id: string,
-    card: Omit<Card, "id" | "baseStats">
+    card: Omit<Card, "id" | "baseStats">,
   ) => Promise<{ success: boolean; error?: string }>;
   addStarterPack: (
     userId: string,
-    cardIds: string[]
+    cardIds: string[],
   ) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const useCardStore = create<CardState>((set, get) => ({
   cards: [],
   userCardIds: [],
+  isCardsLoading: false,
+  isUserCardsLoading: false,
   isLoading: false,
   error: null,
   fetchCards: async () => {
@@ -35,7 +39,7 @@ export const useCardStore = create<CardState>((set, get) => ({
       return;
     }
 
-    set({ isLoading: true, error: null });
+    set({ isCardsLoading: true, isLoading: true, error: null });
     try {
       const { data, error } = await supabase
         .from("cards")
@@ -67,16 +71,16 @@ export const useCardStore = create<CardState>((set, get) => ({
         },
       }));
 
-      set({ cards: formattedCards, isLoading: false });
+      set({ cards: formattedCards, isCardsLoading: false, isLoading: false });
     } catch (err: any) {
-      set({ error: err.message, isLoading: false });
+      set({ error: err.message, isCardsLoading: false, isLoading: false });
       console.error("Error fetching cards:", err);
     }
   },
   fetchUserCards: async (userId: string) => {
     // Don't set global isLoading to avoid full screen spinners for just card updates if possible,
     // but for now it's safer.
-    set({ isLoading: true, error: null });
+    set({ isUserCardsLoading: true, isLoading: true, error: null });
     try {
       const { data, error } = await supabase
         .from("user_cards")
@@ -86,10 +90,10 @@ export const useCardStore = create<CardState>((set, get) => ({
       if (error) throw error;
 
       const ids = data.map((row: any) => row.card_id);
-      set({ userCardIds: ids, isLoading: false });
+      set({ userCardIds: ids, isUserCardsLoading: false, isLoading: false });
     } catch (err: any) {
       console.error("Error fetching user cards:", err);
-      set({ error: err.message, isLoading: false });
+      set({ error: err.message, isUserCardsLoading: false, isLoading: false });
     }
   },
   addCard: async (card: Omit<Card, "id" | "baseStats">) => {

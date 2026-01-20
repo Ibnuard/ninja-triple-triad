@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 
 interface DeckStore {
   selectedDeck: Card[];
+  isLoading: boolean;
   loadDeck: (userId?: string) => Promise<void>;
   saveDeck: (deck: Card[], userId?: string) => Promise<void>;
   isDeckComplete: () => boolean;
@@ -19,6 +20,7 @@ const STATS_KEY = "gauntlet_stats";
 
 export const useDeckStore = create<DeckStore>((set, get) => ({
   selectedDeck: [],
+  isLoading: false,
   lastRunScore: 0,
   lastBoss: "-",
 
@@ -51,6 +53,7 @@ export const useDeckStore = create<DeckStore>((set, get) => ({
 
     // 2. If userId is provided, sync from Supabase
     if (userId) {
+      set({ isLoading: true });
       try {
         const { data, error } = await supabase
           .from("profiles")
@@ -80,6 +83,8 @@ export const useDeckStore = create<DeckStore>((set, get) => ({
         }
       } catch (error) {
         console.error("Failed to load deck from database:", error);
+      } finally {
+        set({ isLoading: false });
       }
     }
   },
