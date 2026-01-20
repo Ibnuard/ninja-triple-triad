@@ -179,6 +179,7 @@ function GamePageContent() {
     coinsEarned?: number;
     isWinStreakBonus?: boolean;
   } | null>(null);
+  const [onlineCoinsEarned, setOnlineCoinsEarned] = useState(0);
 
   const { showFPS: userShowFPS, showBoardAnimation: userShowBoardAnimation } =
     useSettingsStore();
@@ -491,12 +492,17 @@ function GamePageContent() {
       }
 
       console.log(`Updating rank: User ${user.id} result = ${matchResult}`);
-      updatePlayerRankAfterMatch(user.id, matchResult);
+      updatePlayerRankAfterMatch(user.id, matchResult).then((res) => {
+        if (res.success) {
+          setOnlineCoinsEarned(res.coinsEarned);
+        }
+      });
     }
 
     // Reset ref when phase changes away from game_over
     if (phase !== "game_over") {
       hasUpdatedRankRef.current = false;
+      setOnlineCoinsEarned(0);
     }
   }, [phase, isOnline, user?.id, winner, player1.id, player2.id]);
 
@@ -1083,6 +1089,7 @@ function GamePageContent() {
             gauntletScore={gauntletScore}
             oldGauntletScore={oldGauntletScore}
             gauntletResult={gauntletResult}
+            onlineCoinsEarned={onlineCoinsEarned}
             pendingReward={pendingReward}
             pendingRank={pendingRank}
             onStartGame={startGame}

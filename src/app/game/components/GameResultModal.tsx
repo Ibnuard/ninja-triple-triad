@@ -34,6 +34,7 @@ interface GameResultModalProps {
     coinsEarned?: number;
     isWinStreakBonus?: boolean;
   } | null;
+  onlineCoinsEarned: number;
   pendingReward: any;
   pendingRank: GauntletRank | null; // Added pendingRank
   onStartGame: (isRestart?: boolean) => void;
@@ -58,6 +59,7 @@ export function GameResultModal({
   gauntletScore,
   oldGauntletScore,
   gauntletResult,
+  onlineCoinsEarned,
   pendingReward,
   pendingRank, // Added pendingRank
   onStartGame,
@@ -488,26 +490,50 @@ export function GameResultModal({
                   <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-2">
                     {t.online?.rankChange}
                   </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <span
-                      className={cn(
-                        "text-2xl font-black",
-                        iWon
-                          ? "text-green-400"
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-center gap-2">
+                      <span
+                        className={cn(
+                          "text-2xl font-black",
+                          iWon
+                            ? "text-green-400"
+                            : winner === "draw"
+                              ? "text-yellow-400"
+                              : "text-red-400",
+                        )}
+                      >
+                        {iWon
+                          ? `+${RANK_POINTS.WIN}`
                           : winner === "draw"
-                            ? "text-yellow-400"
-                            : "text-red-400",
-                      )}
-                    >
-                      {iWon
-                        ? `+${RANK_POINTS.WIN}`
-                        : winner === "draw"
-                          ? `+${RANK_POINTS.DRAW}`
-                          : RANK_POINTS.LOSS}
-                    </span>
-                    <span className="text-gray-500 text-sm">pts</span>
+                            ? `+${RANK_POINTS.DRAW}`
+                            : RANK_POINTS.LOSS}
+                      </span>
+                      <span className="text-gray-500 text-sm">pts</span>
+                    </div>
+
+                    {onlineCoinsEarned > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-yellow-500/10 rounded-lg py-2 px-4 flex items-center justify-center gap-2 border border-yellow-500/20"
+                      >
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-b from-yellow-300 to-yellow-600 flex items-center justify-center shadow-[0_0_8px_rgba(255,215,0,0.4)]">
+                          <span className="text-[10px] font-black text-yellow-900">
+                            C
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-start leading-none">
+                          <span className="text-[8px] uppercase tracking-widest text-yellow-500/80 font-black">
+                            {t.online?.coinsEarned}
+                          </span>
+                          <span className="text-sm font-black text-yellow-500">
+                            +{onlineCoinsEarned}
+                          </span>
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
-                  <div className="text-[10px] text-gray-500 mt-1">
+                  <div className="text-[9px] text-gray-500 mt-2">
                     {iWon
                       ? t.online?.victoryBonus
                       : winner === "draw"

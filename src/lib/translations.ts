@@ -207,6 +207,7 @@ export const TRANSLATIONS = {
         victoryBonus: "Victory Bonus!",
         drawPoints: "Draw Points",
         defeatPenalty: "Defeat Penalty",
+        coinsEarned: "Coins Earned",
       },
       exitConfirmation: {
         title: "Quit Game?",
@@ -669,6 +670,7 @@ export const TRANSLATIONS = {
         victoryBonus: "Bonus Kemenangan!",
         drawPoints: "Poin Seri",
         defeatPenalty: "Penalti Kekalahan",
+        coinsEarned: "Koin Didapat",
       },
       exitConfirmation: {
         title: "Keluar Permainan?",

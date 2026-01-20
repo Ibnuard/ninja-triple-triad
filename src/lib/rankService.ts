@@ -8,23 +8,33 @@ export type MatchResult = "win" | "draw" | "loss";
  */
 export async function updatePlayerRankAfterMatch(
   userId: string,
-  result: MatchResult
-): Promise<{ success: boolean; newPoints?: number; error?: string }> {
+  result: MatchResult,
+): Promise<{
+  success: boolean;
+  newPoints?: number;
+  coinsEarned: number;
+  error?: string;
+}> {
   try {
     // First, get current profile stats
     const { data: profile, error: fetchError } = await supabase
       .from("profiles")
-      .select("rank_points, total_matches, wins, losses, draws")
+      .select("rank_points, total_matches, wins, losses, draws, coins")
       .eq("id", userId)
       .single();
 
     if (fetchError || !profile) {
       console.error("Failed to fetch profile for rank update:", fetchError);
-      return { success: false, error: "Failed to fetch profile" };
+      return {
+        success: false,
+        error: "Failed to fetch profile",
+        coinsEarned: 0,
+      };
     }
 
     const currentPoints = profile.rank_points || 0;
     const newPoints = calculateNewRankPoints(currentPoints, result);
+    let coinsEarned = 0;
 
     // Prepare update data
     const updateData: Record<string, number> = {
@@ -32,10 +42,12 @@ export async function updatePlayerRankAfterMatch(
       total_matches: (profile.total_matches || 0) + 1,
     };
 
-    // Update win/loss/draw counters
+    // Update win/loss/draw counters and add coins for win
     switch (result) {
       case "win":
         updateData.wins = (profile.wins || 0) + 1;
+        coinsEarned = 10;
+        updateData.coins = (profile.coins || 0) + coinsEarned;
         break;
       case "draw":
         updateData.draws = (profile.draws || 0) + 1;
@@ -53,17 +65,17 @@ export async function updatePlayerRankAfterMatch(
 
     if (updateError) {
       console.error("Failed to update rank points:", updateError);
-      return { success: false, error: "Failed to update rank" };
+      return { success: false, error: "Failed to update rank", coinsEarned: 0 };
     }
 
     console.log(
-      `Rank updated for ${userId}: ${currentPoints} -> ${newPoints} (${result})`
+      `Rank updated for ${userId}: ${currentPoints} -> ${newPoints} (${result}), Coins: +${coinsEarned}`,
     );
 
-    return { success: true, newPoints };
+    return { success: true, newPoints, coinsEarned };
   } catch (err) {
     console.error("Error updating player rank:", err);
-    return { success: false, error: "Unexpected error" };
+    return { success: false, error: "Unexpected error", coinsEarned: 0 };
   }
 }
 
